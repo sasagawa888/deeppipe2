@@ -14,21 +14,19 @@ defmodule Deeppipe2 do
   end
 
   def forward(x, [{:weight, w, _, _} | rest]) do
-    x1 = Cumatrix.mult(x, w)
-    forward(x1, rest)
+    Cumatrix.mult(x, w) |> forward(rest)
   end
 
   def forward(x, [{:bias, b, _, _} | rest]) do
-    x1 = Cumatrix.badd(x, b)
-    forward(x1, rest)
+    Cumatrix.badd(x, b) |> forward(rest)
   end
 
   def forward(x, [{:function, name} | rest]) do
     cond do
-      name == :sigmoid -> Cumatrix.activate(x,:sigmoid)
-      name == :tanh -> Cumatrix.activate(x,:tanh)
-      name == :relu -> Cumatrix.activate(x,:relu)
-      name == :softmax -> Cumatrix.activate(x,:softmax)
+      name == :sigmoid -> Cumatrix.activate(x,:sigmoid) |> forward(rest)
+      name == :tanh -> Cumatrix.activate(x,:tanh) |> forward(rest)
+      name == :relu -> Cumatrix.activate(x,:relu) |> forward(rest)
+      name == :softmax -> Cumatrix.activate(x,:softmax) |> forward(rest)
       true -> raise "not exist function" 
     end 
   end
