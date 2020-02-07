@@ -30,4 +30,41 @@ defmodule Deeppipe2 do
       true -> raise "not exist function" 
     end 
   end
+
+  # forward for backpropagation
+  # this store all middle data
+  def forward_for_back(_, [], res) do
+    res
+  end
+
+  def forward_for_back(x, [{:weight, w, _, _} | rest], res) do
+    x1 = Cumatrix.mult(x, w)
+    forward_for_back(x1, rest, [x1 | res])
+  end
+
+  def forward_for_back(x, [{:bias, b, _, _} | rest], res) do
+    x1 = Cumatrix.badd(x, b)
+    forward_for_back(x1, rest, [x1 | res])
+  end
+
+  def forward_for_back(x, [{:function, name} | rest], res) do
+    cond do
+      name == :sigmoid -> 
+        x1 = Cumatrix.activate(x,:sigmoid)
+        forward_for_back(x1, rest, [x1 | res])
+      name == :tanh -> 
+        x1 = Cumatrix.activate(x,:tanh)
+        forward_for_back(x1, rest, [x1 | res])
+      name == :relu -> 
+        x1 = Cumatrix.activate(x,:relu)
+        forward_for_back(x1, rest, [x1 | res])
+      name == :softmax -> 
+        x1 = Cumatrix.activate(x,:softmax)
+        forward_for_back(x1, rest, [x1 | res])
+      true -> 
+        raise "not exist function"
+    end 
+  end
+
+  
 end
