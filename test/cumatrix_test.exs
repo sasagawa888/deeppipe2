@@ -26,6 +26,28 @@ defmodule CumatrixTest do
     m3 = Cumatrix.new([[1.0,2.0]])
     assert Cumatrix.add(m,m3) == Cumatrix.new([[2.0, 4.0], [4.0, 6.0]])
     assert Cumatrix.to_list(m1) == [[1.0, -2.0, 3.0], [4.0, 5.0, -6.0]]
+    assert Cumatrix.minus(m1,2,3,1.0) == Cumatrix.new([[1.0, -2.0, 3.0], [4.0, 5.0, -7.0]])
+    m4 = Cumatrix.new(([[1.0,2.0,3.0],[2.0,3.0,1.2]]))
+    m5 = Cumatrix.new(([[1.1,2.9,2.0],[2.2,3.1,1.2]]))
+    assert Cumatrix.loss(m4,m5,:square) == Cumatrix.new([[0.9100000858306885], [0.02499999850988388]]) 
+    assert Cumatrix.loss(m4,m5,:cross) == Cumatrix.new([[4.2073516845703125], [5.149408340454102]]) 
+    
+    m6 = Cumatrix.new(([[0.1,0.9,0.1],[0.2,0.1,1.2]]))
+    assert Cumatrix.activate(m6,:sigmoid) == 
+    Cumatrix.new([
+    [0.5249791741371155, 0.7109494805335999, 0.5249791741371155],
+    [0.5498339533805847, 0.5249791741371155, 0.7685248255729675]
+    ]) 
+    assert Cumatrix.activate(m6,:tanh) == 
+    Cumatrix.new([
+    [0.0996680036187172, 0.7162978649139404, 0.0996680036187172],
+    [0.1973753273487091, 0.0996680036187172, 0.8336546421051025]
+    ])
+    assert Cumatrix.activate(m6,:relu) == 
+    Cumatrix.new([
+    [0.10000000149011612, 0.8999999761581421, 0.10000000149011612],
+    [0.20000000298023224, 0.10000000149011612, 1.2000000476837158]  
+    ])
   end
 
   

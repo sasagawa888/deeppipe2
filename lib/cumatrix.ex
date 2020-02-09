@@ -38,10 +38,6 @@ defmodule Cumatrix do
     raise "NIF emult1/4 not implemented"
   end
 
-  def badd1(_a, _b, _c, _d) do
-    raise "NIF badd1/4 not implemented"
-  end 
-
   def transpose1(_a, _b, _c) do
     raise "NIF transpose1/3 not implemented"
   end
@@ -96,6 +92,14 @@ defmodule Cumatrix do
 
   def elt1(_a, _b, _c, _d, _e) do
     raise "NIF elt1/5 not implemented"
+  end 
+  
+  def minus1(_a, _b, _c, _d, _e, _f) do
+    raise "NIF minus1/5 not implemented"
+  end 
+
+  def average1(_a, _b, _c) do
+    raise "NIF average1/3 not implemented"
   end 
 
   def sum1(_a, _b, _c) do
@@ -184,6 +188,11 @@ defmodule Cumatrix do
     elt1(r,c,x-1,y-1,dt)
   end
 
+  def minus({r,c,dt},x,y,val) do
+    {r,c,minus1(r,c,dt,x-1,y-1,val)}
+  end 
+
+
   @doc """
   iex(1)> Cumatrix.to_col_vec([[1,2],[3,4]])
   [[1, 3], [2, 4]]
@@ -263,6 +272,10 @@ defmodule Cumatrix do
   def size({r, c, _}) do
     {r, c}
   end
+
+  def average({r,c,dt}) do
+    {1,c,average1(r,c,dt)}
+  end 
 
   def sum({r, c, dt}) do
     sum1(r,c,dt)
