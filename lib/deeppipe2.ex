@@ -84,14 +84,6 @@ defmodule Deeppipe2 do
     Enum.reverse(res)
   end
 
-  def numerical_gradient1(x, [{:filter, w, st, lr, v} | rest], t, before, res) do
-    w1 = numerical_gradient_matrix(x, w, t, before, {:filter, w, st, lr, v}, rest)
-
-    numerical_gradient1(x, rest, t, [{:filter, w, st, lr, v} | before], [
-      {:filter, w1, st, lr, v} | res
-    ])
-  end
-
   def numerical_gradient1(x, [{:weight, w, lr, v} | rest], t, before, res) do
     w1 = numerical_gradient_matrix(x, w, t, before, {:weight, w, lr, v}, rest)
     numerical_gradient1(x, rest, t, [{:weight, w1, lr, v} | before], [{:weight, w1, lr, v} | res])
@@ -106,7 +98,7 @@ defmodule Deeppipe2 do
     numerical_gradient1(x, rest, t, [y | before], [y | res])
   end
 
-  # calc numerical gradient of filter,weigth,bias matrix
+  # calc numerical gradient of weigth,bias matrix
   def numerical_gradient_matrix(x, w, t, before, now, rest) do
     {r, c} = Cumatrix.size(w)
 
@@ -146,19 +138,7 @@ defmodule Deeppipe2 do
     Enum.reverse(res)
   end
 
-  def numerical_gradient1(x, [{:filter, w, st, lr, v} | rest], t, before, res, :cross) do
-    w1 = numerical_gradient_matrix(x, w, t, before, {:filter, w, st, lr, v}, rest)
-
-    numerical_gradient1(
-      x,
-      rest,
-      t,
-      [{:filter, w, st, lr, v} | before],
-      [{:filter, w1, st, lr, v} | res],
-      :cross
-    )
-  end
-
+  
   def numerical_gradient1(x, [{:weight, w, lr, v} | rest], t, before, res, :cross) do
     w1 = numerical_gradient_matrix(x, w, t, before, {:weight, w, lr, v}, rest, :cross)
 
