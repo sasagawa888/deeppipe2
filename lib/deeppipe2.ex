@@ -18,7 +18,7 @@ defmodule Deeppipe2 do
   end
 
   def forward(x, [{:bias, b, _, _} | rest]) do
-    Cumatrix.badd(x, b) |> forward(rest)
+    Cumatrix.add(x, b) |> forward(rest)
   end
 
   def forward(x, [{:function, name} | rest]) do
@@ -43,7 +43,7 @@ defmodule Deeppipe2 do
   end
 
   def forward_for_back(x, [{:bias, b, _, _} | rest], res) do
-    x1 = Cumatrix.badd(x, b)
+    x1 = Cumatrix.add(x, b)
     forward_for_back(x1, rest, [x1 | res])
   end
 

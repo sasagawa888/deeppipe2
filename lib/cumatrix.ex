@@ -6,8 +6,16 @@ defmodule Cumatrix do
     :erlang.load_nif('./lib/nifs', 0)
   end
 
+  def print1(_a, _b, _c) do
+     raise "NIF print1/3 not implemented"
+  end 
+
   def new1(_a, _b) do
     raise "NIF new1/2 not implemented"
+  end
+
+  def new2(_a, _b, _c) do
+    raise "NIF new2/3 not implemented"
   end
 
   def rand1(_a) do
@@ -86,9 +94,32 @@ defmodule Cumatrix do
     raise "NIF mean_square/4 not implemented"
   end
 
+  def elt1(_a, _b, _c, _d, _e) do
+    raise "NIF elt1/5 not implemented"
+  end 
+
+  def sum1(_a, _b, _c) do
+    raise "NIF sum1/3 not implemented"
+  end 
+
+  def to_list1(_a, _b, _c) do
+    raise "NIF to_list1/3 not implemented"
+  end 
+
+
+#----------------------------------------------------------------
   def mult({r1, c1, dt1}, {r2, c2, dt2}) do
     {r1, c2, mult1(r1, c1, dt1, r2, c2, dt2)}
   end
+  def mult(s,{r,c,dt}) when is_float(s) do
+    {r,c, smult1(s,r,c,dt)}
+  end
+  def mult({r,c,dt},s) when is_float(s) do
+    {r,c, smult1(s,r,c,dt)}
+  end
+  def mult(_,_) do
+    raise "mult illegal data type"
+  end 
 
   def new(r, c) do
     {r, c, new1(r * c, 0.0)}
@@ -103,28 +134,43 @@ defmodule Cumatrix do
     r = length(ls)
     c = length(hd(ls))
     ls1 = ls |> to_col_vec() |> to_flat_vec()
-    {r, c, ls1}
+    {r,c,new2(r,c,ls1)}
   end
 
   def rand(r, c) do
     {r, c, rand1(r * c)}
   end
 
-  def add({r1, c1, dt1}, {r2, c2, dt2}) do
-    if r1 != r2 || c1 != c2 do
-      raise "add size mismatch"
-    end
-
+  def add({r1, c1, dt1}, {r1, c1, dt2}) do
     {r1, c1, add1(r1, c1, dt1, dt2)}
   end
+  def add({r1, c1, dt1}, {1, c1, dt2}) do
+    {r1,c1, add1(r1,c1,dt1,expand({r1,c1,dt2}))}
+  end 
+  def add({1, c1, dt1}, {r1, c1, dt2}) do
+    {r1,c1, add1(r1,c1,expand({r1,c1,dt1}),dt2)}
+  end 
+  def add(_,_) do 
+    raise "add illegal data type"
+  end 
 
-  def sub({r1, c1, dt1}, {r2, c2, dt2}) do
-    if r1 != r2 || c1 != c2 do
-      raise "sub size mismatch"
-    end
+  def expand({r,c,dt}) do
+    dt1 = expand1(r,dt)
+    transpose1(r,c,dt1)
+  end 
+  def expand1(0,_) do <<>> end 
+  def expand1(n,dt) do
+    dt <> expand1(n-1, dt)
+  end 
 
+  def sub({r1, c1, dt1}, {r1, c1, dt2}) do
     {r1, c1, sub1(r1, c1, dt1, dt2)}
   end
+  def sub(_,_) do 
+    raise "sub illegal data type"
+  end 
+
+
 
   def emult({r1, c1, dt1}, {r2, c2, dt2}) do
     if r1 != r2 || c1 != c2 do
@@ -134,17 +180,8 @@ defmodule Cumatrix do
     {r1, c1, emult1(r1, c1, dt1, dt2)}
   end
 
-
-  def badd({r1,c1,dt1},{1,c1,dt2}) do 
-    {r1,c1,badd1(r1,c1,dt1, dt2)}
-  end 
-  def badd(_,_) do
-    raise "badd size mismatch"
-  end 
-
-  def elt({r, _, dt}, x, y) do
-    pos = (y - 1) * r + (x - 1)
-    Enum.at(dt, pos)
+  def elt({r, c, dt}, x, y) do
+    elt1(r,c,x-1,y-1,dt)
   end
 
   @doc """
@@ -227,13 +264,13 @@ defmodule Cumatrix do
     {r, c}
   end
 
-  def sum({_, _, dt}) do
-    Enum.sum(dt)
+  def sum({r, c, dt}) do
+    sum1(r,c,dt)
   end
 
-  def smult(d, {r, c, dt}) do
-    {r, c, smult1(d, r, c, dt)}
-  end
+  def to_list({r,c,dt}) do
+    to_list1(r,c,dt) |> Enum.chunk_every(c)
+  end 
 
   def trace({r, c, dt}) do
     if r != c do
@@ -252,18 +289,7 @@ defmodule Cumatrix do
   end
 
   def print({r, c, dt}) do
-    for i <- 1..r do
-      IO.write("| ")
-
-      for j <- 1..c do
-        IO.write(elt({r, c, dt}, i, j))
-        IO.write(" ")
-      end
-
-      IO.puts("|")
-    end
-
-    true
+    print1(r,c,dt)
   end
 end
 
