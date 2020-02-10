@@ -1,5 +1,6 @@
-
 defmodule Network do
+  alias Cumatrix, as: CM
+
   @moduledoc """
   defnetwork generates neural network(nn)
   nn is list.
@@ -23,139 +24,63 @@ defmodule Network do
     end
   end
 
-  # filter
-  def parse({:f, _, [x, y]}, _) do
-    quote do
-      {:filter, Cumatrix.new(unquote(x), unquote(y), 0.1), 1, 0.1,
-       Cumatrix.new(unquote(x), unquote(y),0.0)}
-    end
-  end
-
-  def parse({:f, _, [x, y, lr]}, _) do
-    quote do
-      {:filter, Cumatrix.new(unquote(x), unquote(y), 0.1), 1, unquote(lr),
-       Cumatrix.new(unquote(x), unquote(y),0.0)}
-    end
-  end
-
-  def parse({:f, _, [x, y, lr, z]}, _) do
-    quote do
-      {:filter, Cumatrix.new(unquote(x), unquote(y), unquote(z)), 1, unquote(lr),
-       Cumatrix.new(unquote(x), unquote(y), 0.0)}
-    end
-  end
-
-  def parse({:f, _, [x, y, lr, z, st]}, _) do
-    quote do
-      {:filter, Cumatrix.new(unquote(x), unquote(y), unquote(z)), unquote(st), unquote(lr),
-       Cumatrix.new(unquote(x), unquote(y), 0.0)}
-    end
-  end
-
-  # pooling
-  def parse({:pool, _, [x]}, _) do
-    quote do
-      {:pooling, unquote(x)}
-    end
-  end
-
-  # padding
-  def parse({:pad, _, [x]}, _) do
-    quote do
-      {:padding, unquote(x)}
-    end
-  end
-
-  # constant weight for test
-  def parse({:cw, _, [x]}, _) do
-    quote do
-      {:weight, Matrex.new(unquote(x)), 0.1, 0}
-    end
-  end
-
-  # constant filter for test
-  def parse({:cf, _, [x]}, _) do
-    quote do
-      {:filter, Matrex.new(unquote(x)), 1, 0.1, 0}
-    end
-  end
-
-  # constant bias for test
-  def parse({:cb, _, [x]}, _) do
-    quote do
-      {:bias, Matrex.new(unquote(x)), 0.1, 0}
-    end
-  end
-
   # weight
   def parse({:w, _, [x, y]}, _) do
     quote do
-      {:weight, Cumatrix.new(unquote(x), unquote(y), 0.1), 0.1,
-       Cumatrix.new(unquote(x), unquote(y),0.0)}
+      {:weight, CM.new(unquote(x), unquote(y), 0.1), 0.1, nil}
     end
   end
 
   def parse({:w, _, [x, y, lr]}, _) do
     quote do
-      {:weight, Cumatrix.new(unquote(x), unquote(y), 0.1), unquote(lr),
-       Cumatrix.new(unquote(x), unquote(y), 0.0)}
+      {:weight, CM.new(unquote(x), unquote(y), 0.1), unquote(lr), nil}
     end
   end
 
   def parse({:w, _, [x, y, lr, z]}, _) do
     quote do
-      {:weight, Cumatrix.new(unquote(x), unquote(y), unquote(z)), unquote(lr),
-       Cumatrix.new(unquote(x), unquote(y),0.0)}
+      {:weight, CM.new(unquote(x), unquote(y), unquote(z)), unquote(lr), nil}
     end
   end
-
-  
 
   # bias
   def parse({:b, _, [x]}, _) do
     quote do
-      {:bias, Cumatrix.new(1, unquote(x),0.0), 0.1, Cumatrix.new(1, unquote(x),0.0)}
+      {:bias, CM.new(1, unquote(x), 0.0), 0.1, nil}
     end
   end
 
   def parse({:b, _, [x, lr]}, _) do
     quote do
-      {:bias, Cumatrix.new(1, unquote(x),0.0), unquote(lr), Cumatrix.new(1, unquote(x),0.0)}
+      {:bias, CM.new(1, unquote(x), 0.0), unquote(lr), nil}
     end
   end
 
   # sigmoid
   def parse({:sigmoid, _, nil}, _) do
     quote do
-      {:function,:sigmoid}
+      {:function, :sigmoid}
     end
   end
 
   # identity
   def parse({:ident, _, nil}, _) do
     quote do
-      {:function,:ident}
+      {:function, :ident}
     end
   end
 
   # relu
   def parse({:relu, _, nil}, _) do
     quote do
-      {:function,:relu}
+      {:function, :relu}
     end
   end
 
   # softmax
   def parse({:softmax, _, nil}, _) do
     quote do
-      {:function,:softmax}
-    end 
-  end
-
-  # flatten
-  def parse({:flatten, _, nil}, _) do
-    quote do
-      {:flatten}
+      {:function, :softmax}
     end
   end
 
@@ -177,7 +102,6 @@ defmodule Network do
 
   def parse(x, _) do
     :io.write(x)
-    IO.puts("Syntax error in defnetwork")
+    raise "Syntax error in defnetwork"
   end
-
-end 
+end

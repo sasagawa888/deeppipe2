@@ -1,11 +1,11 @@
 defmodule Deeppipe2 do
   # common
-  def is_matrix({r,c,dt}) do
+  def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_list(dt) do
-      true 
-    else 
+      true
+    else
       false
-    end 
+    end
   end
 
   # forward
@@ -23,12 +23,12 @@ defmodule Deeppipe2 do
 
   def forward(x, [{:function, name} | rest]) do
     cond do
-      name == :sigmoid -> Cumatrix.activate(x,:sigmoid) |> forward(rest)
-      name == :tanh -> Cumatrix.activate(x,:tanh) |> forward(rest)
-      name == :relu -> Cumatrix.activate(x,:relu) |> forward(rest)
-      name == :softmax -> Cumatrix.activate(x,:softmax) |> forward(rest)
-      true -> raise "not exist function" 
-    end 
+      name == :sigmoid -> Cumatrix.activate(x, :sigmoid) |> forward(rest)
+      name == :tanh -> Cumatrix.activate(x, :tanh) |> forward(rest)
+      name == :relu -> Cumatrix.activate(x, :relu) |> forward(rest)
+      name == :softmax -> Cumatrix.activate(x, :softmax) |> forward(rest)
+      true -> raise "not exist function"
+    end
   end
 
   # forward for backpropagation
@@ -49,25 +49,28 @@ defmodule Deeppipe2 do
 
   def forward_for_back(x, [{:function, name} | rest], res) do
     cond do
-      name == :sigmoid -> 
-        x1 = Cumatrix.activate(x,:sigmoid)
+      name == :sigmoid ->
+        x1 = Cumatrix.activate(x, :sigmoid)
         forward_for_back(x1, rest, [x1 | res])
-      name == :tanh -> 
-        x1 = Cumatrix.activate(x,:tanh)
+
+      name == :tanh ->
+        x1 = Cumatrix.activate(x, :tanh)
         forward_for_back(x1, rest, [x1 | res])
-      name == :relu -> 
-        x1 = Cumatrix.activate(x,:relu)
+
+      name == :relu ->
+        x1 = Cumatrix.activate(x, :relu)
         forward_for_back(x1, rest, [x1 | res])
-      name == :softmax -> 
-        x1 = Cumatrix.activate(x,:softmax)
+
+      name == :softmax ->
+        x1 = Cumatrix.activate(x, :softmax)
         forward_for_back(x1, rest, [x1 | res])
-      true -> 
+
+      true ->
         raise "not exist function"
-    end 
+    end
   end
 
-
-# numerical gradient
+  # numerical gradient
   def numerical_gradient(x, network, t, :square) do
     numerical_gradient(x, network, t)
   end
@@ -138,7 +141,6 @@ defmodule Deeppipe2 do
     Enum.reverse(res)
   end
 
-  
   def numerical_gradient1(x, [{:weight, w, lr, v} | rest], t, before, res, :cross) do
     w1 = numerical_gradient_matrix(x, w, t, before, {:weight, w, lr, v}, rest, :cross)
 
@@ -169,8 +171,7 @@ defmodule Deeppipe2 do
     numerical_gradient1(x, rest, t, [y | before], [y | res], :cross)
   end
 
-
-# calc numerical gradient of filter,weigth,bias matrix
+  # calc numerical gradient of filter,weigth,bias matrix
   defp numerical_gradient_matrix(x, w, t, before, now, rest, :cross) do
     {r, c} = w[:size]
 
@@ -212,12 +213,12 @@ defmodule Deeppipe2 do
   end
 
   defp backpropagation(l, [{:function, :softmax} | rest], [_ | us], res) do
-    backpropagation(l, rest, us, [{:function,:softmax} | res])
+    backpropagation(l, rest, us, [{:function, :softmax} | res])
   end
 
-  defp backpropagation(l, [{:function,name} | rest], [u | us], res) do
-      l1 = Cumatrix.diff(l, u, name)
-      backpropagation(l1, rest, us, [{:function, name} | res])
+  defp backpropagation(l, [{:function, name} | rest], [u | us], res) do
+    l1 = Cumatrix.diff(l, u, name)
+    backpropagation(l1, rest, us, [{:function, name} | res])
   end
 
   defp backpropagation(l, [{:bias, _, lr, v} | rest], [_ | us], res) do
@@ -227,9 +228,8 @@ defmodule Deeppipe2 do
 
   defp backpropagation(l, [{:weight, w, lr, v} | rest], [u | us], res) do
     {n, _} = Cumatrix.size(l)
-    w1 = Cumatrix.mult(Cumatrix.transpose(u), l) |>  Cumatrix.emult(1/n)
+    w1 = Cumatrix.mult(Cumatrix.transpose(u), l) |> Cumatrix.emult(1 / n)
     l1 = Cumatrix.mult(l, Cumatrix.transpose(w))
     backpropagation(l1, rest, us, [{:weight, w1, lr, v} | res])
   end
-  
 end
