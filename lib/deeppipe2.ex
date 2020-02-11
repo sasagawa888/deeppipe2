@@ -1,6 +1,6 @@
 defmodule Deeppipe do
   alias Cumatrix, as: CM
-  
+
   # forward
   # return all middle data
   # 1st arg is input data matrix
@@ -117,7 +117,6 @@ defmodule Deeppipe do
     ngrad1(x, rest, t, [y | before], [y | res], :cross)
   end
 
- 
   # calculate numerical gradient of weigth,bias matrix
   # naively calculete each element of wight or bias element 
   # 7th arg is option for closs-entropy loss function
@@ -156,8 +155,8 @@ defmodule Deeppipe do
     w1 = CM.minus(w, r, c, h)
     network0 = Enum.reverse(before) ++ [{type, w, lr, v}] ++ rest
     network1 = Enum.reverse(before) ++ [{type, w1, lr, v}] ++ rest
-    [y0|_] = forward(x, network0, [])
-    [y1|_] = forward(x, network1, [])
+    [y0 | _] = forward(x, network0, [])
+    [y1 | _] = forward(x, network1, [])
     (CM.loss(y1, t, :square) - CM.loss(y0, t, :square)) / h
   end
 
@@ -166,19 +165,18 @@ defmodule Deeppipe do
     w1 = CM.minus(w, r, c, h)
     network0 = Enum.reverse(before) ++ [{type, w, st, lr, v}] ++ rest
     network1 = Enum.reverse(before) ++ [{type, w1, st, lr, v}] ++ rest
-    [y0|_] = forward(x, network0,[])
-    [y1|_] = forward(x, network1,[])
+    [y0 | _] = forward(x, network0, [])
+    [y1 | _] = forward(x, network1, [])
     (CM.loss(y1, t, :square) - CM.loss(y0, t, :square)) / h
   end
-
 
   defp ngrad_mt1(x, t, r, c, before, {type, w, lr, v}, rest, :cross) do
     h = 0.0001
     w1 = CM.minus(w, r, c, h)
     network0 = Enum.reverse(before) ++ [{type, w, lr, v}] ++ rest
     network1 = Enum.reverse(before) ++ [{type, w1, lr, v}] ++ rest
-    [y0 | _] = forward(x, network0,[])
-    [y1 | _] = forward(x, network1,[])
+    [y0 | _] = forward(x, network0, [])
+    [y1 | _] = forward(x, network1, [])
     (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / h
   end
 
@@ -187,8 +185,8 @@ defmodule Deeppipe do
     w1 = CM.minus(w, r, c, h)
     network0 = Enum.reverse(before) ++ [{type, w, st, lr, v}] ++ rest
     network1 = Enum.reverse(before) ++ [{type, w1, st, lr, v}] ++ rest
-    [y0 | _] = forward(x, network0,[])
-    [y1 | _] = forward(x, network1,[])
+    [y0 | _] = forward(x, network0, [])
+    [y1 | _] = forward(x, network1, [])
     (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / h
   end
 
@@ -197,12 +195,11 @@ defmodule Deeppipe do
   # 2nd arg is network list
   # 3rd arg is teeacher matrix
   def grad(x, network, t) do
-    [x1|x2] = forward(x, network, [x])
+    [x1 | x2] = forward(x, network, [x])
     loss = CM.sub(x1, t)
     network1 = Enum.reverse(network)
     backward(loss, network1, x2, [])
   end
-
 
   # backward
   # calculate grad with gackpropagation
@@ -235,4 +232,120 @@ defmodule Deeppipe do
     l1 = CM.mult(l, CM.transpose(w))
     backward(l1, rest, us, [{:weight, w1, lr, v} | res])
   end
-end
+
+# ------- learning -------
+# learning/2 
+# 1st arg is old network list
+# 2nd arg is network with gradient
+# generate new network with leared weight and bias
+# update method is sgd
+#
+# learning/3 now under construction
+# added update method to 3rd arg
+# update method is momentam, adagrad, adam
+
+# --------sgd----------
+  def learning([], _) do
+    []
+  end
+
+  def learning([{:weight, w, lr, v} | rest], [{:weight, w1, _, _} | rest1]) do
+    w2 = CM.emult(w,w1) |> CM.mult(lr)
+    [{:weight, w2, lr, v} | learning(rest, rest1)]
+  end
+
+  def learning([{:bias, w, lr, v} | rest], [{:bias, w1, _, _} | rest1]) do
+    w2 = CM.emult(w,w1) |> CM.mult(lr)
+    [{:bias, w2, lr, v} | learning(rest, rest1)]
+  end
+
+  def learning([network | rest], [_ | rest1]) do
+    [network | learning(rest, rest1)]
+  end
+
+  
+  # print predict of test data
+  def accuracy(image, network, label) do
+    forward(image, network, []) |> CM.to_list() |> score(label, 0)
+  end
+
+  defp score([], [], correct) do
+    correct
+  end
+
+  defp score([x | xs], [l | ls], correct) do
+    if MNIST.onehot_to_num(x) == l do
+      score(xs, ls, correct + 1)
+    else
+      score(xs, ls, correct)
+    end
+  end
+
+  # select randome data size of m , range from 0 to n
+  def random_select(image, train, m, n) do
+    random_select1(image, train, [], [], m, n)
+  end
+
+  defp random_select1(_, _, res1, res2, 0, _) do
+    {res1, res2 |> CM.new()}
+  end
+
+  defp random_select1(image, train, res1, res2, m, n) do
+    i = :rand.uniform(n)
+    image1 = Enum.at(image, i)
+    train1 = Enum.at(train, i)
+    random_select1(image, train, [image1 | res1], [train1 | res2], m - 1, n)
+  end
+
+  
+  # save/load to file
+  def save(file, network) do
+    network1 = save1(network)
+    File.write(file, inspect(network1, limit: :infinity))
+  end
+
+  def save1([]) do
+    []
+  end
+
+  def save1([{:weight, w, lr, v} | rest]) do
+    [{:weight, CM.to_list(w), lr, v} | save1(rest)]
+  end
+
+  def save1([{:bias, w, lr, v} | rest]) do
+    [{:bias, CM.to_list(w), lr, v} | save1(rest)]
+  end
+
+  def save1([{:function,name} | rest]) do
+    [{:function,name} | save1(rest)]
+  end
+
+  def save1([network | rest]) do
+    [network | save1(rest)]
+  end
+
+  def load(file) do
+    Code.eval_file(file) |> elem(0) |> load1
+  end
+
+  def load1([]) do
+    []
+  end
+
+  def load1([{:weight, w, lr, v} | rest]) do
+    [{:weight, CM.new(w), lr, v} | load1(rest)]
+  end
+
+  def load1([{:bias, w, lr, v} | rest]) do
+    [{:bias, CM.new(w), lr, v} | load1(rest)]
+  end
+
+  def load1([{:function,name} | rest]) do
+    [{:function,name} | load1(rest)]
+  end 
+
+  def load1([network | rest]) do
+    [network | load1(rest)]
+  end
+
+end 
