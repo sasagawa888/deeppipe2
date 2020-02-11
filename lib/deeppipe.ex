@@ -271,7 +271,7 @@ defmodule Deeppipe do
 
   # average loss (scalar)
    def loss(y, t, :cross) do
-    CM.loss(y,t,:cross) |> CM.average() |> CM.elt(1,1)
+    m = CM.loss(y,t,:cross) |> CM.averate() |> CM.elt(1,1)
   end
 
   def loss(y, t, :square) do

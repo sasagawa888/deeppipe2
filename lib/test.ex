@@ -7,10 +7,10 @@ defmodule Test do
     _x
     |> w(784, 300)
     |> b(300)
-    |> relu
+    |> sigmoid
     |> w(300, 100)
     |> b(100)
-    |> relu
+    |> sigmoid
     |> w(100, 10)
     |> b(10)
     |> softmax
@@ -25,9 +25,9 @@ defmodule Test do
     test_label = MNIST.test_label(1000)
     IO.puts("ready")
     network1 = sgd1(image, network, label, m, n)
-    #correct = DP.accuracy(test_image, network1, test_label)
-    #IO.write("accuracy rate = ")
-    #IO.puts(correct / 1000)
+    correct = DP.accuracy(test_image, network1, test_label)
+    IO.write("accuracy rate = ")
+    IO.puts(correct / 1000)
   end
 
   def sgd1(_, network, _, _, 0) do
@@ -39,7 +39,7 @@ defmodule Test do
     network1 = DP.gradient(image1, network, train1)
     network2 = DP.learning(network, network1)
     [y|_] = DP.forward(image1, network2 ,[])
-    loss = DP.loss(y, train1, :cross)
+    loss = DP.loss(y, train1)
     DP.print(loss)
     DP.newline()
     sgd1(image, network2, train, m, n - 1)
