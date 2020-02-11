@@ -10,6 +10,7 @@
 #define SIGMOID(x)  (1 / (1+exp(-1*x)))
 
 
+
 static ERL_NIF_TERM
 print1(ErlNifEnv *env, int argc, const ERL_NIF_TERM *argv) {
     ErlNifBinary  a_bin;
@@ -71,8 +72,8 @@ new2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     // Set matrix data 
     list = argv[2]; /* matrix1 */
-    for(j=0;j<c1;j++){
-        for(i=0;i<r1;i++){
+    for(i=0;i<r1;i++){
+        for(j=0;j<c1;j++){
             enif_get_list_cell(env, list, &head, &list);
             enif_get_double(env,head,&d);
             a[IDX2C(i,j,r1)] = (float)d;
@@ -124,7 +125,7 @@ mult(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[3], &r2)) return enif_make_badarg(env);
     if (!enif_get_int(env, argv[4], &c2)) return enif_make_badarg(env);
     if (!enif_inspect_binary(env, argv[5], &b_bin)) return enif_make_badarg(env);
-    n = r1*c1;
+    n = r1*c2;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);

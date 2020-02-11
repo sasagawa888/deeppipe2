@@ -271,21 +271,21 @@ defmodule Deeppipe do
 
   # average loss (scalar)
    def loss(y, t, :cross) do
-    CM.loss(y,t,:cross) |> CM.average() |> CM.to_list() |> hd()
+    CM.loss(y,t,:cross) |> CM.average() |> CM.elt(1,1)
   end
 
   def loss(y, t, :square) do
-    CM.loss(y,t,:square) |> CM.average() |> CM.to_list() |> hd()
+    CM.loss(y,t,:square) |> CM.average() |> CM.elt(1,1)
   end
 
   def loss(y, t) do
-     CM.loss(y,t,:square) |> CM.average() |> CM.to_list() |> hd() 
+     CM.loss(y,t,:square) |> CM.average() |> CM.elt(1,1) 
   end
 
 
   # print predict of test data
   def accuracy(image, network, label) do
-    forward(image, network, []) |> CM.to_list() |> score(label, 0)
+    forward(image, network, []) |> hd() |> CM.to_list() |> score(label, 0)
   end
 
   defp score([], [], correct) do
@@ -314,7 +314,7 @@ defmodule Deeppipe do
   end
 
   defp random_select1(image, train, res1, res2, m, n) do
-    i = :rand.uniform(n)
+    i = :rand.uniform(n-1)
     image1 = Enum.at(image, i)
     train1 = Enum.at(train, i)
     random_select1(image, train, [image1 | res1], [train1 | res2], m - 1, n)
