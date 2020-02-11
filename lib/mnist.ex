@@ -145,14 +145,5 @@ defmodule MNIST do
     end
   end
 
-  #
-  def to_matrix([]) do
-    []
-  end
-
-  def to_matrix([x | xs]) do
-    [Cumatrix.new(x) | to_matrix(xs)]
-  end
-
-
+  
 end

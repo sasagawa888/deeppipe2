@@ -1,5 +1,10 @@
 defmodule Deeppipe do
   alias Cumatrix, as: CM
+  
+  # for debug
+  def stop() do
+    raise("stop")
+  end
 
 
   # forward
@@ -47,7 +52,7 @@ defmodule Deeppipe do
   # numerical gradient
   # 1st arg is input data matrix
   # 2nd arg is network list
-  # 3rd arg is teacher data matrix
+  # 3rd arg is train data matrix
   # 4th arg is loss function 
   def ngrad(x, network, t, :square) do
     ngrad(x, network, t)
@@ -67,7 +72,7 @@ defmodule Deeppipe do
 
   # 1st arg is input data matrix
   # 2nd arg is network list
-  # 3rd arg is teacher data matrix
+  # 3rd arg is train data matrix
   # 4th arg is network list that is already calculeted
   # 5th arg is generated network list with calculated gradient 
   def ngrad1(x, [{:weight, w, lr, v} | rest], t, before, res) do
@@ -229,7 +234,7 @@ defmodule Deeppipe do
 
   defp backward(l, [{:weight, w, lr, v} | rest], [u | us], res) do
     {n, _} = CM.size(l)
-    w1 = CM.mult(CM.transpose(u), l) |> CM.emult(1 / n)
+    w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n)
     l1 = CM.mult(l, CM.transpose(w))
     backward(l1, rest, us, [{:weight, w1, lr, v} | res])
   end
@@ -295,13 +300,17 @@ defmodule Deeppipe do
     end
   end
 
-  # select randome data size of m , range from 0 to n
+  # select random data from image data and train data 
+  # size of m. range from 0 to n
+  # and generate tuple of two matrix
   def random_select(image, train, m, n) do
     random_select1(image, train, [], [], m, n)
   end
 
   defp random_select1(_, _, res1, res2, 0, _) do
-    {res1, res2 |> CM.new()}
+    mt1 = CM.new(res1)
+    mt2 = CM.new(res2)
+    {mt1, mt2}
   end
 
   defp random_select1(image, train, res1, res2, m, n) do

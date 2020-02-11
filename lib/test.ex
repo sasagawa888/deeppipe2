@@ -18,10 +18,10 @@ defmodule Test do
 
   def sgd(m, n) do
     IO.puts("preparing data")
-    image = MNIST.train_image(3000,:flatten) |> MNIST.to_matrix()
+    image = MNIST.train_image(3000,:flatten)
     label = MNIST.train_label_onehot(3000)
     network = init_network1(0)
-    test_image = MNIST.test_image(1000,:flatten) |> MNIST.to_matrix()
+    test_image = MNIST.test_image(1000,:flatten)
     test_label = MNIST.test_label(1000)
     IO.puts("ready")
     network1 = sgd1(image, network, label, m, n)
@@ -35,7 +35,7 @@ defmodule Test do
   end
 
   def sgd1(image, network, train, m, n) do
-    {image1, train1} = DP.random_select(image, train, m, 2000)
+    {image1, train1} = DP.random_select(image, train, m, 3000)
     network1 = DP.gradient(image1, network, train1)
     network2 = DP.learning(network, network1)
     y = DP.forward(image1, network2 ,[])
