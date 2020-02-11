@@ -163,7 +163,7 @@ defmodule Deeppipe do
     network1 = Enum.reverse(before) ++ [{type, w1, lr, v}] ++ rest
     [y0 | _] = forward(x, network0, [])
     [y1 | _] = forward(x, network1, [])
-    (CM.loss(y1, t, :square) - CM.loss(y0, t, :square)) / h
+    (loss(y1, t, :square) - loss(y0, t, :square)) / h
   end
 
   def ngrad_mt1(x, t, r, c, before, {type, w, st, lr, v}, rest) do
@@ -173,7 +173,7 @@ defmodule Deeppipe do
     network1 = Enum.reverse(before) ++ [{type, w1, st, lr, v}] ++ rest
     [y0 | _] = forward(x, network0, [])
     [y1 | _] = forward(x, network1, [])
-    (CM.loss(y1, t, :square) - CM.loss(y0, t, :square)) / h
+    (loss(y1, t, :square) - loss(y0, t, :square)) / h
   end
 
   defp ngrad_mt1(x, t, r, c, before, {type, w, lr, v}, rest, :cross) do
@@ -183,7 +183,7 @@ defmodule Deeppipe do
     network1 = Enum.reverse(before) ++ [{type, w1, lr, v}] ++ rest
     [y0 | _] = forward(x, network0, [])
     [y1 | _] = forward(x, network1, [])
-    (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / h
+    (loss(y1, t, :cross) - loss(y0, t, :cross)) / h
   end
 
   defp ngrad_mt1(x, t, r, c, before, {type, w, st, lr, v}, rest, :cross) do
@@ -193,7 +193,7 @@ defmodule Deeppipe do
     network1 = Enum.reverse(before) ++ [{type, w1, st, lr, v}] ++ rest
     [y0 | _] = forward(x, network0, [])
     [y1 | _] = forward(x, network1, [])
-    (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / h
+    (loss(y1, t, :cross) - loss(y0, t, :cross)) / h
   end
 
   # gradient with backpropagation
@@ -256,12 +256,12 @@ defmodule Deeppipe do
   end
 
   def learning([{:weight, w, lr, v} | rest], [{:weight, w1, _, _} | rest1]) do
-    w2 = CM.emult(w, w1) |> CM.mult(lr)
+    w2 = CM.sub(w,CM.mult(w1,lr))
     [{:weight, w2, lr, v} | learning(rest, rest1)]
   end
 
   def learning([{:bias, w, lr, v} | rest], [{:bias, w1, _, _} | rest1]) do
-    w2 = CM.emult(w, w1) |> CM.mult(lr)
+    w2 = CM.sub(w,CM.mult(w1,lr))
     [{:bias, w2, lr, v} | learning(rest, rest1)]
   end
 
@@ -270,8 +270,8 @@ defmodule Deeppipe do
   end
 
   # average loss (scalar)
-   def loss(y, t, :cross) do
-    m = CM.loss(y,t,:cross) |> CM.averate() |> CM.elt(1,1)
+  def loss(y, t, :cross) do
+    CM.loss(y,t,:cross) |> CM.average() |> CM.elt(1,1)
   end
 
   def loss(y, t, :square) do
@@ -371,10 +371,11 @@ defmodule Deeppipe do
   end
 
   # basic I/O
-  def print(x) do
+  def print(x) do 
     :io.write(x)
   end
 
+  
   def newline() do
     IO.puts("")
   end

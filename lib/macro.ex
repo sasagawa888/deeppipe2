@@ -24,6 +24,21 @@ defmodule Network do
     end
   end
 
+  # constant weight for test
+  def parse({:cw, _, [x]}, _) do
+    quote do
+      {:weight, CM.new(unquote(x)), 0.1, 0}
+    end
+  end
+
+  # constant bias for test
+  def parse({:cb, _, [x]}, _) do
+    quote do
+      {:bias, CM.new(unquote(x)), 0.1, 0}
+    end
+  end
+
+
   # weight
   def parse({:w, _, [x, y]}, _) do
     quote do
@@ -59,9 +74,9 @@ defmodule Network do
   end
 
   # identity
-  def parse({:ident, _, nil}, _) do
+  def parse({:tanh, _, nil}, _) do
     quote do
-      {:function, :ident}
+      {:function, :tanh}
     end
   end
 
