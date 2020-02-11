@@ -371,10 +371,47 @@ defmodule Deeppipe do
   end
 
   # basic I/O
-  def print(x) do 
+  def print(x) do
+    cond do 
+      is_number(x) || is_atom(x) -> :io.write(x)
+      is_matrix(x) -> CM.print(x)
+      true ->  print1(x)
+      IO.puts("")
+    end
+  end
+
+  def print1([]) do true end
+  def print1([x|xs]) do 
+    print2(x)
+    print1(xs)
+  end 
+
+  
+
+  def print2({:weight, w, _, _}) do
+    CM.print(w)
+  end
+
+  def print2({:bias, w, _, _}) do
+    CM.print(w)
+  end
+
+  def print2({:function, name}) do
+    :io.write(name)
+  end
+
+  def print2(x) do
     :io.write(x)
   end
 
+  def is_matrix({r,c,_}) do
+    if is_integer(r) && is_integer(c) do 
+      true
+    else 
+      false
+    end 
+  end 
+  def is_matrix(_) do false end 
   
   def newline() do
     IO.puts("")

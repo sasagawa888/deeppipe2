@@ -95,6 +95,7 @@ rand1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     enif_get_int(env, argv[0], &n);
     result_data = (float *) enif_make_new_binary(env, n * sizeof(float), &result);
 
+    srand((unsigned) time(NULL));
     for(i=0;i<n;i++){
         //box_muller
         x = (float)rand()/(float)RAND_MAX;

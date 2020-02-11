@@ -4,35 +4,13 @@ defmodule Test do
   alias Cumatrix, as: CM
 
 
-  # debug
-  defnetwork debug(_x) do
-    _x
-    |> cw([[0.5,0.7,0.2],
-           [0.1,0.2,0.3],
-           [0.3,0.4,0.1]])
-    |> cb([[0.1,0.2,0.3]])
-    |> softmax
-  end 
-
-  def test() do
-    y = CM.new([[0.6,0.5,0.4]])
-    t = CM.new([[0.0,0.1,0.0]])
-    DP.gradient(y,debug(0),t)
-  end 
-
   # for DNN test
   defnetwork init_network1(_x) do
-    _x
-    |> w(784, 300, 0.2)
-    |> b(300, 0.2)
-    |> sigmoid
-    |> w(300, 100, 0.2)
-    |> b(100, 0.2)
-    |> sigmoid
-    |> w(100, 10, 0.2)
-    |> b(10, 0.2)
-    |> softmax
+    _x |> w(784,300,1.0) |> b(300,1.0) |> sigmoid
+    |> w(300,100,1.0) |> b(100,1.0) |> sigmoid
+    |> w(100,10,0.5) |> b(10,0.5) |> softmax
   end
+
 
   def sgd(m, n) do
     IO.puts("preparing data")
