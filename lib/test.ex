@@ -18,10 +18,10 @@ defmodule Test do
 
   def sgd(m, n) do
     IO.puts("preparing data")
-    image = MNIST.train_image(3000) |> MNIST.to_matrix()
+    image = MNIST.train_image(3000,:flatten) |> MNIST.to_matrix()
     label = MNIST.train_label_onehot(3000)
     network = init_network1(0)
-    test_image = MNIST.test_image(1000) |> MNIST.to_matrix()
+    test_image = MNIST.test_image(1000,:flatten) |> MNIST.to_matrix()
     test_label = MNIST.test_label(1000)
     IO.puts("ready")
     network1 = sgd1(image, network, label, m, n)
