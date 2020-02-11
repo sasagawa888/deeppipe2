@@ -1,6 +1,7 @@
 defmodule Deeppipe do
   alias Cumatrix, as: CM
 
+
   # forward
   # return all middle data
   # 1st arg is input data matrix
@@ -194,7 +195,7 @@ defmodule Deeppipe do
   # 1st arg is input data matrix
   # 2nd arg is network list
   # 3rd arg is teeacher matrix
-  def grad(x, network, t) do
+  def gradient(x, network, t) do
     [x1 | x2] = forward(x, network, [x])
     loss = CM.sub(x1, t)
     network1 = Enum.reverse(network)
@@ -233,29 +234,29 @@ defmodule Deeppipe do
     backward(l1, rest, us, [{:weight, w1, lr, v} | res])
   end
 
-# ------- learning -------
-# learning/2 
-# 1st arg is old network list
-# 2nd arg is network with gradient
-# generate new network with leared weight and bias
-# update method is sgd
-#
-# learning/3 now under construction
-# added update method to 3rd arg
-# update method is momentam, adagrad, adam
+  # ------- learning -------
+  # learning/2 
+  # 1st arg is old network list
+  # 2nd arg is network with gradient
+  # generate new network with leared weight and bias
+  # update method is sgd
+  #
+  # learning/3 now under construction
+  # added update method to 3rd arg
+  # update method is momentam, adagrad, adam
 
-# --------sgd----------
+  # --------sgd----------
   def learning([], _) do
     []
   end
 
   def learning([{:weight, w, lr, v} | rest], [{:weight, w1, _, _} | rest1]) do
-    w2 = CM.emult(w,w1) |> CM.mult(lr)
+    w2 = CM.emult(w, w1) |> CM.mult(lr)
     [{:weight, w2, lr, v} | learning(rest, rest1)]
   end
 
   def learning([{:bias, w, lr, v} | rest], [{:bias, w1, _, _} | rest1]) do
-    w2 = CM.emult(w,w1) |> CM.mult(lr)
+    w2 = CM.emult(w, w1) |> CM.mult(lr)
     [{:bias, w2, lr, v} | learning(rest, rest1)]
   end
 
@@ -263,7 +264,20 @@ defmodule Deeppipe do
     [network | learning(rest, rest1)]
   end
 
-  
+  # average loss (scalar)
+   def loss(y, t, :cross) do
+    CM.loss(y,t,:cross) |> CM.average() |> CM.to_list() |> hd()
+  end
+
+  def loss(y, t, :square) do
+    CM.loss(y,t,:square) |> CM.average() |> CM.to_list() |> hd()
+  end
+
+  def loss(y, t) do
+     CM.loss(y,t,:square) |> CM.average() |> CM.to_list() |> hd() 
+  end
+
+
   # print predict of test data
   def accuracy(image, network, label) do
     forward(image, network, []) |> CM.to_list() |> score(label, 0)
@@ -297,7 +311,6 @@ defmodule Deeppipe do
     random_select1(image, train, [image1 | res1], [train1 | res2], m - 1, n)
   end
 
-  
   # save/load to file
   def save(file, network) do
     network1 = save1(network)
@@ -316,8 +329,8 @@ defmodule Deeppipe do
     [{:bias, CM.to_list(w), lr, v} | save1(rest)]
   end
 
-  def save1([{:function,name} | rest]) do
-    [{:function,name} | save1(rest)]
+  def save1([{:function, name} | rest]) do
+    [{:function, name} | save1(rest)]
   end
 
   def save1([network | rest]) do
@@ -340,12 +353,22 @@ defmodule Deeppipe do
     [{:bias, CM.new(w), lr, v} | load1(rest)]
   end
 
-  def load1([{:function,name} | rest]) do
-    [{:function,name} | load1(rest)]
-  end 
+  def load1([{:function, name} | rest]) do
+    [{:function, name} | load1(rest)]
+  end
 
   def load1([network | rest]) do
     [network | load1(rest)]
   end
 
-end 
+  # basic I/O
+  def print(x) do
+    :io.write(x)
+  end
+
+  def newline() do
+    IO.puts("")
+  end
+
+
+end
