@@ -1,8 +1,8 @@
 # DeepPipe2
-Deep Pipe2 is based Deep Pipe.
+Deep Pipe2 is based on Deep Pipe.
 It uses GPU with CUDA/cuBLAS
 
-Now,under construction
+Now,under construction. I'm improving.
 
 ## install
 require CUDA
