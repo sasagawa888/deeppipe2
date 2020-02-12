@@ -11,27 +11,7 @@ defmodule Test do
     |> w(100,10) |> b(10) |> softmax
   end
 
-  # for debug
-  defnetwork debug(_x) do 
-    _x |> cw([[0.1,0.2,0.3],
-              [0.4,0.5,0.6],
-              [0.7,0.8,0.9]])
-       |> cb([[0.1,0.2,0.3]])
-       |> sigmoid 
-  end 
-
-  def test() do 
-    y = CM.new([[0.1,0.2,0.3]])
-    t = CM.new([[0.2,0.3,0.4]])
-    network = debug(0)
-    network1 = DP.gradient(y,network,t) 
-    r = DP.learning(network,network1)
-    
-
-    DP.print(r)
-  end 
-
-
+  
 
   def sgd(m, n) do
     IO.puts("preparing data")
