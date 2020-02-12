@@ -122,11 +122,11 @@ defmodule MNIST do
   end
 
   def to_onehot1(x, x, res) do
-    to_onehot1(x, x - 1, [1 | res])
+    to_onehot1(x, x - 1, [1.0 | res])
   end
 
   def to_onehot1(x, c, res) do
-    to_onehot1(x, c - 1, [0 | res])
+    to_onehot1(x, c - 1, [0.0 | res])
   end
 
   def onehot_to_num([x]) do

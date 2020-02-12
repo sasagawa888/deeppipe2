@@ -278,11 +278,11 @@ defmodule Cumatrix do
   end
 
   def loss({r1, c1, dt1}, {r1, c1, dt2}, :square) do
-    {r1, 1, mean_square(r1, c1, dt1, dt2)}
+    mean_square(r1, c1, dt1, dt2)
   end
 
   def loss({r1, c1, dt1}, {r1, c1, dt2}, :cross) do
-    {r1, 1, cross_entropy(r1, c1, dt1, dt2)}
+    cross_entropy(r1, c1, dt1, dt2)
   end
 
   def print({r, c, dt}) do

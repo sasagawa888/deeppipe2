@@ -288,6 +288,13 @@ defmodule Deeppipe do
     forward(image, network, []) |> hd() |> CM.to_list() |> score(label, 0)
   end
 
+  def display(x) do
+    :io.write(x)
+    IO.puts("")
+    IO.puts(length(x))
+    IO.puts(length(hd(x)))
+  end 
+
   defp score([], [], correct) do
     correct
   end
@@ -401,7 +408,11 @@ defmodule Deeppipe do
   end
 
   def print2(x) do
-    :io.write(x)
+    if is_matrix(x) do 
+      CM.print(x)
+    else 
+      :io.write(x)
+    end 
   end
 
   def is_matrix({r,c,_}) do
