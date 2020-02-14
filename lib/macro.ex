@@ -4,10 +4,10 @@ defmodule Network do
   @moduledoc """
   defnetwork generates neural network(nn)
   nn is list.
-  e.g. [{:weight,w,lr,v},{:bias,b,lr},{:function,name}]
+  e.g. [{:weight,w,ir,lr,v},{:bias,b,ir,lr},{:function,name}]
   each element is following.
   - weight
-  {:weight,w,lr,v} w is matrix, lr is learning rate, v is for momentum,adagrad,adam
+  {:weight,w,lr,v} w is matrix, ir is init rate for random element, lr is learning rate, v is for momentum,adagrad,adam
   - bias
   {:bias,b,lr,v} b is row vector
   - function
@@ -24,31 +24,17 @@ defmodule Network do
     end
   end
 
-  # constant weight for test
-  def parse({:cw, _, [x]}, _) do
-    quote do
-      {:weight, CM.new(unquote(x)), 0.1, 0}
-    end
-  end
-
-  # constant bias for test
-  def parse({:cb, _, [x]}, _) do
-    quote do
-      {:bias, CM.new(unquote(x)), 0.1, 0}
-    end
-  end
-
-
+  
   # weight
   def parse({:w, _, [x, y]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)), 0.1, nil}
+      {:weight, CM.rand(unquote(x), unquote(y)), 0.1, 0.1, nil}
     end
   end
 
-  def parse({:w, _, [x, y, lr]}, _) do
+  def parse({:w, _, [x, y, ir, lr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)), unquote(lr), nil}
+      {:weight, CM.rand(unquote(x), unquote(y)), unquote(ir), unquote(lr), nil}
     end
   end
 
@@ -56,13 +42,13 @@ defmodule Network do
   # bias
   def parse({:b, _, [x]}, _) do
     quote do
-      {:bias, CM.rand(1, unquote(x)), 0.1, nil}
+      {:bias, CM.rand(1, unquote(x)), 0.1, 0.1, nil}
     end
   end
 
-  def parse({:b, _, [x, lr]}, _) do
+  def parse({:b, _, [x, ir, lr]}, _) do
     quote do
-      {:bias, CM.rand(1, unquote(x)), unquote(lr), nil}
+      {:bias, CM.rand(1, unquote(x)), unquote(ir), unquote(lr), nil}
     end
   end
 

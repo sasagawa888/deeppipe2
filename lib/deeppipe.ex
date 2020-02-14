@@ -16,12 +16,12 @@ defmodule Deeppipe do
     res
   end
 
-  def forward(x, [{:weight, w, _, _} | rest], res) do
+  def forward(x, [{:weight, w, _, _, _} | rest], res) do
     x1 = CM.mult(x, w)
     forward(x1, rest, [x1 | res])
   end
 
-  def forward(x, [{:bias, b, _, _} | rest], res) do
+  def forward(x, [{:bias, b, _,_, _} | rest], res) do
     x1 = CM.add(x, b)
     forward(x1, rest, [x1 | res])
   end
@@ -63,16 +63,16 @@ defmodule Deeppipe do
     backward(l1, rest, us, [{:function, name} | res])
   end
 
-  defp backward(l, [{:bias, _, lr, v} | rest], [_ | us], res) do
+  defp backward(l, [{:bias, _, ir, lr, v} | rest], [_ | us], res) do
     b1 = CM.average(l)
-    backward(l, rest, us, [{:bias, b1, lr, v} | res])
+    backward(l, rest, us, [{:bias, b1, ir, lr, v} | res])
   end
 
-  defp backward(l, [{:weight, w, lr, v} | rest], [u | us], res) do
+  defp backward(l, [{:weight, w, ir, lr, v} | rest], [u | us], res) do
     {n, _} = CM.size(l)
     w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n)
     l1 = CM.mult(l, CM.transpose(w))
-    backward(l1, rest, us, [{:weight, w1, lr, v} | res])
+    backward(l1, rest, us, [{:weight, w1, ir, lr, v} | res])
   end
 
   # ------- learning -------
@@ -91,34 +91,21 @@ defmodule Deeppipe do
     []
   end
 
-  def learning([{:weight, w, lr, v} | rest], [{:weight, w1, _, _} | rest1]) do
+  def learning([{:weight, w, ir, lr, v} | rest], [{:weight, w1, _, _, _} | rest1]) do
     w2 = CM.sub(w,CM.mult(w1,lr))
-    [{:weight, w2, lr, v} | learning(rest, rest1)]
+    [{:weight, w2, ir, lr, v} | learning(rest, rest1)]
   end
 
-  def learning([{:bias, w, lr, v} | rest], [{:bias, w1, _, _} | rest1]) do
+  def learning([{:bias, w, ir, lr, v} | rest], [{:bias, w1, _, _, _} | rest1]) do
     w2 = CM.sub(w,CM.mult(w1,lr))
-    [{:bias, w2, lr, v} | learning(rest, rest1)]
+    [{:bias, w2, ir, lr, v} | learning(rest, rest1)]
   end
 
   def learning([network | rest], [_ | rest1]) do
     [network | learning(rest, rest1)]
   end
 
-  # average loss (scalar)
-  def loss(y, t, :cross) do
-    CM.loss(y,t,:cross) |> CM.average() |> CM.elt(1,1)
-  end
-
-  def loss(y, t, :square) do
-    CM.loss(y,t,:square) |> CM.average() |> CM.elt(1,1)
-  end
-
-  def loss(y, t) do
-     CM.loss(y,t,:square) |> CM.average() |> CM.elt(1,1) 
-  end
-
-
+  
   # print predict of test data
   def accuracy(image, network, label) do
     forward(image, network, []) |> hd() |> CM.to_list() |> score(label, 0)
