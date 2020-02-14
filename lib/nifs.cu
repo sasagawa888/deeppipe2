@@ -101,7 +101,7 @@ rand1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         x = (float)rand()/(float)RAND_MAX;
         y = (float)rand()/(float)RAND_MAX;
         val = sqrt(-2.0 * log(x)) * cos(2.0 * PI * y);
-        result_data[i] = val * 0.1;
+        result_data[i] = val;
     }
     return(result);
 }
