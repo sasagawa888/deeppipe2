@@ -27,26 +27,8 @@ defmodule Deeppipe do
   end
 
   def forward(x, [{:function, name} | rest], res) do
-    cond do
-      name == :sigmoid ->
-        x1 = CM.activate(x, :sigmoid)
-        forward(x1, rest, [x1 | res])
-
-      name == :tanh ->
-        x1 = CM.activate(x, :tanh)
-        forward(x1, rest, [x1 | res])
-
-      name == :relu ->
-        x1 = CM.activate(x, :relu)
-        forward(x1, rest, [x1 | res])
-
-      name == :softmax ->
-        x1 = CM.activate(x, :softmax)
-        forward(x1, rest, [x1 | res])
-
-      true ->
-        raise "not exist function"
-    end
+    x1 = CM.activate(x, name)
+    forward(x1, rest, [x1 | res])
   end
 
  

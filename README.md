@@ -7,7 +7,7 @@ Now,under construction. I'm improving.
 ## install
 require CUDA
 
-Make clone or dowload.
+Make clone or download.
 
 on terminal 
 
