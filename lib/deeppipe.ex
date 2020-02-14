@@ -125,6 +125,24 @@ defmodule Deeppipe do
     [network | learning(rest, rest1, :momentum)]
   end
 
+  # --------AdaGrad--------------
+  def learning([], _, :adagrad) do
+    []
+  end
+
+  def learning([{:weight, w, ir, lr, h} | rest], [{:weight, w1, _, _, _} | rest1], :adagrad) do
+    h1 = CM.add(h, CM.emult(w1, w1))
+    [{:weight, CM.adagrad(w, w1, h1, lr), ir, lr, h1} | learning(rest, rest1, :adagrad)]
+  end
+
+  def learning([{:bias, w, ir, lr, h} | rest], [{:bias, w1, _, _, _} | rest1], :adagrad) do
+    h1 = CM.add(h, CM.emult(w1, w1))
+    [{:bias, CM.adagrad(w, w1, h1, lr), ir, lr, h1} | learning(rest, rest1, :adagrad)]
+  end
+
+  def learning([network | rest], [_ | rest1], :adagrad) do
+    [network | learning(rest, rest1, :adagrad)]
+  end
 
   
   # print predict of test data

@@ -114,6 +114,10 @@ defmodule Cumatrix do
     raise "NIF momentum1/5 not implemented"
   end 
 
+  def adagrad1(_a, _b, _c, _d, _e, _f) do
+    raise "NIF adagrad1/6 not implemented"
+  end 
+
 
 #----------------------------------------------------------------
   def mult({r1, c1, dt1}, {r2, c2, dt2}) do
@@ -294,6 +298,13 @@ defmodule Cumatrix do
   end 
   def momentum(_, _, _) do
     raise "momentum illegal argument"
+  end 
+
+  def adagrad({r1,c1,dt1},{r1,c1,dt2},h,lr) do
+    {r1,c1,adagrad1(r1,c1,dt1,dt2,h,lr)}
+  end 
+  def adagrad(_, _, _, _) do
+    raise "adagrad illegal argument"
   end 
 
   def print({r, c, dt}) do
