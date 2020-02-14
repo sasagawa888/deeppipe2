@@ -97,7 +97,10 @@ lr is learning rate (default is 0.1)
 
 ##### b(n)
 bias row_vector size(n). elements are all zero
-b(n,lr) lr is learning rate (default is 0.1)
+
+####b(n,ir,lr)
+ir is rate for random number. (default is 0.1)
+lr is learning rate (default is 0.1)
 
 ##### function
 sigmoid,tanh,relu,softmax
