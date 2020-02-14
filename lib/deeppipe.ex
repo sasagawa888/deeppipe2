@@ -10,7 +10,7 @@ defmodule Deeppipe do
   # forward
   # return all middle data
   # 1st arg is input data matrix
-  # 2nd arg is netward list
+  # 2nd arg is network list
   # 3rd arg is generated middle layer result
   def forward(_, [], res) do
     res
@@ -35,7 +35,7 @@ defmodule Deeppipe do
   # gradient with backpropagation
   # 1st arg is input data matrix
   # 2nd arg is network list
-  # 3rd arg is teeacher matrix
+  # 3rd arg is train matrix
   def gradient(x, network, t) do
     [x1 | x2] = forward(x, network, [x])
     loss = CM.sub(x1, t)
@@ -82,7 +82,7 @@ defmodule Deeppipe do
   # generate new network with leared weight and bias
   # update method is sgd
   #
-  # learning/3 now under construction
+  # learning/3
   # added update method to 3rd arg
   # update method is momentam, adagrad, adam
 
