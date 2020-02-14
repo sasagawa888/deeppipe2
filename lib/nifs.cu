@@ -534,7 +534,6 @@ activate_relu(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(b_bin);
 }
 
-
 static ERL_NIF_TERM
 activate_softmax(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
@@ -1002,7 +1001,60 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(list);
 }
 
+/*
+  def momentum(v, g, lr) do
+    Matrex.apply(v, g, fn v, g -> 0.5 * v - lr * g end)
+  end
+*/
+  __global__ void momentum_kernel(float *a, float *b, float *c, float lr, int n)
+  {
+      int tid = threadIdx.x + blockIdx.x * blockDim.x;
+      while (tid < n)
+      {   
+          c[tid] = (0.5 * a[tid]) - (lr * b[tid]);
+          tid += blockDim.x * gridDim.x;
+      }
+  }
+  
+  static ERL_NIF_TERM
+  momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+      ErlNifBinary  a_bin,b_bin;
+      ERL_NIF_TERM  c_bin;
+      int r1, c1, n;
+      float *a,*b, *c;
+      float *dev_a, *dev_b, *dev_c;
+      double lr;
+  
+      if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
+      if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+      if (!enif_inspect_binary(env, argv[3], &b_bin )) return enif_make_badarg(env);
+      if (!enif_get_double(env, argv[4], &lr)) return enif_make_badarg(env);
 
+      n = r1*c1;
+      a = (float *) a_bin.data;
+      b = (float *) b_bin.data;
+      c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
+  
+          // Allocate for GPU
+      cudaMalloc((void**)&dev_a, n * sizeof(float));
+      cudaMalloc((void**)&dev_b, n * sizeof(float));
+      cudaMalloc((void**)&dev_c, n * sizeof(float));
+  
+      // copy from host a,b to GPU dev_a, dev_b
+      cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
+      cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+      cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice);
+  
+      momentum_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, float(lr), n);
+  
+      // copy to host c from GPU dev_c
+      cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+  
+      return(c_bin);
+  }
+  
+  
 // define the array of ErlNifFunc
 static ErlNifFunc nif_funcs[] = {
   // {erl_function_name, erl_function_arity, c_function}
@@ -1031,7 +1083,8 @@ static ErlNifFunc nif_funcs[] = {
   {"minus1", 6, minus1},
   {"average1", 3, average1},
   {"sum1", 3, sum1},
-  {"to_list1", 3, to_list1}
+  {"to_list1", 3, to_list1},
+  {"momentum1", 5, momentum1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)

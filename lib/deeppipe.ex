@@ -105,6 +105,27 @@ defmodule Deeppipe do
     [network | learning(rest, rest1)]
   end
 
+  # --------momentum-------------
+  def learning([], _, :momentum) do
+    []
+  end
+
+  def learning([{:weight, w, ir, lr, v} | rest], [{:weight, w1, _, _, _} | rest1], :momentum) do
+    v1 = CM.momentum(v, w1, lr)
+    [{:weight, CM.add(w, v1), ir, lr, v1} | learning(rest, rest1, :momentum)]
+  end
+
+  def learning([{:bias, w, ir, lr, v} | rest], [{:bias, w1, _, _, _} | rest1], :momentum) do
+    v1 = CM.momentum(v, w1, lr)
+    [{:bias, CM.add(w, v1), ir, lr, v1} | learning(rest, rest1, :momentum)]
+  end
+
+
+  def learning([network | rest], [_ | rest1], :momentum) do
+    [network | learning(rest, rest1, :momentum)]
+  end
+
+
   
   # print predict of test data
   def accuracy(image, network, label) do

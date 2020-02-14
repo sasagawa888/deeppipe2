@@ -110,6 +110,10 @@ defmodule Cumatrix do
     raise "NIF to_list1/3 not implemented"
   end 
 
+  def momentum1(_a, _b, _c, _d, _e) do 
+    raise "NIF momentum1/5 not implemented"
+  end 
+
 
 #----------------------------------------------------------------
   def mult({r1, c1, dt1}, {r2, c2, dt2}) do
@@ -284,6 +288,13 @@ defmodule Cumatrix do
   def loss({r1, c1, dt1}, {r1, c1, dt2}, :cross) do
     cross_entropy(r1, c1, dt1, dt2)
   end
+
+  def momentum({r1,c1,dt1},{r1,c1,dt2},lr) do
+    {r1,c1,momentum1(r1,c1,dt1,dt2,lr)}
+  end 
+  def momentum(_, _, _) do
+    raise "momentum illegal argument"
+  end 
 
   def print({r, c, dt}) do
     print1(r,c,dt)
