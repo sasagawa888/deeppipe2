@@ -105,8 +105,44 @@ lr is learning rate (default is 0.1)
 ##### function
 sigmoid,tanh,relu,softmax
 
+## module Deeppipe
+- forward/3
 
-## cuMatrix
+```
+return all middle data
+1st arg is input data matrix
+2nd arg is network list
+3rd arg is generated middle layer result
+```
+
+- gradient/3
+
+```
+gradient with backpropagation
+1st arg is input data matrix
+2nd arg is network list
+3rd arg is train matrix
+```
+
+- learn/2 learn/3
+
+```
+learning/2 
+1st arg is old network list
+2nd arg is network with gradient
+generate new network with leared weight and bias
+update method is sgd
+
+learning/3
+added update method to 3rd arg
+update method is momentam, adagrad
+
+```
+
+
+
+
+## module cuMatrix
 Caution, each element of matrix  must be float number.
 
 - Cumatrix.new(r,c) 
