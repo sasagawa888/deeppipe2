@@ -71,6 +71,33 @@ see test.ex
     |> w(100,10) |> b(10) |> softmax
   end
 
-  
-
 ```
+
+## specification:
+
+### data structure
+#### network
+ e.g. [{:weight,w,ir,lr,v},{:bias,b,ir,lr},{:function,name}]
+##### weight
+{:weight,w,ir,lr,v} w is matrix, ir is rate for initial random number,lr is learning rate, v is for momentum,adagrad,adam
+##### bias
+{:bias,b,ir,lr,v} b is row vector
+##### function
+{:function,name} name is function name within sigmoid tanh relu
+
+### module macros
+defnetwork is macros to describe network
+argument must have under bar to avoid warning message
+
+##### w(m,n)
+weight matrix size(m,n). elements are Gaussian distribution random float
+##### w(m,n,,ir,lr)
+ir is rate for random number. (default is 0.1)
+lr is learning rate (default is 0.1)
+
+##### b(n)
+bias row_vector size(n). elements are all zero
+b(n,lr) lr is learning rate (default is 0.1)
+
+##### function
+sigmoid,tanh,relu,softmax
