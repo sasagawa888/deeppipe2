@@ -1,8 +1,23 @@
 # DeepPipe2
-Deep Pipe2 is based on Deep Pipe.
-It uses GPU with CUDA/cuBLAS
+DeepPipe2 is a library of Deep-Learning by Elixir using GPU. It is fast because it uses CUDA/cuBLAS. Currently, I am improving to use CNN.
 
-Now,under construction. I'm improving.
+# getting started
+DeepPipe2 requires GPU. Nvidia's GeForce is easy. The game PC turns into an AI experiment tool.
+
+If you have not yet installed CUDA, install it from the Nvidia website.
+https://developer.nvidia.com/cuda-downloads
+
+Linux is recommended for OS. DeepPipe2 does not work on Windows.
+After installing CUDA, make a clone of DeepPipe2.
+git clone https://github.com/sasagawa888/deeppipe2.git
+
+Change to the deeppipe2 directory with the CD command. And enter make from terminal. Installation is completed. Start with iex -S mix.MNIST data and sample code are included. Enter Test.sgd (100,100).
+
+Network descriptions are Elixir-like pipeline operators. See the test.ex file. The random number given to the weight matrix and bias affects learning. The learning rate also has an effect. The default for each is 0.1. You can change it with w(300,100,0.2,0.5) in defnetwork. In this example, the multiple to the random number is 0.2 and the learning rate is 0.5. It is important to find these parameters in Deep-Learning.
+
+Please enjoy.
+
+
 
 ## install
 require CUDA
