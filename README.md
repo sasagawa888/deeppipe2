@@ -60,6 +60,21 @@ end
 
 ```
 
+## confirmation
+I confirmed following OS and CUDA
+
+Linux Mint 18.1 “Sarah” MATE
+
+
+```
+nvcc --version
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2019 NVIDIA Corporation
+Built on Wed_Oct_23_19:24:38_PDT_2019
+Cuda compilation tools, release 10.2, V10.2.89
+```
+
+
 ## network example
 see test.ex
 
