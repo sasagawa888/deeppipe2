@@ -18,8 +18,8 @@ defmodule Test do
   end
 
   defnetwork init_network3(_x) do
-    _x |> w(784,300) |> b(300) |> sigmoid
-    |> w(300,100) |> b(100) |> sigmoid
+    _x |> w(784,300,1.0,0.2) |> b(300,1.0,0.2) |> sigmoid
+    |> w(300,100,1.0,0.1) |> b(100,1.0,0.1) |> tanh
     |> w(100,10) |> b(10) |> softmax
   end
 
@@ -48,8 +48,7 @@ defmodule Test do
     network2 = DP.learning(network, network1,:momentum)
     [y|_] = DP.forward(image1, network2 ,[])
     loss = CM.loss(y, train1, :cross)
-    DP.print(loss)
-    DP.newline()
+    IO.puts(loss)
     sgd1(image, network2, train, m, n - 1)
   end
 
@@ -79,8 +78,7 @@ defmodule Test do
     network2 = DP.learning(network, network1,:momentum)
     [y|_] = DP.forward(image1, network2 ,[])
     loss = CM.loss(y, train1, :cross)
-    DP.print(loss)
-    DP.newline()
+    IO.puts(loss)
     sgd1(image, network2, train, m, n - 1)
   end
 
@@ -109,8 +107,7 @@ defmodule Test do
     network2 = DP.learning(network, network1,:adagrad)
     [y|_] = DP.forward(image1, network2 ,[])
     loss = CM.loss(y, train1, :cross)
-    DP.print(loss)
-    DP.newline()
+    IO.puts(loss)
     sgd1(image, network2, train, m, n - 1)
   end
 
