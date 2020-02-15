@@ -118,6 +118,10 @@ defmodule Cumatrix do
     raise "NIF adagrad1/6 not implemented"
   end 
 
+  def accuracy1(_a, _b, _c, _d) do 
+    raise "NIF accuracy/4 not implemented"
+  end 
+
 
 #----------------------------------------------------------------
   def mult({r1, c1, dt1}, {r2, c2, dt2}) do
@@ -305,6 +309,17 @@ defmodule Cumatrix do
   end 
   def adagrad(_, _, _, _) do
     raise "adagrad illegal argument"
+  end 
+
+  def accuracy({r1,c1,dt1},ls) do
+    if length(ls) != r1 do
+      raise "accuracy illegal argument"
+    else 
+      accuracy1(r1,c1,dt1,ls)
+    end 
+  end 
+  def accurace(_,_) do 
+    raise "accuracy illegal argument"
   end 
 
   def print({r, c, dt}) do

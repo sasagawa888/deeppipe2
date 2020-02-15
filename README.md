@@ -221,5 +221,23 @@ for each element mt1(x,y) - lr * (1 / adagrad_sqrt(h)) * mt2(x,y).
 when h != 0 adagrad_sqrt(x) = sqrt(x).
 when h == 0 adagrad_sqrt(x) = 1.
 
+- Cumatrix.accuracy(mt1,ls) 
+return accuracy rate as float number.
+mt1 is set of row-vector.Each row-vector is onehot.
+ls is list each element is label integer number.
 
+```
+e.g.
+
+iex(1)> a = Cumatrix.new([[0.0,0.0,1.0],[0.0,0.1,0.3]])
+{2, 3,
+ <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 205, 204, 204, 61, 0, 0, 128, 63, 154,
+   153, 153, 62>>}
+iex(3)> Cumatrix.accuracy(a,[2,2])
+1.0
+iex(4)> Cumatrix.accuracy(a,[2,1])
+0.5
+iex(5)> 
+
+```
 

@@ -1119,6 +1119,42 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
       return(c_bin);
   }
+
+  static ERL_NIF_TERM
+  accuracy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+      ErlNifBinary  a_bin;
+      ERL_NIF_TERM  head,list,result;
+      int r1, c1, i, j, n, index,sum;
+      float *a;
+      double max,rate;
+  
+      if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
+      if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+
+      a = (float *) a_bin.data;
+
+       // calculate accuracy
+      sum = 0;
+      list = argv[3]; 
+      for(i=0;i<r1;i++){
+        max = 0.0;
+        enif_get_list_cell(env, list, &head, &list);
+        enif_get_int(env,head,&n);
+        for(j=0;j<c1;j++){
+            if(a[IDX2C(i,j,r1)] > max){
+                max = a[IDX2C(i,j,r1)];
+                index = j;
+            }
+        }
+        if(index == n)
+            sum++;
+      }
+      rate = (double)sum / (double)r1;
+      result = enif_make_double(env,rate);
+      return(result);
+  }
+  
   
 // define the array of ErlNifFunc
 static ErlNifFunc nif_funcs[] = {
@@ -1150,7 +1186,8 @@ static ErlNifFunc nif_funcs[] = {
   {"sum1", 3, sum1},
   {"to_list1", 3, to_list1},
   {"momentum1", 5, momentum1},
-  {"adagrad1", 6, adagrad1}
+  {"adagrad1", 6, adagrad1},
+  {"accuracy1", 4, accuracy1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)

@@ -24,7 +24,7 @@ defmodule Test do
     test_label = MNIST.test_label(1000)
     correct = DP.accuracy(test_image, network1, test_label)
     IO.write("accuracy rate = ")
-    IO.puts(correct / 1000)
+    IO.puts(correct)
     IO.puts("end")
   end
 

@@ -84,7 +84,7 @@ defmodule Deeppipe do
   #
   # learning/3
   # added update method to 3rd arg
-  # update method is momentam, adagrad, adam
+  # update method is momentam, adagrad
 
   # --------sgd----------
   def learning([], _) do
@@ -145,23 +145,13 @@ defmodule Deeppipe do
   end
 
   
-  # print predict of test data
+  # calculate accurace 
   def accuracy(image, network, label) do
-    forward(image, network, []) |> hd() |> CM.to_list() |> score(label, 0)
+    [y|_] = forward(image, network, []) 
+    CM.accuracy(y,label)
   end
 
   
-  defp score([], [], correct) do
-    correct
-  end
-
-  defp score([x | xs], [l | ls], correct) do
-    if MNIST.onehot_to_num(x) == l do
-      score(xs, ls, correct + 1)
-    else
-      score(xs, ls, correct)
-    end
-  end
 
   # select random data from image data and train data 
   # size of m. range from 0 to n
