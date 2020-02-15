@@ -34,7 +34,7 @@ defmodule Network do
 
   def parse({:w, _, [x, y, ir, lr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(ir) , unquote(ir), unquote(lr), CM.new(unquote(x),unquote(y))}
+      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)) , unquote(ir), unquote(lr), CM.new(unquote(x),unquote(y))}
     end
   end
 
@@ -48,7 +48,7 @@ defmodule Network do
 
   def parse({:b, _, [x, ir, lr]}, _) do
     quote do
-      {:bias, CM.rand(1, unquote(x)) |> CM.mult(ir) , unquote(ir), unquote(lr), CM.new(1,unquote(x))}
+      {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)) , unquote(ir), unquote(lr), CM.new(1,unquote(x))}
     end
   end
 

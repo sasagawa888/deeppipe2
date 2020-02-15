@@ -11,7 +11,17 @@ defmodule Test do
     |> w(100,10) |> b(10) |> softmax
   end
 
-  
+  defnetwork init_network2(_x) do
+    _x |> w(784,300) |> b(300) |> relu
+    |> w(300,100) |> b(100) |> sigmoid
+    |> w(100,10) |> b(10) |> softmax
+  end
+
+  defnetwork init_network3(_x) do
+    _x |> w(784,300) |> b(300) |> sigmoid
+    |> w(300,100) |> b(100) |> sigmoid
+    |> w(100,10) |> b(10) |> softmax
+  end
 
   def sgd(m, n) do
     IO.puts("preparing data")
@@ -48,14 +58,14 @@ defmodule Test do
     IO.puts("preparing data")
     image = MNIST.train_image(3000,:flatten)
     label = MNIST.train_label_onehot(3000)
-    network = init_network1(0)
+    network = init_network2(0)
     IO.puts("ready")
     network1 = sgd1(image, network, label, m, n)
     test_image = MNIST.test_image(1000,:flatten) |> CM.new()
     test_label = MNIST.test_label(1000)
     correct = DP.accuracy(test_image, network1, test_label)
     IO.write("accuracy rate = ")
-    IO.puts(correct / 1000)
+    IO.puts(correct)
     IO.puts("end")
   end
 
@@ -78,14 +88,14 @@ defmodule Test do
     IO.puts("preparing data")
     image = MNIST.train_image(3000,:flatten)
     label = MNIST.train_label_onehot(3000)
-    network = init_network1(0)
+    network = init_network3(0)
     IO.puts("ready")
     network1 = sgd1(image, network, label, m, n)
     test_image = MNIST.test_image(1000,:flatten) |> CM.new()
     test_label = MNIST.test_label(1000)
     correct = DP.accuracy(test_image, network1, test_label)
     IO.write("accuracy rate = ")
-    IO.puts(correct / 1000)
+    IO.puts(correct)
     IO.puts("end")
   end
 
