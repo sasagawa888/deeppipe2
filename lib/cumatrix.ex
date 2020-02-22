@@ -94,8 +94,8 @@ defmodule Cumatrix do
     raise "NIF elt1/5 not implemented"
   end 
   
-  def minus1(_a, _b, _c, _d, _e, _f) do
-    raise "NIF minus1/5 not implemented"
+  def set1(_a, _b, _c, _d, _e, _f) do
+    raise "NIF set1/6 not implemented"
   end 
 
   def average1(_a, _b, _c) do
@@ -203,8 +203,8 @@ defmodule Cumatrix do
     elt1(r,c,x-1,y-1,dt)
   end
 
-  def minus({r,c,dt},x,y,val) do
-    {r,c,minus1(r,c,dt,x-1,y-1,val)}
+  def set({r,c,dt},x,y,val) do
+    {r,c,set1(r,c,dt,x-1,y-1,val)}
   end 
 
 

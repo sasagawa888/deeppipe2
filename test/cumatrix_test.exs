@@ -26,7 +26,7 @@ defmodule CumatrixTest do
     m3 = Cumatrix.new([[1.0,2.0]])
     assert Cumatrix.add(m,m3) == Cumatrix.new([[2.0, 4.0], [4.0, 6.0]])
     assert Cumatrix.to_list(m1) == [[1.0, -2.0, 3.0], [4.0, 5.0, -6.0]]
-    assert Cumatrix.minus(m1,2,3,1.0) == Cumatrix.new([[1.0, -2.0, 3.0], [4.0, 5.0, -7.0]])
+    assert Cumatrix.set(m1,2,3,1.0) == Cumatrix.new([[1.0, -2.0, 3.0], [4.0, 5.0, 1.0]])
     m4 = Cumatrix.new(([[1.0,2.0,3.0],[2.0,3.0,1.2]]))
     m5 = Cumatrix.new(([[1.1,2.9,2.0],[2.2,3.1,1.2]]))
     assert Cumatrix.loss(m4,m5,:square) ==  0.4675000309944153

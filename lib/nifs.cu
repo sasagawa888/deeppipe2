@@ -892,7 +892,7 @@ elt1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 static ERL_NIF_TERM
-minus1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+set1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin;
     int r1, c1, n, i, j, x, y;
@@ -914,7 +914,7 @@ minus1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     for(i=0;i<r1;i++){
         for(j=0;j<c1;j++){
             if(i==x && j==y)
-                b[IDX2C(i,j,r1)] = a[IDX2C(i,j,r1)] - (float)val;
+                b[IDX2C(i,j,r1)] = (float)val;
             else 
                 b[IDX2C(i,j,r1)] = a[IDX2C(i,j,r1)];
         }
@@ -1402,7 +1402,7 @@ static ErlNifFunc nif_funcs[] = {
   {"mean_square", 4, mean_square},
   {"cross_entropy", 4, cross_entropy},
   {"elt1", 5, elt1},
-  {"minus1", 6, minus1},
+  {"set1", 6, set1},
   {"average1", 3, average1},
   {"sum1", 3, sum1},
   {"to_list1", 3, to_list1},
