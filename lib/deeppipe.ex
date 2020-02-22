@@ -227,7 +227,7 @@ defmodule Deeppipe do
   def print(x) do
     cond do 
       is_number(x) || is_atom(x) -> :io.write(x)
-      is_matrix(x) -> CM.print(x)
+      CM.is_matrix(x) -> CM.print(x)
       true ->  print1(x)
       IO.puts("")
     end
@@ -254,21 +254,13 @@ defmodule Deeppipe do
   end
 
   def print2(x) do
-    if is_matrix(x) do 
+    if CM.is_matrix(x) do 
       CM.print(x)
     else 
       :io.write(x)
     end 
   end
 
-  def is_matrix({r,c,_}) do
-    if is_integer(r) && is_integer(c) do 
-      true
-    else 
-      false
-    end 
-  end 
-  def is_matrix(_) do false end 
   
   def newline() do
     IO.puts("")

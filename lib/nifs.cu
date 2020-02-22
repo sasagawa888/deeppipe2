@@ -1170,29 +1170,52 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
   
   
-  // Not work!
+  /*
+  1st arg n of input tensor
+  2nd arg c of input tensor
+  3rd arg h of input tensor
+  4th arg w of input tensor
+  5th arg k of filter tensor
+  6th arg c of filter tensor
+  7th arg h of filter tensor
+  8th arg w of filter tensor
+  9th arg binary of input tensor
+  10th arg binary of filter tensor1
+  11th arg h of padding 
+  12th arg w of padding
+  13th arg h of stride 
+  14th arg w of stride
+  */
   static ERL_NIF_TERM
   convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    //ErlNifBinary  a_bin,b_bin;
+    ErlNifBinary  a_bin,b_bin;
     ERL_NIF_TERM  c_bin;
     int in_n,in_c,in_h,in_w;
     int filt_k,filt_c,filt_h,filt_w;
     int pad_h,pad_w,str_h,str_w,dil_h,dil_w; 
     int out_n,out_c,out_h,out_w;
-      //int n;
-      //float *c;
-      //float *dev_c;
+    float *in_data,*filt_data,*out_data;
+
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[4], &filt_k)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[5], &filt_c)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[6], &filt_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[7], &filt_w)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[8], &a_bin )) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[9], &b_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[10], &pad_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[11], &pad_w)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[12], &str_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[13], &str_w)) return enif_make_badarg(env);
 
 
     cudnnHandle_t cudnn;
     cudnnCreate(&cudnn);
     
     // input
-    in_n = 1;
-    in_c = 1;
-    in_h = 5;
-    in_w = 5;
-    
     /*
     cudnnSetTensor4dDescriptor( )
     1st arg tensorDesc input/Output. Handle to a previously created tensor descriptor. 
@@ -1209,15 +1232,10 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
           in_n, in_c, in_h, in_w);
   
 
-    float *in_data;
+    in_data = (float *) a_bin.data;
     cudaMalloc(&in_data, in_n * in_c * in_h * in_w * sizeof(float));
         
     // filter
-    filt_k = 1;
-    filt_c = 1;
-    filt_h = 2;
-    filt_w = 2;
-    
     /*
     cudnnSetFilter4dDescriptor( )
     1st arg filterDesc Input/Output. Handle to a previously created filter descriptor.
@@ -1234,15 +1252,11 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
           filt_desc, CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW,
           filt_k, filt_c, filt_h, filt_w);
   
-    float *filt_data;
+    filt_data = (float *) b_bin.data;
     cudaMalloc(
         &filt_data, filt_k * filt_c * filt_h * filt_w * sizeof(float));
     
     // convolution
-    pad_h = 1;
-    pad_w = 1;
-    str_h = 1;
-    str_w = 1;
     dil_h = 1;
     dil_w = 1;
     
@@ -1279,7 +1293,7 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
           out_desc, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
           out_n, out_c, out_h, out_w);
   
-    float *out_data;
+    out_data = (float *) enif_make_new_binary(env, out_n * out_c * out_h * out_w * sizeof(float), &c_bin);
     cudaMalloc(
           &out_data, out_n * out_c * out_h * out_w * sizeof(float));
 
@@ -1341,8 +1355,6 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     // perform
     float alpha = 1.f;
     float beta = 0.f;
-    dev_iota<<<in_w * in_h, in_n * in_c>>>(in_data);
-    dev_const<<<filt_w * filt_h, filt_k * filt_c>>>(filt_data, 1.f);
     cudnnConvolutionForward(
         cudnn,
         &alpha, in_desc, in_data, filt_desc, filt_data,
@@ -1361,7 +1373,6 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     cudnnDestroyTensorDescriptor(in_desc);
     cudnnDestroy(cudnn);
 
-    c_bin = enif_make_int(env,0);
     return(c_bin);
   }
 
@@ -1398,7 +1409,7 @@ static ErlNifFunc nif_funcs[] = {
   {"momentum1", 5, momentum1},
   {"adagrad1", 6, adagrad1},
   {"accuracy1", 4, accuracy1},
-  {"convolute1", 5, convolute1}
+  {"convolute1", 14, convolute1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)
