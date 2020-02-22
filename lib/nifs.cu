@@ -1184,8 +1184,8 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
       //float *dev_c;
 
 
-      cudnnHandle_t cudnn;
-      cudnnCreate(&cudnn);
+    cudnnHandle_t cudnn;
+    cudnnCreate(&cudnn);
     
     // input
     in_n = 1;
@@ -1193,6 +1193,15 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     in_h = 5;
     in_w = 5;
     
+    /*
+    cudnnSetTensor4dDescriptor( )
+    1st arg tensorDesc input/Output. Handle to a previously created tensor descriptor. 
+    2nd arg Format input. Type of format. 
+    3rd arg n Input. Number of images. 
+    4th arg c Input. Number of feature maps per image. 
+    5th arg h Input. Height of each feature map.
+    6th arg w Input. Width of each feature map. 
+    */
     cudnnTensorDescriptor_t in_desc;
     cudnnCreateTensorDescriptor(&in_desc);
     cudnnSetTensor4dDescriptor(
@@ -1209,7 +1218,16 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     filt_h = 2;
     filt_w = 2;
     
-    
+    /*
+    cudnnSetFilter4dDescriptor( )
+    1st arg filterDesc Input/Output. Handle to a previously created filter descriptor.
+    2nd arg datatype Input. Data type.
+    3rd arg format Input. Type of format.
+    4th arg k Input. Number of output feature maps.
+    5th arg c Input. Number of input feature maps.
+    6th arg h Input. Height of each filter.
+    7th arg w Input. Width of each filter.
+    */
     cudnnFilterDescriptor_t filt_desc;
     cudnnCreateFilterDescriptor(&filt_desc);
     cudnnSetFilter4dDescriptor(
@@ -1228,7 +1246,18 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     dil_h = 1;
     dil_w = 1;
     
-    
+    /*
+    cudnnSetConvolution2dDescriptor( )
+    1st arg convDesc Input/Output. Handle to a previously created convolution descriptor.
+    2nd arg pad_h Input. zero-padding height: number of rows of zeros implicitly concatenated onto the top and onto the bottom of input images.
+    3rd arg pad_w Input. zero-padding width: number of columns of zeros implicitly concatenated onto the left and onto the right of input images.
+    4th arg u Input. Vertical filter stride.
+    5th arg v Input. Horizontal filter stride.
+    6th arg dilation_h Input. Filter height dilation.
+    7th arg dilation_w Input. Filter width dilation.
+    8th arg mode Input. Selects between CUDNN_CONVOLUTION and CUDNN_CROSS_CORRELATION.
+    9th arg computeType Input. compute precision.
+    */
     cudnnConvolutionDescriptor_t conv_desc;
     cudnnCreateConvolutionDescriptor(&conv_desc);
     cudnnSetConvolution2dDescriptor(
@@ -1253,6 +1282,17 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *out_data;
     cudaMalloc(
           &out_data, out_n * out_c * out_h * out_w * sizeof(float));
+
+    /*
+    cudnnGetConvolutionForwardAlgorithm( )
+    1st arg convDesc Input. Handle to a previously created convolution descriptor.
+    2nd arg inputTensorDesc Input. Handle to a previously initialized tensor descriptor.
+    3rd arg filterDesc Input. Handle to a previously initialized filter descriptor.
+    4th arg n Output. Number of output images.
+    5th arg c Output. Number of output feature maps per image.
+    6th arg h Output. Height of each output feature map.
+    7th arg w Output. Width of each output feature map.
+    */
   
     // algorithm
     cudnnConvolutionFwdAlgo_t algo;
@@ -1260,6 +1300,17 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
           cudnn,
           in_desc, filt_desc, conv_desc, out_desc,
           CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, &algo);
+
+    /*
+    cudnnGetConvolutionForwardWorkspaceSize( )
+    1st arg handle Input. Handle to a previously created cuDNN context.
+    2nd arg xDesc Input. Handle to the previously initialized x tensor descriptor.
+    3rd arg wDesc Input. Handle to a previously initialized filter descriptor.
+    4th arg convDesc Input. Previously initialized convolution descriptor.
+    5th arg yDesc Input. Handle to the previously initialized y tensor descriptor.
+    6th arg algo Input. Enumerant that specifies the chosen convolution algorithm
+    7th arg sizeInBytes Output. Amount of GPU memory needed as workspace to be able to execute a forward convolution with the specified algo
+    */
   
     // workspace
     size_t ws_size;
@@ -1270,6 +1321,23 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     cudaMalloc(&ws_data, ws_size);
   
     
+    /*
+    cudnnConvolutionForward( )
+    1st arg handle Input. Handle to a previously created cuDNN context.
+    2nd arg alpha Input. Pointers to scaling factors (in host memory) used to blend the computation result with prior value in the output layer as follows: dstValue = alpha[0]*result + beta[0]*priorDstValue
+    3rd arg xDesc Input. Handle to a previously initialized tensor descriptor.
+    4th arg x Input. Data pointer to GPU memory associated with the tensor descriptor
+    5th arg wDesc Input. Handle to a previously initialized filter descriptor.
+    6th arg w Input. Data pointer to GPU memory associated with the filter descriptor
+    7th arg convDesc Input. Previously initialized convolution descriptor.
+    8th arg algo Input. Enumerant that specifies which convolution algorithm shoud be used to compute the results.
+    9th arg workSpace Input. Data pointer to GPU memory to a workspace needed to able to execute the specified algorithm. If no workspace is needed for a particular algorithm, that pointer can be nil.
+    10th arg workSpaceSizeInBytes Input. Specifies the size in bytes of the provided
+    11th arg beta Input. Pointers to scaling factors (in host memory) used to blend the computation result with prior value in the output layer as follows: dstValue = alpha[0]*result + beta[0]*priorDstValue
+    12th arg yDesc Input. Handle to a previously initialized tensor descriptor.
+    13th arg y Input/Output. Data pointer to GPU memory associated with the tensor descriptor yDesc that carries the result of the convolution.
+    */
+
     // perform
     float alpha = 1.f;
     float beta = 0.f;
