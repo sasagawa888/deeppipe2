@@ -1,5 +1,7 @@
 # DeepPipe2
-DeepPipe2 is a library of Deep-Learning by Elixir using GPU. It is fast because it uses CUDA/cuBLAS. Currently, I am improving to use CNN.
+DeepPipe2 is a library of Deep-Learning by Elixir using GPU. It is fast because it uses CUDA/cuBLAS. 
+
+Currently, I am improving to use CNN. I plan to incorporate cuDNN to DeepPipe2.
 
 # getting started
 DeepPipe2 requires GPU. Nvidia's GeForce is easy. The game PC turns into an AI experiment tool.
@@ -20,7 +22,7 @@ Please enjoy.
 
 
 ## install
-require CUDA
+require CUDA and cuDNN.
 
 Make clone or download.
 

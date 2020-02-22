@@ -122,6 +122,10 @@ defmodule Cumatrix do
     raise "NIF accuracy/4 not implemented"
   end 
 
+  def convolute1(_a, _b, _c, _d, _e) do
+    raise "NIF convolute1/5 not implemented"
+  end 
+
 
 #----------------------------------------------------------------
   def mult({r1, c1, dt1}, {r2, c2, dt2}) do

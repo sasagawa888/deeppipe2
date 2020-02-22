@@ -1,5 +1,6 @@
 #include "erl_nif.h"
 #include "cublas.h"
+#include "cudnn.h"
 #include "stdio.h"
 #include "time.h"
 
@@ -8,7 +9,7 @@
 #define DEBUG return(enif_make_int(env, 0));
 #define PI 3.14159265358979323846
 #define SIGMOID(x)  (1 / (1+exp(-1*x)))
-
+#define IDX3C(i,j,k,ld,ld1) ((k)*(ld*ld1-1)+((j)*(ld))+(i))
 
 
 static ERL_NIF_TERM
@@ -1154,7 +1155,148 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
       result = enif_make_double(env,rate);
       return(result);
   }
+
+
   
+  __global__ void dev_const(float *px, float k) {
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    px[tid] = k;
+  }
+  
+  __global__ void dev_iota(float *px) {
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    px[tid] = tid;
+  }
+  
+  
+  
+  // Not work!
+  static ERL_NIF_TERM
+  convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    //ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin;
+    int in_n,in_c,in_h,in_w;
+    int filt_k,filt_c,filt_h,filt_w;
+    int pad_h,pad_w,str_h,str_w,dil_h,dil_w; 
+    int out_n,out_c,out_h,out_w;
+      //int n;
+      //float *c;
+      //float *dev_c;
+
+
+      cudnnHandle_t cudnn;
+      cudnnCreate(&cudnn);
+    
+    // input
+    in_n = 1;
+    in_c = 1;
+    in_h = 5;
+    in_w = 5;
+    
+    cudnnTensorDescriptor_t in_desc;
+    cudnnCreateTensorDescriptor(&in_desc);
+    cudnnSetTensor4dDescriptor(
+          in_desc, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
+          in_n, in_c, in_h, in_w);
+  
+
+    float *in_data;
+    cudaMalloc(&in_data, in_n * in_c * in_h * in_w * sizeof(float));
+        
+    // filter
+    filt_k = 1;
+    filt_c = 1;
+    filt_h = 2;
+    filt_w = 2;
+    
+    
+    cudnnFilterDescriptor_t filt_desc;
+    cudnnCreateFilterDescriptor(&filt_desc);
+    cudnnSetFilter4dDescriptor(
+          filt_desc, CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW,
+          filt_k, filt_c, filt_h, filt_w);
+  
+    float *filt_data;
+    cudaMalloc(
+        &filt_data, filt_k * filt_c * filt_h * filt_w * sizeof(float));
+    
+    // convolution
+    pad_h = 1;
+    pad_w = 1;
+    str_h = 1;
+    str_w = 1;
+    dil_h = 1;
+    dil_w = 1;
+    
+    
+    cudnnConvolutionDescriptor_t conv_desc;
+    cudnnCreateConvolutionDescriptor(&conv_desc);
+    cudnnSetConvolution2dDescriptor(
+          conv_desc,
+          pad_h, pad_w, str_h, str_w, dil_h, dil_w,
+          CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT);
+  
+    // output
+    
+    cudnnGetConvolution2dForwardOutputDim(
+          conv_desc, in_desc, filt_desc,
+          &out_n, &out_c, &out_h, &out_w);
+  
+    
+  
+    cudnnTensorDescriptor_t out_desc;
+    cudnnCreateTensorDescriptor(&out_desc);
+    cudnnSetTensor4dDescriptor(
+          out_desc, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
+          out_n, out_c, out_h, out_w);
+  
+    float *out_data;
+    cudaMalloc(
+          &out_data, out_n * out_c * out_h * out_w * sizeof(float));
+  
+    // algorithm
+    cudnnConvolutionFwdAlgo_t algo;
+    cudnnGetConvolutionForwardAlgorithm(
+          cudnn,
+          in_desc, filt_desc, conv_desc, out_desc,
+          CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, &algo);
+  
+    // workspace
+    size_t ws_size;
+    cudnnGetConvolutionForwardWorkspaceSize(
+          cudnn, in_desc, filt_desc, conv_desc, out_desc, algo, &ws_size);
+  
+    float *ws_data;
+    cudaMalloc(&ws_data, ws_size);
+  
+    
+    // perform
+    float alpha = 1.f;
+    float beta = 0.f;
+    dev_iota<<<in_w * in_h, in_n * in_c>>>(in_data);
+    dev_const<<<filt_w * filt_h, filt_k * filt_c>>>(filt_data, 1.f);
+    cudnnConvolutionForward(
+        cudnn,
+        &alpha, in_desc, in_data, filt_desc, filt_data,
+        conv_desc, algo, ws_data, ws_size,
+        &beta, out_desc, out_data);
+  
+    
+    // finalizing
+    cudaFree(ws_data);
+    cudaFree(out_data);
+    cudnnDestroyTensorDescriptor(out_desc);
+    cudnnDestroyConvolutionDescriptor(conv_desc);
+    cudaFree(filt_data);
+    cudnnDestroyFilterDescriptor(filt_desc);
+    cudaFree(in_data);
+    cudnnDestroyTensorDescriptor(in_desc);
+    cudnnDestroy(cudnn);
+
+    c_bin = enif_make_int(env,0);
+    return(c_bin);
+  }
+
   
 // define the array of ErlNifFunc
 static ErlNifFunc nif_funcs[] = {
@@ -1187,7 +1329,8 @@ static ErlNifFunc nif_funcs[] = {
   {"to_list1", 3, to_list1},
   {"momentum1", 5, momentum1},
   {"adagrad1", 6, adagrad1},
-  {"accuracy1", 4, accuracy1}
+  {"accuracy1", 4, accuracy1},
+  {"convolute1", 5, convolute1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)
