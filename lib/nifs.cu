@@ -6,10 +6,10 @@
 
 
 #define IDX2C(i,j,ld) (((j)*(ld))+(i))
+#define IDX4C(n,c,i,j,in_c,in_h,in_w) ((n)*((in_c)*(in_h)*(in_w)) + (c)*((in_h)*(in_w)) + (j)*(in_h) +(i))
 #define DEBUG return(enif_make_int(env, 0));
 #define PI 3.14159265358979323846
 #define SIGMOID(x)  (1 / (1+exp(-1*x)))
-#define IDX3C(i,j,k,ld,ld1) ((k)*(ld*ld1-1)+((j)*(ld))+(i))
 
 
 static ERL_NIF_TERM
@@ -78,6 +78,36 @@ new2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
             enif_get_list_cell(env, list, &head, &list);
             enif_get_double(env,head,&d);
             a[IDX2C(i,j,r1)] = (float)d;
+        }
+    }
+
+    return(a_bin);
+}
+
+static ERL_NIF_TERM
+new3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    int n,c,h,w,i,j,k,l;
+    ERL_NIF_TERM head, list, a_bin;
+    float *a;
+    double d;
+
+    enif_get_int(env, argv[0], &n);
+    enif_get_int(env, argv[1], &c);
+    enif_get_int(env, argv[2], &h);
+    enif_get_int(env, argv[3], &w);
+    a = (float *) enif_make_new_binary(env, n * c * h * w *  sizeof(float), &a_bin);
+
+    // Set matrix data 
+    list = argv[4]; /* matrix1 */
+    for(i=0;i<n;i++){
+        for(j=0;j<c;j++){
+            for(k=0;k<h;k++){
+                for(l=0;l<w;l++){
+                    enif_get_list_cell(env, list, &head, &list);
+                    enif_get_double(env,head,&d);
+                    a[IDX4C(i,j,k,l,c,h,w)] = (float)d;
+                }
+            }
         }
     }
 
@@ -1157,7 +1187,79 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   }
 
 
+ 
+  __global__ void pooling_kernel(float *a, float *b, int st, int in_c, int in_h, int in_w, int n)
+  {
+      int tid = blockIdx.x * blockDim.x;
+      int n1,c1,h1,w1,h2,w2,in_h2,in_w2;
+      float max;
+      if(tid < n)
+      {   
+          n1 = tid / (in_c * in_h * in_w);
+          in_h2 = in_h / st;
+          in_w2 = in_w / st;
+          for(c1=0;c1<in_c;c1++){
+              for(w2=0;w2<in_w2;w2++){
+                  for(h2=0;h2<in_h2;h2++){
+                    max = 0.0;
+                    for(h1=st*h2;h1<st*(h2+1);h1++){
+                        for(w1=st*w2;w1<st*(w2+1);w1++){
+                            if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] > max)
+                                max = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
+                        }
+                    }
+                    b[IDX4C(n1,c1,h2,w1,in_c,in_h2,in_w2)] = max;  
+                  }
+              }
+          }
+        }
+  }
   
+  /*
+  1st arg in_n of tensor
+  2nd arg in_c of tensor
+  3rd arg in_h of tensor
+  4th arg in_w of tensor
+  5th arg binary of tensor
+  6th arg stride 
+  */
+  static ERL_NIF_TERM
+  pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+      ErlNifBinary  a_bin;
+      ERL_NIF_TERM  b_bin;
+      int in_n,in_c,in_h,in_w,st, n1, n2, block;
+      float *a,*b;
+      float *dev_a, *dev_b;
+  
+      if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
+      if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[5], &st)) return enif_make_badarg(env);
+
+      n1 = in_h * in_c * in_h * in_w;
+      n2 = in_n * in_c * (in_h / st) * (in_w / st);
+      block = in_c,in_h * in_w;
+      a = (float *) a_bin.data;
+      b = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &b_bin);
+  
+          // Allocate for GPU
+      cudaMalloc((void**)&dev_a, n1 * sizeof(float));
+      cudaMalloc((void**)&dev_b, n2 * sizeof(float));
+  
+      // copy from host a,b to GPU dev_a, dev_b
+      cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
+      cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
+  
+      pooling_kernel << <in_n, block >> >(dev_a, dev_b, st, in_h, in_w, in_c, n1);
+  
+      // copy to host c from GPU dev_c
+      cudaMemcpy(b, dev_b, n2 * sizeof(float), cudaMemcpyDeviceToHost);
+  
+      return(b_bin);
+  }
+
   
   
   
@@ -1168,6 +1270,7 @@ static ErlNifFunc nif_funcs[] = {
   {"mult1", 6, mult},
   {"new1", 2, new1},
   {"new2", 3, new2},
+  {"new3", 5, new3},
   {"rand1", 1, rand1},
   {"add1", 4, add1},
   {"sub1", 4, sub1},
@@ -1192,7 +1295,8 @@ static ErlNifFunc nif_funcs[] = {
   {"to_list1", 3, to_list1},
   {"momentum1", 5, momentum1},
   {"adagrad1", 6, adagrad1},
-  {"accuracy1", 4, accuracy1}
+  {"accuracy1", 4, accuracy1},
+  {"pooling1", 6, pooling1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)

@@ -17,6 +17,10 @@ defmodule Cumatrix do
   def new2(_a, _b, _c) do
     raise "NIF new2/3 not implemented"
   end
+  
+  def new3(_a, _b, _c, _d, _e) do
+    raise "NIF new3/5 not implemented"
+  end 
 
   def rand1(_a) do
     raise "NIF rand1/1 not implemented"
@@ -122,6 +126,10 @@ defmodule Cumatrix do
     raise "NIF accuracy/4 not implemented"
   end 
 
+  def pooling1(_1, _2, _3, _4, _5, _6) do
+    raise "NIF pooling1/6 not implemented"
+  end 
+
   
 
 #----------------------------------------------------------------
@@ -148,10 +156,20 @@ defmodule Cumatrix do
 
   # list to matrix
   def new(ls) when is_list(ls) do
-    r = length(ls)
-    c = length(hd(ls))
-    ls1 = ls |> flatten()
-    {r,c,new2(r,c,ls1)}
+    cond do 
+      list_dim(ls) == 2 -> 
+        r = length(ls)
+        c = length(hd(ls))
+        ls1 = ls |> flatten()
+        {r,c,new2(r,c,ls1)}
+      list_dim(ls) == 4 ->
+        n = length(ls)
+        c = length(hd(ls))
+        h = length(hd(hd(ls)))
+        w = length(hd(hd(hd(ls))))
+        ls1 = ls |> flatten()
+        {n,c,h,w,new3(n,c,h,w,ls1)}
+    end  
   end
 
   def rand(r, c) do
@@ -215,8 +233,34 @@ defmodule Cumatrix do
   end
 
   def flatten([l | ls]) do
-    l ++ flatten(ls)
+    if is_nestlist(l) do
+      flatten(l) ++ flatten(ls)
+    else 
+      l ++ flatten(ls)
+    end 
   end
+
+  def is_nestlist([l|_]) do
+    if is_list(l) do 
+      true 
+    else 
+      false
+    end 
+  end  
+
+  @doc """
+  iex(1)>  Cumatrix.list_dim([[1,2],[3,4]])
+  2
+  iex(2)>  Cumatrix.list_dim([[[1,2],[2,3]]])      
+  3
+  """
+  def list_dim([l|_]) do
+    if is_list(l) do 
+      1 + list_dim(l)
+    else
+      1
+    end 
+  end 
 
   def transpose({r, c, dt}) do
     {c, r, transpose1(r, c, dt)}
@@ -327,6 +371,9 @@ defmodule Cumatrix do
     print1(r,c,dt)
   end
 
+  def pooling({n,c,h,w,dt},st) do
+    pooling1(n,c,h,w,dt,st)
+  end 
 
 
   def is_matrix({r,c,dt}) do
