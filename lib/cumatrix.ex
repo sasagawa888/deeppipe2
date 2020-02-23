@@ -122,10 +122,7 @@ defmodule Cumatrix do
     raise "NIF accuracy/4 not implemented"
   end 
 
-  def convolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14) do
-    raise "NIF convolute1/14 not implemented"
-  end 
-
+  
 
 #----------------------------------------------------------------
   def mult({r1, c1, dt1}, {r2, c2, dt2}) do
@@ -330,10 +327,6 @@ defmodule Cumatrix do
     print1(r,c,dt)
   end
 
-
-  def convolute({n,c,h1,w1,dt1},{k,c,h2,w2,dt2}) do
-    convolute1(n,c,h1,w1,k,c,h2,w2,dt1,dt2,1,1,1,1)
-  end 
 
 
   def is_matrix({r,c,dt}) do
