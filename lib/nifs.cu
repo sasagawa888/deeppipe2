@@ -1289,7 +1289,7 @@ to_list2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
       cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
       cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
   
-      pooling_kernel << <1, in_n>> >(dev_a, dev_b, st, in_h, in_w, in_c, in_n);
+      pooling_kernel << <1, in_n>> >(dev_a, dev_b, st, in_c, in_h, in_w, in_n);
   
       // copy to host c from GPU dev_b
       cudaMemcpy(b, dev_b, n2 * sizeof(float), cudaMemcpyDeviceToHost);

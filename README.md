@@ -290,6 +290,6 @@ ls is list that express 4 dimension data
 
 - Cumatrix.to_list(tensor)
 
-- Cumatrix.pooling(x)
+- Cumatrix.pooling(tensor,n)
 pooling with size n
 
