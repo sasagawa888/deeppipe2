@@ -273,3 +273,23 @@ iex(5)>
 
 ```
 
+## CNN
+Now under constrction.
+
+data structure is 4 dimensions tensor (N,C,H,W).
+N is mini batch size.
+C is channel.
+H is hight of image.
+W is width of image.
+
+- Cumatrix.rand(n,c,h,w)
+generate 4 dimensions data.
+
+- Cumatrix.new(ls)
+ls is list that express 4 dimension data
+
+- Cumatrix.to_list(tensor)
+
+- Cumatrix.pooling(x)
+pooling with size n
+
