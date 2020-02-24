@@ -331,8 +331,14 @@ defmodule Cumatrix do
   end 
 
   def to_list({n,c,h,w,dt}) do
-    to_list2(n,c,h,w,dt) 
-    |> Enum.map(fn(x) -> Enum.chunk_every(x,n) |> Enum.map(fn(y) -> Enum.chunk_every(y,c) |> Enum.map(fn(z) -> Enum.chunk_every(z,h) end) end)  end)
+    to_list2(n,c,h,w,dt)
+    |> conv_dim([n,c,h,w]) 
+  end 
+
+  def conv_dim(ls,[]) do ls end 
+  def conv_dim(ls,[d|ds]) do
+    dim = div(length(ls),d)  
+    Enum.chunk_every(ls,dim) |> Enum.map(fn(x) -> conv_dim(x,ds) end)
   end 
 
   def trace({r, c, dt}) do
@@ -381,7 +387,11 @@ defmodule Cumatrix do
   end
 
   def pooling({n,c,h,w,dt},st) do
-    pooling1(n,c,h,w,dt,st)
+    if rem(h,st) != 0 || rem(w,st) != 0 do 
+      raise "pooling illegal argument"
+    else 
+      {n,c,div(h,st),div(w,st),pooling1(n,c,h,w,dt,st)}
+    end 
   end 
 
 

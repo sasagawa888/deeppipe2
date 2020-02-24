@@ -1225,7 +1225,7 @@ to_list2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   __global__ void pooling_kernel(float *a, float *b, int st, int in_c, int in_h, int in_w, int n)
   {
       int tid = blockIdx.x * blockDim.x;
-      int n1,c1,h1,w1,h2,w2,in_h2,in_w2;
+      int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1;
       float max;
       if(tid < n)
       {   
@@ -1236,13 +1236,18 @@ to_list2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
               for(w2=0;w2<in_w2;w2++){
                   for(h2=0;h2<in_h2;h2++){
                     max = 0.0;
-                    for(h1=st*h2;h1<st*(h2+1);h1++){
-                        for(w1=st*w2;w1<st*(w2+1);w1++){
+                    start_h1 = st*h2;
+                    end_h1 = st*(h2+1);
+                    start_w1 = st*w2;
+                    end_w1 = st*(w2+1);
+                    for(h1=start_h1;h1<end_h1;h1++){
+                        for(w1=start_w1;w1<end_w1;w1++){
+                            
                             if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] > max)
                                 max = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
                         }
                     }
-                    b[IDX4C(n1,c1,h2,w1,in_c,in_h2,in_w2)] = max;  
+                    b[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)] = max;  
                   }
               }
           }
@@ -1274,7 +1279,7 @@ to_list2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
       n1 = in_h * in_c * in_h * in_w;
       n2 = in_n * in_c * (in_h / st) * (in_w / st);
-      block = in_c,in_h * in_w;
+      block = in_c * in_h * in_w;
       a = (float *) a_bin.data;
       b = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &b_bin);
   
