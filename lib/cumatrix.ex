@@ -114,6 +114,10 @@ defmodule Cumatrix do
     raise "NIF to_list1/3 not implemented"
   end 
 
+  def to_list2(_a, _b, _c, _d, _e) do
+    raise "NIF to_list2/5 not implemented"
+  end 
+
   def momentum1(_a, _b, _c, _d, _e) do 
     raise "NIF momentum1/5 not implemented"
   end 
@@ -324,6 +328,11 @@ defmodule Cumatrix do
 
   def to_list({r,c,dt}) do
     to_list1(r,c,dt) |> Enum.chunk_every(c)
+  end 
+
+  def to_list({n,c,h,w,dt}) do
+    to_list2(n,c,h,w,dt) 
+    |> Enum.map(fn(x) -> Enum.chunk_every(x,n) |> Enum.map(fn(y) -> Enum.chunk_every(y,c) |> Enum.map(fn(z) -> Enum.chunk_every(z,h) end) end)  end)
   end 
 
   def trace({r, c, dt}) do

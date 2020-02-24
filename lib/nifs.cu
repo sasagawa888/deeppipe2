@@ -1032,6 +1032,40 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(list);
 }
 
+static ERL_NIF_TERM
+to_list2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  head,list;
+    int n, c, h, w, i, j, k, l;
+    float *a;
+
+
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[1], &c)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[2], &h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[3], &w)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
+    a = (float *) a_bin.data;
+
+    
+    list = enif_make_list(env, 0);
+    for(i=n-1;i>=0;i--){
+        for(j=c-1;j>=0;j--){
+            for(k=h-1;k>=0;k--){
+                for(l=w-1;l>=0;l--){
+                    head = enif_make_double(env,(double)a[IDX4C(i,j,k,l,c,h,w)]);
+                    list = enif_make_list_cell(env,head,list);
+                }
+            }
+        }
+    }
+
+    return(list);
+}
+
+
+
+
 /*
   def momentum(v, g, lr) do
     Matrex.apply(v, g, fn v, g -> 0.5 * v - lr * g end)
@@ -1293,6 +1327,7 @@ static ErlNifFunc nif_funcs[] = {
   {"average1", 3, average1},
   {"sum1", 3, sum1},
   {"to_list1", 3, to_list1},
+  {"to_list2", 5, to_list2},
   {"momentum1", 5, momentum1},
   {"adagrad1", 6, adagrad1},
   {"accuracy1", 4, accuracy1},
