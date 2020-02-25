@@ -85,8 +85,38 @@ new2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(a_bin);
 }
 
+
 static ERL_NIF_TERM
 new3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    int c,h,w,i,j,k;
+    ERL_NIF_TERM head, list, a_bin;
+    float *a;
+    double d;
+
+    enif_get_int(env, argv[0], &c);
+    enif_get_int(env, argv[1], &h);
+    enif_get_int(env, argv[2], &w);
+    a = (float *) enif_make_new_binary(env, c * h * w *  sizeof(float), &a_bin);
+
+    // Set matrix data 
+    list = argv[3]; /* matrix1 */
+    for(i=0;i<c;i++){
+        for(j=0;j<h;j++){
+            for(k=0;k<w;k++){
+                enif_get_list_cell(env, list, &head, &list);
+                enif_get_double(env,head,&d);
+                a[IDX3C(i,j,k,h,w)] = (float)d;
+            }
+        }
+    }
+
+    return(a_bin);
+}
+
+
+
+static ERL_NIF_TERM
+new4(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     int n,c,h,w,i,j,k,l;
     ERL_NIF_TERM head, list, a_bin;
     float *a;
@@ -1399,7 +1429,8 @@ static ErlNifFunc nif_funcs[] = {
   {"mult1", 6, mult},
   {"new1", 2, new1},
   {"new2", 3, new2},
-  {"new3", 5, new3},
+  {"new3", 4, new3},
+  {"new4", 5, new4},
   {"rand1", 1, rand1},
   {"add1", 4, add1},
   {"sub1", 4, sub1},

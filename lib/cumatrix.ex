@@ -18,8 +18,12 @@ defmodule Cumatrix do
     raise "NIF new2/3 not implemented"
   end
   
-  def new3(_a, _b, _c, _d, _e) do
-    raise "NIF new3/5 not implemented"
+  def new3(_a, _b, _c, _d) do
+    raise "NIF new3/4 not implemented"
+  end 
+
+  def new4(_a, _b, _c, _d, _e) do
+    raise "NIF new4/5 not implemented"
   end 
 
   def rand1(_a) do
@@ -182,13 +186,19 @@ defmodule Cumatrix do
         c = length(hd(ls))
         ls1 = ls |> flatten()
         {r,c,new2(r,c,ls1)}
+      list_dim(ls) == 3 ->
+        c = length(ls)
+        h = length(hd(ls))
+        w = length(hd(hd(ls)))
+        ls1 = ls |> flatten()
+        {c,h,w,new3(c,h,w,ls1)}
       list_dim(ls) == 4 ->
         n = length(ls)
         c = length(hd(ls))
         h = length(hd(hd(ls)))
         w = length(hd(hd(hd(ls))))
         ls1 = ls |> flatten()
-        {n,c,h,w,new3(n,c,h,w,ls1)}
+        {n,c,h,w,new4(n,c,h,w,ls1)}
     end  
   end
 

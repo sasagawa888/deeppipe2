@@ -276,7 +276,7 @@ iex(5)>
 ## CNN
 Now under constrction.
 
-data structure is 4 dimensions tensor (N,C,H,W).
+data structure is 4-dimensions tensor (N,C,H,W) or 3-dimension tensor (C,H,W)
 N is mini batch size.
 C is channel.
 H is hight of image.
@@ -289,7 +289,7 @@ generate 4 dimensions data.
 generate 3 dimensions data.
 
 - Cumatrix.new(ls)
-ls is list that express 4 dimension data
+ls is list that express 4-dimension or 3-dimension data
 
 - Cumatrix.to_list(tensor)
 
