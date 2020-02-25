@@ -1065,6 +1065,33 @@ static ERL_NIF_TERM
 to_list2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  head,list;
+    int c, h, w, i, j, k;
+    float *a;
+
+    if (!enif_get_int(env, argv[0], &c)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[1], &h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[2], &w)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_badarg(env);
+    a = (float *) a_bin.data;
+
+    
+    list = enif_make_list(env, 0);
+    for(i=c-1;i>=0;i--){
+        for(j=h-1;j>=0;j--){
+            for(k=w-1;k>=0;k--){
+                head = enif_make_double(env,(double)a[IDX3C(i,j,k,h,w)]);
+                list = enif_make_list_cell(env,head,list);
+            }
+        }
+    }
+
+    return(list);
+}
+
+static ERL_NIF_TERM
+to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  head,list;
     int n, c, h, w, i, j, k, l;
     float *a;
 
@@ -1453,7 +1480,8 @@ static ErlNifFunc nif_funcs[] = {
   {"average1", 3, average1},
   {"sum1", 3, sum1},
   {"to_list1", 3, to_list1},
-  {"to_list2", 5, to_list2},
+  {"to_list2", 4, to_list2},
+  {"to_list3", 5, to_list3},
   {"momentum1", 5, momentum1},
   {"adagrad1", 6, adagrad1},
   {"accuracy1", 4, accuracy1},
