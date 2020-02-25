@@ -180,6 +180,10 @@ defmodule Cumatrix do
     {r, c, rand1(r * c)}
   end
 
+  def rand(c,h,w) do
+     {c, h, w, rand1(c*h*w)}
+  end 
+
   def rand(n,c,h,w) do
     {n, c, h, w, rand1(n*c*h*w)}
   end 
