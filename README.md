@@ -285,6 +285,9 @@ W is width of image.
 - Cumatrix.rand(n,c,h,w)
 generate 4 dimensions data.
 
+- Cumatrix.rand(c,h,w)
+generate 3 dimensions data.
+
 - Cumatrix.new(ls)
 ls is list that express 4 dimension data
 

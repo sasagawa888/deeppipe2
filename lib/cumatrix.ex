@@ -134,6 +134,10 @@ defmodule Cumatrix do
     raise "NIF pooling1/6 not implemented"
   end 
 
+  def convolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) do
+    raise "NIF convolute1/10 not implemented"
+  end 
+
   
 
 #----------------------------------------------------------------
@@ -412,6 +416,12 @@ defmodule Cumatrix do
     else 
       {n,c,div(h,st),div(w,st),pooling1(n,c,h,w,dt,st)}
     end 
+  end 
+
+  def convolute({n,c,h1,w1,dt1},{c,h2,w2,dt2},st,pad) do
+    oh = (h1+2*pad-h2)/st + 1
+    ow = (w1+2*pad-w2)/st + 1
+    {n,1,oh,ow,convolute1(n,c,h1,w1,h2,w2,dt1,dt2,st,pad)}
   end 
 
 
