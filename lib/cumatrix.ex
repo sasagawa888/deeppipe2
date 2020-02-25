@@ -78,8 +78,8 @@ defmodule Cumatrix do
     raise "NIF differ_relu/4 not implemented"
   end
 
-  def smult1(_a, _b, _c, _d) do
-    raise "NIF smult1/4 not implemented"
+  def smult1(_a, _b, _c) do
+    raise "NIF smult1/3 not implemented"
   end
 
   def trace1(_a, _b, _c) do
@@ -141,10 +141,22 @@ defmodule Cumatrix do
     {r1, c2, mult1(r1, c1, dt1, r2, c2, dt2)}
   end
   def mult(s,{r,c,dt}) when is_float(s) do
-    {r,c, smult1(s,r,c,dt)}
+    {r,c, smult1(s,r*c,dt)}
   end
   def mult({r,c,dt},s) when is_float(s) do
-    {r,c, smult1(s,r,c,dt)}
+    {r,c, smult1(s,r*c,dt)}
+  end
+  def mult(s,{c,h,w,dt}) when is_float(s) do
+    {c,h,w, smult1(s,c*h*w,dt)}
+  end
+  def mult({c,h,w,dt},s) when is_float(s) do
+    {c,h,w, smult1(s,c*h*w,dt)}
+  end
+  def mult(s,{n,c,h,w,dt}) when is_float(s) do
+    {n,c,h,w, smult1(s,n*c*h*w,dt)}
+  end
+  def mult({n,c,h,w,dt},s) when is_float(s) do
+    {n,c,h,w, smult1(s,n*c*h*w,dt)}
   end
   def mult(_,_) do
     raise "mult illegal data type"

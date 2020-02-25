@@ -775,17 +775,15 @@ static ERL_NIF_TERM
 smult1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin;
-    int r1, c1, n;
+    int n;
     float *a,*b;
     float *dev_a, *dev_b;
     double s;
 
 
     if (!enif_get_double(env, argv[0], &s)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[2], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_badarg(env);
-    n = r1*c1;
+    if (!enif_get_int(env, argv[1], &n)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
 
@@ -1321,7 +1319,7 @@ static ErlNifFunc nif_funcs[] = {
   {"differ_sigmoid", 4, differ_sigmoid},
   {"differ_tanh", 4, differ_tanh},
   {"differ_relu", 4, differ_relu},
-  {"smult1", 4, smult1},
+  {"smult1", 3, smult1},
   {"trace1", 3, trace1},
   {"mean_square", 4, mean_square},
   {"cross_entropy", 4, cross_entropy},
