@@ -1448,6 +1448,41 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   }
 
   
+  __global__ void deconvolute_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+  {
+      int tid = threadIdx.x;
+      int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1, elt1, elt2;
+      float sum;
+      if(tid < n)
+      {   
+          n1 = tid;
+          oh = (in_h+2*pad-filt_h)/st + 1;
+          ow = (in_w+2*pad-filt_w)/st + 1;
+          for(w2=0;w2<ow;w2++){
+            for(h2=0;h2<oh;h2++){
+                sum = 0.0;
+                start_h1 = st*h2-pad;
+                end_h1 = start_h1 + filt_h;
+                start_w1 = st*w2-pad;
+                end_w1 = start_w1 + filt_w;
+                for(c1=0;c1<in_c;c1++){
+                    for(h1=start_h1;h1<end_h1;h1++){
+                        for(w1=start_w1;w1<end_w1;w1++){
+                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
+                                //a is 1 channel 
+                                elt1 = a[IDX4C(n1,1,h1,w1,in_c,in_h,in_w)];
+                                elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
+                                sum = sum + elt1*elt2;
+                            }
+                        }
+                    }
+                }
+                c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] = sum;   
+              }
+          }
+        }
+  }
+  
   /*
   1st arg in_n of input tensor
   2nd arg in_c of input tensor
@@ -1464,7 +1499,7 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
       ErlNifBinary  a_bin,b_bin;
       ERL_NIF_TERM  c_bin;
-      int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, n1, n2, n3, oh, ow, i,j,k;
+      int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k;
       float *a,*b, *b1, *c;
       float *dev_a, *dev_b, *dev_c;
   
@@ -1484,6 +1519,7 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
       oh = (in_h+2*pad-filt_h)/st + 1;
       ow = (in_w+2*pad-filt_w)/st + 1;
       n3 = oh * ow;
+      pad1 = filt_h - 1 + pad;
       a = (float *) a_bin.data;
       b = (float *) b_bin.data;
       b1 = (float *) malloc(n2 * sizeof(float));
@@ -1510,7 +1546,7 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
       cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice);
       cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
 
-      convolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad, in_c, in_h, in_w, in_n);
+      deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, in_n);
   
       // copy to host c from GPU dev_c
       cudaMemcpy(b, dev_b, n2 * sizeof(float), cudaMemcpyDeviceToHost);
