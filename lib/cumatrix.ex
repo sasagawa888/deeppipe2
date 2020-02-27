@@ -146,7 +146,10 @@ defmodule Cumatrix do
     raise "NIF convolute1/10 not implemented"
   end 
 
-  
+  def deconvolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) do
+    raise "NIF deconvolute1/10 not implemented"
+  end 
+
 
 #----------------------------------------------------------------
   def mult({r1, c1, dt1}, {r2, c2, dt2}) do
@@ -443,6 +446,11 @@ defmodule Cumatrix do
     {n,1,oh,ow,convolute1(n,c,h1,w1,h2,w2,dt1,dt2,st,pad)}
   end 
 
+  def deconvolute({n,c,h1,w1,dt1},{c,h2,w2,dt2},st,pad) do
+    oh = (h1+2*pad-h2)/st + 1
+    ow = (w1+2*pad-w2)/st + 1
+    {n,1,oh,ow,deconvolute1(n,c,h1,w1,h2,w2,dt1,dt2,st,pad)}
+  end 
 
   def is_matrix({r,c,dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do 

@@ -1448,6 +1448,77 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   }
 
   
+  /*
+  1st arg in_n of input tensor
+  2nd arg in_c of input tensor
+  3rd arg in_h of input tensor
+  4th arg in_w of input tensor
+  5th arg filt_h of filter tensor
+  6th arg filt_w of filter tensor
+  7th arg binary of input tensor
+  8th arg binary of filter tensor
+  9th arg stride
+  10th arg padding   
+  */
+  static ERL_NIF_TERM
+  deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+      ErlNifBinary  a_bin,b_bin;
+      ERL_NIF_TERM  c_bin;
+      int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, n1, n2, n3, oh, ow, i,j,k;
+      float *a,*b, *b1, *c;
+      float *dev_a, *dev_b, *dev_c;
+  
+      if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_badarg(env);
+      if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_badarg(env);
+      if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[8], &st)) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[9], &pad)) return enif_make_badarg(env);
+
+      n1 = in_n * in_c * in_h * in_w;
+      n2 = in_c * filt_h * filt_w;
+      oh = (in_h+2*pad-filt_h)/st + 1;
+      ow = (in_w+2*pad-filt_w)/st + 1;
+      n3 = oh * ow;
+      a = (float *) a_bin.data;
+      b = (float *) b_bin.data;
+      b1 = (float *) malloc(n2 * sizeof(float));
+      c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
+  
+      
+      //rotate 180 degree
+      for(i=0;i<in_c;i++){
+        for(j=0;j<filt_h;j++){
+            for(k=0;k<filt_w;k++){
+                b1[IDX3C(i,filt_h-j,filt_w-k,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
+            }
+        }
+      }
+      
+      // Allocate for GPU
+      cudaMalloc((void**)&dev_a, n1 * sizeof(float));
+      cudaMalloc((void**)&dev_b, n2 * sizeof(float));
+      cudaMalloc((void**)&dev_c, n3 * sizeof(float));
+
+  
+      // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
+      cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
+      cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice);
+      cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
+
+      convolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad, in_c, in_h, in_w, in_n);
+  
+      // copy to host c from GPU dev_c
+      cudaMemcpy(b, dev_b, n2 * sizeof(float), cudaMemcpyDeviceToHost);
+  
+      return(c_bin);
+  }
+
+  
   
 // define the array of ErlNifFunc
 static ErlNifFunc nif_funcs[] = {
@@ -1486,7 +1557,8 @@ static ErlNifFunc nif_funcs[] = {
   {"adagrad1", 6, adagrad1},
   {"accuracy1", 4, accuracy1},
   {"pooling1", 6, pooling1},
-  {"convolute1", 10, convolute1}
+  {"convolute1", 10, convolute1},
+  {"deconvolute1", 10, deconvolute1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)
