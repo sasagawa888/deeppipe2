@@ -80,6 +80,30 @@ defmodule Network do
     end
   end
 
+  # filter
+  def parse({:f, _, [x, y]}, _) do
+    quote do
+      {:filter, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1), 0, 1, 0.1,
+       CM.new(unquote(x), unquote(y))}
+    end
+  end
+
+  def parse({:f, _, [x, y, ir, lr]}, _) do
+    quote do
+      {:filter, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), 0, 1, unquote(lr),
+       CM.new(unquote(x), unquote(y))}
+    end
+  end
+
+  
+
+  def parse({:f, _, [x, y, ir, lr, pad, st]}, _) do
+    quote do
+      {:filter, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(pad), unquote(st), unquote(lr),
+       CM.zeros(unquote(x), unquote(y))}
+    end
+  end
+
   def parse({x, _, nil}, _) do
     x
   end
