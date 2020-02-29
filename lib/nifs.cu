@@ -1535,10 +1535,10 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
       n1 = in_n * in_c * in_h * in_w;
       n2 = in_c * filt_h * filt_w;
-      oh = (in_h+2*pad-filt_h)/st + 1;
-      ow = (in_w+2*pad-filt_w)/st + 1;
-      n3 = oh * ow;
       pad1 = filt_h - 1 + pad;
+      oh = (in_h+2*pad1-filt_h)/st + 1;
+      ow = (in_w+2*pad1-filt_w)/st + 1;
+      n3 = oh * ow;
       a = (float *) a_bin.data;
       b = (float *) b_bin.data;
       b1 = (float *) malloc(n2 * sizeof(float));
@@ -1549,7 +1549,7 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
       for(i=0;i<in_c;i++){
         for(j=0;j<filt_h;j++){
             for(k=0;k<filt_w;k++){
-                b1[IDX3C(i,filt_h-j,filt_w-k,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
+                b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
             }
         }
       }
