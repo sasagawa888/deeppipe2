@@ -1,6 +1,5 @@
 #include "erl_nif.h"
 #include "cublas.h"
-#include "cudnn.h"
 #include "stdio.h"
 #include "time.h"
 
