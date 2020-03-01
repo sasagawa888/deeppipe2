@@ -300,3 +300,6 @@ pooling with size n
 - Cumatrix.convolute(ts1,ts2,st,pad)
 convolution with input-tensor(ts1), filter-tensor(ts2), stride(st), padding(pad)
 
+- Cumatrix.deconvolute(ts1,ts2,st,pad)
+deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st), padding(pad)
+
