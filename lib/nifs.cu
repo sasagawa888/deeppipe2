@@ -1461,7 +1461,7 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
       convolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad, in_c, in_h, in_w, in_n);
   
       // copy to host c from GPU dev_c
-      cudaMemcpy(b, dev_b, n2 * sizeof(float), cudaMemcpyDeviceToHost);
+      cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
   
       return(c_bin);
   }

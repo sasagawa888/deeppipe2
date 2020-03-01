@@ -381,7 +381,7 @@ defmodule Cumatrix do
     |> conv_dim([n,c,h,w]) 
   end 
 
-  def conv_dim(ls,[]) do ls end 
+  def conv_dim(ls,[_]) do ls end 
   def conv_dim(ls,[d|ds]) do
     dim = div(length(ls),d)  
     Enum.chunk_every(ls,dim) |> Enum.map(fn(x) -> conv_dim(x,ds) end)
@@ -441,14 +441,14 @@ defmodule Cumatrix do
   end 
 
   def convolute({n,c,h1,w1,dt1},{c,h2,w2,dt2},st,pad) do
-    oh = (h1+2*pad-h2)/st + 1
-    ow = (w1+2*pad-w2)/st + 1
+    oh = div(h1+2*pad-h2,st) + 1
+    ow = div(w1+2*pad-w2,st) + 1
     {n,1,oh,ow,convolute1(n,c,h1,w1,h2,w2,dt1,dt2,st,pad)}
   end 
 
   def deconvolute({n,c,h1,w1,dt1},{c,h2,w2,dt2},st,pad) do
-    oh = (h1+2*pad-h2)/st + 1
-    ow = (w1+2*pad-w2)/st + 1
+    oh = div(h1+2*pad-h2,st) + 1
+    ow = div(w1+2*pad-w2,st) + 1
     {n,1,oh,ow,deconvolute1(n,c,h1,w1,h2,w2,dt1,dt2,st,pad)}
   end 
 

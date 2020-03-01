@@ -3,7 +3,7 @@ defmodule Test do
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
 
-
+  
   # for DNN test
   defnetwork init_network1(_x) do
     _x |> w(784,300) |> b(300) |> relu
