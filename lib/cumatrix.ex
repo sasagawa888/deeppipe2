@@ -359,6 +359,14 @@ defmodule Cumatrix do
     {r, c}
   end
 
+  def size({c, h, w, _}) do
+    {c, h, w}
+  end
+
+  def size({n, c, h, w, _}) do
+    {n,c,h,w}
+  end 
+
   def average({r,c,dt}) do
     {1,c,average1(r,c,dt)}
   end 
