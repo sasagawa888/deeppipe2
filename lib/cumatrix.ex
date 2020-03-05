@@ -150,6 +150,10 @@ defmodule Cumatrix do
     raise "NIF deconvolute1/10 not implemented"
   end 
 
+  def gradfilter1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11) do
+    raise "NIF gradfilter1/11 not implemented"
+  end 
+
 
 #----------------------------------------------------------------
   def mult({r1, c1, dt1}, {r2, c2, dt2}) do
