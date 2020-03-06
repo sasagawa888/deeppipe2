@@ -142,6 +142,11 @@ defmodule Cumatrix do
     raise "NIF pooling1/6 not implemented"
   end 
 
+  def depooling1(_1, _2, _3, _4, _5, _6, _7) do
+    raise "NIF pooling1/7 not implemented"
+  end 
+
+
   def convolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) do
     raise "NIF convolute1/10 not implemented"
   end 
