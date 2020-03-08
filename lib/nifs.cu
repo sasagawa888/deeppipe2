@@ -1595,15 +1595,15 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
                     for(h1=start_h1;h1<end_h1;h1++){
                         for(w1=start_w1;w1<end_w1;w1++){
                             if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
-                                //a is 1 channel ??? debug
-                                elt1 = a[IDX4C(n1,1,h1,w1,in_c,in_h,in_w)];
+                                elt1 = a[IDX4C(n1,0,h1,w1,in_c,in_h,in_w)];
                                 elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
                                 sum = sum + elt1*elt2;
                             }
                         }
                     }
+                    c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] = sum;  
                 }
-                c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] = sum;   
+                 
               }
           }
         }
@@ -1792,7 +1792,126 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
       return(d_bin);
   }
 
+
+__global__ void full_kernel(float *a, float *b, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,i,j;
+    float elt;
+    if(tid < n)
+    {   
+        n1 = tid;
+        for(i=0;i<in_h;i++){
+            for(j=0;j<in_w;j++){
+                elt = a[IDX4C(n1,0,i,j,1,in_h,in_w)];
+                b[IDX2C(n1,i*in_h + j*in_w,in_h)] = elt;
+            }
+        }
+    }
+}
   
+/*
+1st arg in_n of input tensor
+2rd arg in_h of input tensor
+3th arg in_w of input tensor
+4th arg binary of input tensor
+*/
+static ERL_NIF_TERM
+full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin;
+    int in_n,in_h,in_w,n1;
+    float *a,*b;
+    float *dev_a, *dev_b;
+  
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
+
+    // in_c is allways 1 
+    n1 = in_n * in_h * in_w;
+    a = (float *) a_bin.data;
+    b = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &b_bin);
+  
+      
+      // Allocate for GPU
+    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
+    cudaMalloc((void**)&dev_b, n1 * sizeof(float));
+  
+    // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
+    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice);
+
+    full_kernel << <1, in_n>> >(dev_a, dev_b, in_h, in_w, in_n);
+  
+    // copy to host d from GPU dev_d
+    cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost);
+  
+    return(b_bin);
+}
+
+
+__global__ void unfull_kernel(float *a, float *b, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,i,j;
+    float elt;
+    if(tid < n)
+    {   
+        n1 = tid;
+        for(i=0;i<in_h;i++){
+            for(j=0;j<in_w;j++){
+                elt = a[IDX4C(n1,0,i,j,1,in_h,in_w)];
+                b[IDX2C(n1,i*in_h + j*in_w,in_h)] = elt;
+            }
+        }
+    }
+}
+  
+/*
+1st arg in_n of input tensor
+2rd arg in_h of input tensor
+3th arg in_w of input tensor
+4th arg binary of input tensor
+*/
+static ERL_NIF_TERM
+unfull1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin;
+    int in_n,in_h,in_w,n1;
+    float *a,*b;
+    float *dev_a, *dev_b;
+    
+      
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
+
+    // in_c is allways 1 
+    n1 = in_n * in_h * in_w;
+    a = (float *) a_bin.data;
+    b = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &b_bin);
+  
+      
+      // Allocate for GPU
+    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
+    cudaMalloc((void**)&dev_b, n1 * sizeof(float));
+  
+    // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
+    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice);
+
+    unfull_kernel << <1, in_n>> >(dev_a, dev_b, in_h, in_w, in_n);
+  
+    // copy to host d from GPU dev_d
+    cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost);
+  
+    return(b_bin);
+}
+
+
 // define the array of ErlNifFunc
 static ErlNifFunc nif_funcs[] = {
   // {erl_function_name, erl_function_arity, c_function}
@@ -1833,7 +1952,9 @@ static ErlNifFunc nif_funcs[] = {
   {"unpooling1", 7, unpooling1},
   {"convolute1", 10, convolute1},
   {"deconvolute1", 10, deconvolute1},
-  {"gradfilter1", 11, gradfilter1}
+  {"gradfilter1", 11, gradfilter1},
+  {"full1", 4, full1},
+  {"unfull1", 4, unfull1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)

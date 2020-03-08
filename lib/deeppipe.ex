@@ -42,10 +42,10 @@ defmodule Deeppipe do
     forward(x1, rest, [x1, x2 | res])
   end
 
-  #def forward(x, [{:full} | rest], res) do
-  #  x1 = CM.full(x)
-  #  forward(x1, rest, [x1 | res])
-  #end
+  def forward(x, [{:full} | rest], res) do
+    x1 = CM.full(x)
+    forward(x1, rest, [x1 | res])
+  end
 
 
  
@@ -104,11 +104,11 @@ defmodule Deeppipe do
     backward(l1, rest, us, [{:pooling, st} | res])
   end
 
-  #defp backpward(l, [{:full} | rest], [u | us], res) do
-  #  {r, c} = CM.size(hd(u))
-  #  #l1 = CM.structure(l, r, c)
-  #  backward(l1, rest, us, [{:flatten} | res])
-  #end
+  defp backward(l, [{:full} | rest], [u | us], res) do
+    {_, _, h, w} = CM.size(hd(u))
+    l1 = CM.unfull(l, h, w)
+    backward(l1, rest, us, [{:full} | res])
+  end
 
   # ------- learning -------
   # learning/2 

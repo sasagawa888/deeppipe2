@@ -159,6 +159,13 @@ defmodule Cumatrix do
     raise "NIF gradfilter1/11 not implemented"
   end 
 
+  def full1(_1, _2, _3, _4) do
+    raise "NIF full1/4 not implemented"
+  end 
+
+  def unfull1(_1, _2, _3, _4) do
+    raise "NIF unfull1/4 not implemented"
+  end 
 
 #----------------------------------------------------------------
   def mult({r1, c1, dt1}, {r2, c2, dt2}) do
@@ -476,6 +483,15 @@ defmodule Cumatrix do
   def gradfilter({n1,c1,h1,w1,dt1},{c1,h2,w2,dt2},{n1,c1,_,_,dt3},st,pad) do
     gradfilter1(n1,c1,h1,w1,h2,w2,dt1,dt2,dt3,st,pad)
   end 
+
+  def full({n1,1,h1,w1,dt1}) do
+    {n1,h1*w1,full1(n1,h1,w1,dt1)}
+  end 
+
+  def unfull({r,_,dt1},h,w) do
+    {r,1,h,w,unfull1(r,h,w,dt1)}
+  end 
+
 
   def is_matrix({r,c,dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do 
