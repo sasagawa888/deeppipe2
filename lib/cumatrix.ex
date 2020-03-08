@@ -142,8 +142,8 @@ defmodule Cumatrix do
     raise "NIF pooling1/6 not implemented"
   end 
 
-  def depooling1(_1, _2, _3, _4, _5, _6, _7) do
-    raise "NIF pooling1/7 not implemented"
+  def unpooling1(_1, _2, _3, _4, _5, _6, _7) do
+    raise "NIF unpooling1/7 not implemented"
   end 
 
 
@@ -456,6 +456,10 @@ defmodule Cumatrix do
       {n,c,div(h,st),div(w,st),pooling1(n,c,h,w,dt,st)}
     end 
   end 
+
+  #def unpooling(a,b,c) do
+  #  unpooling1(a,b,c,4,5,6,7)
+  #end 
 
   def convolute({n,c,h1,w1,dt1},{c,h2,w2,dt2},st,pad) do
     oh = div(h1+2*pad-h2,st) + 1

@@ -31,6 +31,23 @@ defmodule Deeppipe do
     forward(x1, rest, [x1 | res])
   end
 
+  def forward(x, [{:filter, w, st, pad, _} | rest], res) do
+    x1 = CM.convolute(x, w, st, pad)
+    forward(x1, rest, [x1 | res])
+  end
+
+  
+  def forward(x, [{:pooling, st} | rest], [_ | res]) do
+    [x1,x2] = CM.pooling(x, st)
+    forward(x1, rest, [x1, x2 | res])
+  end
+
+  #def forward(x, [{:flatten} | rest], res) do
+  #  x1 = CM.flatten(x)
+  #  forward(x1, rest, [x1 | res])
+  #end
+
+
  
   # gradient with backpropagation
   # 1st arg is input data matrix
@@ -74,6 +91,24 @@ defmodule Deeppipe do
     l1 = CM.mult(l, CM.transpose(w))
     backward(l1, rest, us, [{:weight, w1, ir, lr, v} | res])
   end
+
+
+  #defp backward(l, [{:filter, w, st, lr, v} | rest], [u | us], res) do
+  #  w1 = CM.gradfilter(u, w, l) #|> Ctensor.average()
+  #  l1 = CM.deconvolute(u, w, l, st)
+  #  backward(l1, rest, us, [{:filter, w1, st, lr, v} | res])
+  #end
+
+  #defp backward(l, [{:pooling, st} | rest], [u | us], res) do
+  #  l1 = CM.unpooling(u, l, st)
+  #  backpward(l1, rest, us, [{:pooling, st} | res])
+  #end
+
+  #defp backpward(l, [{:flatten} | rest], [u | us], res) do
+  #  {r, c} = CM.size(hd(u))
+  #  #l1 = CM.structure(l, r, c)
+  #  backward(l1, rest, us, [{:flatten} | res])
+  #end
 
   # ------- learning -------
   # learning/2 

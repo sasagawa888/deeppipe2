@@ -1436,7 +1436,7 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   7th arg stride 
   */
   static ERL_NIF_TERM
-  depooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+  unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
       ErlNifBinary  a_bin,b_bin;
       ERL_NIF_TERM  c_bin;
       int in_n,in_c,in_h,in_w,st, n1, n2;
@@ -1830,7 +1830,7 @@ static ErlNifFunc nif_funcs[] = {
   {"adagrad1", 6, adagrad1},
   {"accuracy1", 4, accuracy1},
   {"pooling1", 6, pooling1},
-  {"depooling1", 7, depooling1},
+  {"unpooling1", 7, unpooling1},
   {"convolute1", 10, convolute1},
   {"deconvolute1", 10, deconvolute1},
   {"gradfilter1", 11, gradfilter1}

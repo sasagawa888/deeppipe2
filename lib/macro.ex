@@ -81,6 +81,7 @@ defmodule Network do
   end
 
   # filter
+  #{:filter,filter-matrix,stride,padding,init_rate,v}
   def parse({:f, _, [x, y]}, _) do
     quote do
       {:filter, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1), 0, 1, 0.1,
@@ -95,7 +96,6 @@ defmodule Network do
     end
   end
 
-  
 
   def parse({:f, _, [x, y, ir, lr, pad, st]}, _) do
     quote do
@@ -103,6 +103,22 @@ defmodule Network do
        CM.zeros(unquote(x), unquote(y))}
     end
   end
+
+  # flatten
+  def parse({:flatten, _, nil}, _) do
+    quote do
+      {:flatten}
+    end
+  end
+
+
+  # pooling
+  def parse({:pool, _, [x]}, _) do
+    quote do
+      {:pooling, unquote(x)}
+    end
+  end
+
 
   def parse({x, _, nil}, _) do
     x
