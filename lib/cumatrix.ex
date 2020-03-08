@@ -457,9 +457,9 @@ defmodule Cumatrix do
     end 
   end 
 
-  #def unpooling(a,b,c) do
-  #  unpooling1(a,b,c,4,5,6,7)
-  #end 
+  def unpooling({n1,c1,h1,w1,d1},{n1,_,_,_,d2},st) do
+    unpooling1(n1,c1,h1,w1,d1,d2,st)
+  end 
 
   def convolute({n,c,h1,w1,dt1},{c,h2,w2,dt2},st,pad) do
     oh = div(h1+2*pad-h2,st) + 1
@@ -471,6 +471,10 @@ defmodule Cumatrix do
     oh = div(h1+2*pad-h2,st) + 1
     ow = div(w1+2*pad-w2,st) + 1
     {n,1,oh,ow,deconvolute1(n,c,h1,w1,h2,w2,dt1,dt2,st,pad)}
+  end 
+
+  def gradfilter({n1,c1,h1,w1,dt1},{c1,h2,w2,dt2},{n1,c1,_,_,dt3},st,pad) do
+    gradfilter1(n1,c1,h1,w1,h2,w2,dt1,dt2,dt3,st,pad)
   end 
 
   def is_matrix({r,c,dt}) do

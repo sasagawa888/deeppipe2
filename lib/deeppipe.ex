@@ -42,8 +42,8 @@ defmodule Deeppipe do
     forward(x1, rest, [x1, x2 | res])
   end
 
-  #def forward(x, [{:flatten} | rest], res) do
-  #  x1 = CM.flatten(x)
+  #def forward(x, [{:full} | rest], res) do
+  #  x1 = CM.full(x)
   #  forward(x1, rest, [x1 | res])
   #end
 
@@ -93,18 +93,18 @@ defmodule Deeppipe do
   end
 
 
-  #defp backward(l, [{:filter, w, st, lr, v} | rest], [u | us], res) do
-  #  w1 = CM.gradfilter(u, w, l) #|> Ctensor.average()
-  #  l1 = CM.deconvolute(u, w, l, st)
-  #  backward(l1, rest, us, [{:filter, w1, st, lr, v} | res])
-  #end
+  defp backward(l, [{:filter, w, st, pad, lr, v} | rest], [u | us], res) do
+    w1 = CM.gradfilter(u, w, l, st, pad) #|> Ctensor.average()
+    l1 = CM.deconvolute(l, w, st, pad)
+    backward(l1, rest, us, [{:filter, w1, st, lr, v} | res])
+  end
 
-  #defp backward(l, [{:pooling, st} | rest], [u | us], res) do
-  #  l1 = CM.unpooling(u, l, st)
-  #  backpward(l1, rest, us, [{:pooling, st} | res])
-  #end
+  defp backward(l, [{:pooling, st} | rest], [u | us], res) do
+    l1 = CM.unpooling(u, l, st)
+    backward(l1, rest, us, [{:pooling, st} | res])
+  end
 
-  #defp backpward(l, [{:flatten} | rest], [u | us], res) do
+  #defp backpward(l, [{:full} | rest], [u | us], res) do
   #  {r, c} = CM.size(hd(u))
   #  #l1 = CM.structure(l, r, c)
   #  backward(l1, rest, us, [{:flatten} | res])

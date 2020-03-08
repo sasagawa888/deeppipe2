@@ -104,14 +104,7 @@ defmodule Network do
     end
   end
 
-  # flatten
-  def parse({:flatten, _, nil}, _) do
-    quote do
-      {:flatten}
-    end
-  end
-
-
+  
   # pooling
   def parse({:pool, _, [x]}, _) do
     quote do
@@ -119,6 +112,12 @@ defmodule Network do
     end
   end
 
+  # flll connection
+  def parse({:full, _, nil}, _) do
+    quote do
+      {:full}
+    end
+  end
 
   def parse({x, _, nil}, _) do
     x
