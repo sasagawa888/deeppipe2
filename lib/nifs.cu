@@ -1126,53 +1126,53 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     Matrex.apply(v, g, fn v, g -> 0.5 * v - lr * g end)
   end
 */
-  __global__ void momentum_kernel(float *a, float *b, float *c, float lr, int n)
-  {
-      int tid = threadIdx.x + blockIdx.x * blockDim.x;
-      while (tid < n)
-      {   
-          c[tid] = (0.5 * a[tid]) - (lr * b[tid]);
-          tid += blockDim.x * gridDim.x;
-      }
-  }
+__global__ void momentum_kernel(float *a, float *b, float *c, float lr, int n)
+{
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    while (tid < n)
+    {   
+        c[tid] = (0.5 * a[tid]) - (lr * b[tid]);
+        tid += blockDim.x * gridDim.x;
+    }
+}
   
-  static ERL_NIF_TERM
-  momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-      ErlNifBinary  a_bin,b_bin;
-      ERL_NIF_TERM  c_bin;
-      int r1, c1, n;
-      float *a,*b, *c;
-      float *dev_a, *dev_b, *dev_c;
-      double lr;
+static ERL_NIF_TERM
+momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin;
+    int r1, c1, n;
+    float *a,*b, *c;
+    float *dev_a, *dev_b, *dev_c;
+    double lr;
   
-      if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[3], &b_bin )) return enif_make_badarg(env);
-      if (!enif_get_double(env, argv[4], &lr)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[3], &b_bin )) return enif_make_badarg(env);
+    if (!enif_get_double(env, argv[4], &lr)) return enif_make_badarg(env);
 
-      n = r1*c1;
-      a = (float *) a_bin.data;
-      b = (float *) b_bin.data;
-      c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
+    n = r1*c1;
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
   
-          // Allocate for GPU
-      cudaMalloc((void**)&dev_a, n * sizeof(float));
-      cudaMalloc((void**)&dev_b, n * sizeof(float));
-      cudaMalloc((void**)&dev_c, n * sizeof(float));
+    // Allocate for GPU
+    cudaMalloc((void**)&dev_a, n * sizeof(float));
+    cudaMalloc((void**)&dev_b, n * sizeof(float));
+    cudaMalloc((void**)&dev_c, n * sizeof(float));
   
-      // copy from host a,b to GPU dev_a, dev_b
-      cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-      cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
-      cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice);
+    // copy from host a,b to GPU dev_a, dev_b
+    cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice);
   
-      momentum_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, float(lr), n);
+    momentum_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, float(lr), n);
   
-      // copy to host c from GPU dev_c
-      cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+    // copy to host c from GPU dev_c
+    cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
   
-      return(c_bin);
-  }
+    return(c_bin);
+}
 
   /*
   def adagrad(w, g, h, lr) do
@@ -1188,76 +1188,76 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   end
   */
   
-  __global__ void adagrad_kernel(float *a, float *b, float *c, float h, float lr, int n)
-  {
-      int tid = threadIdx.x + blockIdx.x * blockDim.x;
-      while (tid < n)
-      {   
-          if(h != 0)
+__global__ void adagrad_kernel(float *a, float *b, float *c, float h, float lr, int n)
+{
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    while (tid < n)
+    {   
+        if(h != 0)
             c[tid] = a[tid] - (lr * (1 / sqrt(h)) * b[tid]);
-          else 
+        else 
             c[tid] = a[tid] - (lr * b[tid]);
-          tid += blockDim.x * gridDim.x;
-      }
-  }
+        tid += blockDim.x * gridDim.x;
+    }
+}
   
-  static ERL_NIF_TERM
-  adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-      ErlNifBinary  a_bin,b_bin;
-      ERL_NIF_TERM  c_bin;
-      int r1, c1, n;
-      float *a,*b, *c;
-      float *dev_a, *dev_b, *dev_c;
-      double h,lr;
+static ERL_NIF_TERM
+adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin;
+    int r1, c1, n;
+    float *a,*b, *c;
+    float *dev_a, *dev_b, *dev_c;
+    double h,lr;
   
-      if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[3], &b_bin )) return enif_make_badarg(env);
-      if (!enif_get_double(env, argv[4], &h)) return enif_make_badarg(env);
-      if (!enif_get_double(env, argv[5], &lr)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[3], &b_bin )) return enif_make_badarg(env);
+    if (!enif_get_double(env, argv[4], &h)) return enif_make_badarg(env);
+    if (!enif_get_double(env, argv[5], &lr)) return enif_make_badarg(env);
 
-      n = r1*c1;
-      a = (float *) a_bin.data;
-      b = (float *) b_bin.data;
-      c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
+    n = r1*c1;
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
   
-          // Allocate for GPU
-      cudaMalloc((void**)&dev_a, n * sizeof(float));
-      cudaMalloc((void**)&dev_b, n * sizeof(float));
-      cudaMalloc((void**)&dev_c, n * sizeof(float));
+    // Allocate for GPU
+    cudaMalloc((void**)&dev_a, n * sizeof(float));
+    cudaMalloc((void**)&dev_b, n * sizeof(float));
+    cudaMalloc((void**)&dev_c, n * sizeof(float));
   
-      // copy from host a,b to GPU dev_a, dev_b
-      cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-      cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
-      cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice);
+    // copy from host a,b to GPU dev_a, dev_b
+    cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice);
   
-      adagrad_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, float(h), float(lr), n);
+    adagrad_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, float(h), float(lr), n);
   
-      // copy to host c from GPU dev_c
-      cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+    // copy to host c from GPU dev_c
+    cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
   
-      return(c_bin);
-  }
+    return(c_bin);
+}
 
-  static ERL_NIF_TERM
-  accuracy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-      ErlNifBinary  a_bin;
-      ERL_NIF_TERM  head,list,result;
-      int r1, c1, i, j, n, index,sum;
-      float *a;
-      double max,rate;
+static ERL_NIF_TERM
+accuracy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  head,list,result;
+    int r1, c1, i, j, n, index,sum;
+    float *a;
+    double max,rate;
   
-      if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
 
-      a = (float *) a_bin.data;
+    a = (float *) a_bin.data;
 
-       // calculate accuracy
-      sum = 0;
-      list = argv[3]; 
-      for(i=0;i<r1;i++){
+    // calculate accuracy
+    sum = 0;
+    list = argv[3]; 
+    for(i=0;i<r1;i++){
         max = 0.0;
         enif_get_list_cell(env, list, &head, &list);
         enif_get_int(env,head,&n);
@@ -1269,27 +1269,27 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         }
         if(index == n)
             sum++;
-      }
-      rate = (double)sum / (double)r1;
-      result = enif_make_double(env,rate);
-      return(result);
-  }
+    }
+    rate = (double)sum / (double)r1;
+    result = enif_make_double(env,rate);
+    return(result);
+}
 
 
  
-  __global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
-  {
-      int tid = threadIdx.x;
-      int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1,max_h,max_w;
-      float max;
-      if(tid < n)
-      {   
-          n1 = tid;
-          in_h2 = in_h / st;
-          in_w2 = in_w / st;
-          for(c1=0;c1<in_c;c1++){
-              for(w2=0;w2<in_w2;w2++){
-                  for(h2=0;h2<in_h2;h2++){
+__global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1,max_h,max_w;
+    float max;
+    if(tid < n)
+    {   
+        n1 = tid;
+        in_h2 = in_h / st;
+        in_w2 = in_w / st;
+        for(c1=0;c1<in_c;c1++){
+            for(w2=0;w2<in_w2;w2++){
+                for(h2=0;h2<in_h2;h2++){
                     max = 0.0;
                     start_h1 = st*h2;
                     end_h1 = st*(h2+1);
@@ -1306,11 +1306,11 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
                     }
                     b[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)] = max;
                     c[IDX4C(n1,c1,max_h,max_w,in_c,in_h,in_w)] = max; 
-                  }
-              }
-          }
+                }
+            }
         }
-  }
+    }
+}
   
   /*
   1st arg in_n of tensor
@@ -1340,71 +1340,71 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   |0.0,1.4,0.0,1.6|
   
   */
-  static ERL_NIF_TERM
-  pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-      ErlNifBinary  a_bin;
-      ERL_NIF_TERM  b_bin,c_bin,list;
-      int in_n,in_c,in_h,in_w,st, n1, n2, i;
-      float *a,*b, *c;
-      float *dev_a, *dev_b, *dev_c;
+static ERL_NIF_TERM
+pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin,c_bin,list;
+    int in_n,in_c,in_h,in_w,st, n1, n2, i;
+    float *a,*b, *c;
+    float *dev_a, *dev_b, *dev_c;
   
-      if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[5], &st)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[5], &st)) return enif_make_badarg(env);
 
-      n1 = in_n * in_c * in_h * in_w;
-      n2 = in_n * in_c * (in_h / st) * (in_w / st);
-      a = (float *) a_bin.data;
-      b = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &b_bin);
-      c = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &c_bin);
+    n1 = in_n * in_c * in_h * in_w;
+    n2 = in_n * in_c * (in_h / st) * (in_w / st);
+    a = (float *) a_bin.data;
+    b = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &b_bin);
+    c = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &c_bin);
 
-      for(i=0;i<n1;i++){
-            c[i] = 0.0;
-      }
+    for(i=0;i<n1;i++){
+        c[i] = 0.0;
+    }
   
-          // Allocate for GPU
-      cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-      cudaMalloc((void**)&dev_b, n2 * sizeof(float));
-      cudaMalloc((void**)&dev_c, n1 * sizeof(float));
+    // Allocate for GPU
+    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
+    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
+    cudaMalloc((void**)&dev_c, n1 * sizeof(float));
   
-      // copy from host a,b to GPU dev_a, dev_b
-      cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-      cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
-      cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    // copy from host a,b to GPU dev_a, dev_b
+    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice);
   
-      pooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
+    pooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
   
-      // copy to host b,c from GPU dev_b,dev_c
-      cudaMemcpy(b, dev_b, n2 * sizeof(float), cudaMemcpyDeviceToHost);
-      cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost);
+    // copy to host b,c from GPU dev_b,dev_c
+    cudaMemcpy(b, dev_b, n2 * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost);
       
 
-       // return forward data and backward data with list 
-       list = enif_make_list(env, 0);
-       list = enif_make_list_cell(env,c_bin,list);
-       list = enif_make_list_cell(env,b_bin,list);
+    // return forward data and backward data with list 
+    list = enif_make_list(env, 0);
+    list = enif_make_list_cell(env,c_bin,list);
+    list = enif_make_list_cell(env,b_bin,list);
         
 
-      return(list);
-  }
+    return(list);
+}
 
 
-  __global__ void depooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
-  {
-      int tid = threadIdx.x;
-      int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1,max_h,max_w;
-      float loss;
-      if(tid < n)
-      {   
-          n1 = tid;
-          in_h2 = in_h / st;
-          in_w2 = in_w / st;
-          for(c1=0;c1<in_c;c1++){
-              for(w2=0;w2<in_w2;w2++){
-                  for(h2=0;h2<in_h2;h2++){
+__global__ void depooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1,max_h,max_w;
+    float loss;
+    if(tid < n)
+    {   
+        n1 = tid;
+        in_h2 = in_h / st;
+        in_w2 = in_w / st;
+        for(c1=0;c1<in_c;c1++){
+            for(w2=0;w2<in_w2;w2++){
+                for(h2=0;h2<in_h2;h2++){
                     start_h1 = st*h2;
                     end_h1 = st*(h2+1);
                     start_w1 = st*w2;
@@ -1418,79 +1418,79 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
                             else{
                                 c[IDX4C(n1,c1,max_h,max_w,in_c,in_h,in_w)] = 0.0;
                             }
+                        }
                     }
-                  }
-              }
-          }
+                }
+            }
         }
     }
   }
   
-  /*
-  1st arg in_n of sparse-tensor
-  2nd arg in_c of sparse-tensor
-  3rd arg in_h of sparse-tensor
-  4th arg in_w of sparse-tensor
-  5th arg binary of sparse-tensor
-  6th arg binary of loss-tensor
-  7th arg stride 
-  */
-  static ERL_NIF_TERM
-  unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-      ErlNifBinary  a_bin,b_bin;
-      ERL_NIF_TERM  c_bin;
-      int in_n,in_c,in_h,in_w,st, n1, n2;
-      float *a,*b, *c;
-      float *dev_a, *dev_b, *dev_c;
+/*
+1st arg in_n of sparse-tensor
+2nd arg in_c of sparse-tensor
+3rd arg in_h of sparse-tensor
+4th arg in_w of sparse-tensor
+5th arg binary of sparse-tensor
+6th arg binary of loss-tensor
+7th arg stride 
+*/
+static ERL_NIF_TERM
+unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin;
+    int in_n,in_c,in_h,in_w,st, n1, n2;
+    float *a,*b, *c;
+    float *dev_a, *dev_b, *dev_c;
   
-      if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[5], &b_bin )) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[6], &st)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[5], &b_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[6], &st)) return enif_make_badarg(env);
 
-      n1 = in_n * in_c * in_h * in_w;
-      n2 = in_n * in_c * (in_h / st) * (in_w / st);
-      a = (float *) a_bin.data;
-      b = (float *) b_bin.data;
-      c = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &c_bin);
+    n1 = in_n * in_c * in_h * in_w;
+    n2 = in_n * in_c * (in_h / st) * (in_w / st);
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &c_bin);
 
 
       
-      // Allocate for GPU
-      cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-      cudaMalloc((void**)&dev_b, n2 * sizeof(float));
-      cudaMalloc((void**)&dev_c, n1 * sizeof(float));
+    // Allocate for GPU
+    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
+    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
+    cudaMalloc((void**)&dev_c, n1 * sizeof(float));
 
   
-      // copy from host a,b to GPU dev_a, dev_b
-      cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-      cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
-      cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    // copy from host a,b to GPU dev_a, dev_b
+    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice);
   
-      depooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
+    depooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
   
-      // copy to host d from GPU dev_d
-      cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost);
+    // copy to host d from GPU dev_d
+    cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost);
     
 
-      return(c_bin);
-  }
+    return(c_bin);
+}
 
   
-  __global__ void convolute_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
-  {
-      int tid = threadIdx.x;
-      int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1, elt1, elt2;
-      float sum;
-      if(tid < n)
-      {   
-          n1 = tid;
-          oh = (in_h+2*pad-filt_h)/st + 1;
-          ow = (in_w+2*pad-filt_w)/st + 1;
-          for(w2=0;w2<ow;w2++){
+__global__ void convolute_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1, elt1, elt2;
+    float sum;
+    if(tid < n)
+    {   
+        n1 = tid;
+        oh = (in_h+2*pad-filt_h)/st + 1;
+        ow = (in_w+2*pad-filt_w)/st + 1;
+        for(w2=0;w2<ow;w2++){
             for(h2=0;h2<oh;h2++){
                 sum = 0.0;
                 start_h1 = st*h2-pad;
@@ -1511,80 +1511,80 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
                 c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] = sum;   
               }
           }
-        }
-  }
+    }
+}
   
-  /*
-  1st arg in_n of input tensor
-  2nd arg in_c of input tensor
-  3rd arg in_h of input tensor
-  4th arg in_w of input tensor
-  5th arg filt_h of filter tensor
-  6th arg filt_w of filter tensor
-  7th arg binary of input tensor
-  8th arg binary of filter tensor
-  9th arg stride
-  10th arg padding   
-  */
-  static ERL_NIF_TERM
-  convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-      ErlNifBinary  a_bin,b_bin;
-      ERL_NIF_TERM  c_bin;
-      int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, n1, n2, n3, oh, ow;
-      float *a,*b, *c;
-      float *dev_a, *dev_b, *dev_c;
+/*
+1st arg in_n of input tensor
+2nd arg in_c of input tensor
+3rd arg in_h of input tensor
+4th arg in_w of input tensor
+5th arg filt_h of filter tensor
+6th arg filt_w of filter tensor
+7th arg binary of input tensor
+8th arg binary of filter tensor
+9th arg stride
+10th arg padding   
+*/
+static ERL_NIF_TERM
+convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin;
+    int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, n1, n2, n3, oh, ow;
+    float *a,*b, *c;
+    float *dev_a, *dev_b, *dev_c;
   
-      if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[8], &st)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[9], &pad)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[8], &st)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[9], &pad)) return enif_make_badarg(env);
 
-      n1 = in_n * in_c * in_h * in_w;
-      n2 = in_c * filt_h * filt_w;
-      oh = (in_h+2*pad-filt_h)/st + 1;
-      ow = (in_w+2*pad-filt_w)/st + 1;
-      n3 = oh * ow;
-      a = (float *) a_bin.data;
-      b = (float *) b_bin.data;
-      c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
+    n1 = in_n * in_c * in_h * in_w;
+    n2 = in_c * filt_h * filt_w;
+    oh = (in_h+2*pad-filt_h)/st + 1;
+    ow = (in_w+2*pad-filt_w)/st + 1;
+    n3 = oh * ow;
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
   
-          // Allocate for GPU
-      cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-      cudaMalloc((void**)&dev_b, n2 * sizeof(float));
-      cudaMalloc((void**)&dev_c, n3 * sizeof(float));
-
-  
-      // copy from host a,b,c to GPU dev_a, dev_b, dev_c
-      cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-      cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
-      cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
-
-      convolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad, in_c, in_h, in_w, in_n);
-  
-      // copy to host c from GPU dev_c
-      cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
-  
-      return(c_bin);
-  }
+    // Allocate for GPU
+    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
+    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
+    cudaMalloc((void**)&dev_c, n3 * sizeof(float));
 
   
-  __global__ void deconvolute_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
-  {
-      int tid = threadIdx.x;
-      int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1, elt1, elt2;
-      float sum;
-      if(tid < n)
-      {   
-          n1 = tid;
-          oh = (in_h+2*pad-filt_h)/st + 1;
-          ow = (in_w+2*pad-filt_w)/st + 1;
-          for(w2=0;w2<ow;w2++){
+    // copy from host a,b,c to GPU dev_a, dev_b, dev_c
+    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
+
+    convolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad, in_c, in_h, in_w, in_n);
+  
+    // copy to host c from GPU dev_c
+    cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
+  
+    return(c_bin);
+}
+
+  
+__global__ void deconvolute_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1, elt1, elt2;
+    float sum;
+    if(tid < n)
+    {   
+        n1 = tid;
+        oh = (in_h+2*pad-filt_h)/st + 1;
+        ow = (in_w+2*pad-filt_w)/st + 1;
+        for(w2=0;w2<ow;w2++){
             for(h2=0;h2<oh;h2++){
                 sum = 0.0;
                 start_h1 = st*h2-pad;
@@ -1604,93 +1604,93 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
                     c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] = sum;  
                 }
                  
-              }
-          }
+            }
         }
-  }
+    }
+}
   
-  /*
-  1st arg in_n of input tensor
-  2nd arg in_c of input tensor
-  3rd arg in_h of input tensor
-  4th arg in_w of input tensor
-  5th arg filt_h of filter tensor
-  6th arg filt_w of filter tensor
-  7th arg binary of input tensor
-  8th arg binary of filter tensor
-  9th arg stride
-  10th arg padding   
-  */
-  static ERL_NIF_TERM
-  deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-      ErlNifBinary  a_bin,b_bin;
-      ERL_NIF_TERM  c_bin;
-      int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k;
-      float *a,*b, *b1, *c;
-      float *dev_a, *dev_b, *dev_c;
+/*
+1st arg in_n of input tensor
+2nd arg in_c of input tensor
+3rd arg in_h of input tensor
+4th arg in_w of input tensor
+5th arg filt_h of filter tensor
+6th arg filt_w of filter tensor
+7th arg binary of input tensor
+8th arg binary of filter tensor
+9th arg stride
+10th arg padding   
+*/
+static ERL_NIF_TERM
+deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin;
+    int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k;
+    float *a,*b, *b1, *c;
+    float *dev_a, *dev_b, *dev_c;
   
-      if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[8], &st)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[9], &pad)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[8], &st)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[9], &pad)) return enif_make_badarg(env);
 
-      n1 = in_n * in_c * in_h * in_w;
-      n2 = in_c * filt_h * filt_w;
-      pad1 = filt_h - 1 + pad;
-      oh = (in_h+2*pad1-filt_h)/st + 1;
-      ow = (in_w+2*pad1-filt_w)/st + 1;
-      n3 = oh * ow;
-      a = (float *) a_bin.data;
-      b = (float *) b_bin.data;
-      b1 = (float *) malloc(n2 * sizeof(float));
-      c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
+    n1 = in_n * in_c * in_h * in_w;
+    n2 = in_c * filt_h * filt_w;
+    pad1 = filt_h - 1 + pad;
+    oh = (in_h+2*pad1-filt_h)/st + 1;
+    ow = (in_w+2*pad1-filt_w)/st + 1;
+    n3 = oh * ow;
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    b1 = (float *) malloc(n2 * sizeof(float));
+    c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
   
       
-      //rotate 180 degree
-      for(i=0;i<in_c;i++){
+    //rotate 180 degree
+    for(i=0;i<in_c;i++){
         for(j=0;j<filt_h;j++){
             for(k=0;k<filt_w;k++){
                 b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
             }
         }
-      }
+    }
       
-      // Allocate for GPU
-      cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-      cudaMalloc((void**)&dev_b, n2 * sizeof(float));
-      cudaMalloc((void**)&dev_c, n3 * sizeof(float));
+    // Allocate for GPU
+    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
+    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
+    cudaMalloc((void**)&dev_c, n3 * sizeof(float));
 
   
-      // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
-      cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-      cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice);
-      cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
+    // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
+    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
 
-      deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, in_n);
+    deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, in_n);
   
-      // copy to host c from GPU dev_c
-      cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
+    // copy to host c from GPU dev_c
+    cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
   
-      return(c_bin);
-  }
+    return(c_bin);
+}
 
-  __global__ void gradfilter_kernel(float *a, float *b, float *c, float *d, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
-  {
-      int tid = threadIdx.x;
-      int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1, elt1, elt2;
-      float sum,loss;
-      if(tid < n)
-      {   
-          n1 = tid;
-          oh = (in_h+2*pad-filt_h)/st + 1;
-          ow = (in_w+2*pad-filt_w)/st + 1;
-          for(c1=0;c1<in_c;c1++){
+__global__ void gradfilter_kernel(float *a, float *b, float *c, float *d, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1, elt1, elt2;
+    float sum,loss;
+    if(tid < n)
+    {   
+        n1 = tid;
+        oh = (in_h+2*pad-filt_h)/st + 1;
+        ow = (in_w+2*pad-filt_w)/st + 1;
+        for(c1=0;c1<in_c;c1++){
             for(w2=0;w2<ow;w2++){
                 for(h2=0;h2<oh;h2++){
                     sum = 0.0;
@@ -1723,9 +1723,9 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
                     }
 
                 }
-              }
-          }
+            }
         }
+    }
   }
   
   /*

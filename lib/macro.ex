@@ -24,31 +24,32 @@ defmodule Network do
     end
   end
 
-  
   # weight
   def parse({:w, _, [x, y]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1) , 0.1, 0.1, CM.new(unquote(x),unquote(y))}
+      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1), 0.1, 0.1,
+       CM.new(unquote(x), unquote(y))}
     end
   end
 
   def parse({:w, _, [x, y, ir, lr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)) , unquote(ir), unquote(lr), CM.new(unquote(x),unquote(y))}
+      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr),
+       CM.new(unquote(x), unquote(y))}
     end
   end
 
-  
   # bias
   def parse({:b, _, [x]}, _) do
     quote do
-      {:bias, CM.rand(1, unquote(x)) |> CM.mult(0.1) , 0.1, 0.1, CM.new(1,unquote(x))}
+      {:bias, CM.rand(1, unquote(x)) |> CM.mult(0.1), 0.1, 0.1, CM.new(1, unquote(x))}
     end
   end
 
   def parse({:b, _, [x, ir, lr]}, _) do
     quote do
-      {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)) , unquote(ir), unquote(lr), CM.new(1,unquote(x))}
+      {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr),
+       CM.new(1, unquote(x))}
     end
   end
 
@@ -81,7 +82,7 @@ defmodule Network do
   end
 
   # filter
-  #{:filter,filter-matrix,stride,padding,init_rate,v}
+  # {:filter,filter-matrix,stride,padding,init_rate,v}
   def parse({:f, _, [x, y]}, _) do
     quote do
       {:filter, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1), 0, 1, 0.1,
@@ -96,15 +97,13 @@ defmodule Network do
     end
   end
 
-
   def parse({:f, _, [x, y, ir, lr, pad, st]}, _) do
     quote do
-      {:filter, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(pad), unquote(st), unquote(lr),
-       CM.zeros(unquote(x), unquote(y))}
+      {:filter, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(pad),
+       unquote(st), unquote(lr), CM.zeros(unquote(x), unquote(y))}
     end
   end
 
-  
   # pooling
   def parse({:pool, _, [x]}, _) do
     quote do

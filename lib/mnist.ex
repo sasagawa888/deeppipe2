@@ -144,6 +144,4 @@ defmodule MNIST do
       onehot_to_num1(xs, n + 1)
     end
   end
-
-  
 end
