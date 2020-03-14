@@ -1483,8 +1483,8 @@ unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 __global__ void convolute_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
-    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1, elt1, elt2;
-    float sum;
+    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
+    float sum,elt1,elt2;
     if(tid < n)
     {   
         n1 = tid;
@@ -1577,8 +1577,8 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 __global__ void deconvolute_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
-    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1, elt1, elt2;
-    float sum;
+    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
+    float sum,elt1,elt2;
     if(tid < n)
     {   
         n1 = tid;
@@ -1601,7 +1601,7 @@ __global__ void deconvolute_kernel(float *a, float *b, float *c, int filt_h, int
                             }
                         }
                     }
-                    c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] = sum;  
+                    c[IDX4C(n1,c1,h2,w2,in_c,oh,ow)] = sum;  
                 }
                  
             }
@@ -1660,7 +1660,16 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
             }
         }
     }
-      
+
+    /*
+    for(i=0;i<in_c;i++){
+        for(j=0;j<filt_h;j++){
+            for(k=0;k<filt_w;k++){
+                printf("%f",  b1[IDX3C(i,j,k,filt_h,filt_w)]);
+            }
+        }
+    }
+    */
     // Allocate for GPU
     cudaMalloc((void**)&dev_a, n1 * sizeof(float));
     cudaMalloc((void**)&dev_b, n2 * sizeof(float));
