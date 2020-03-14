@@ -1,7 +1,7 @@
 defmodule MNIST do
-  # structure from flat vector to matrix(r,c)
+  # structure from flat vector to matrix(r,c) as 1 channel 
   def structure([x], r, c) do
-    structure1(x, r, c)
+    [structure1(x, r, c)]
   end
 
   def structure0(x, r, c) do
