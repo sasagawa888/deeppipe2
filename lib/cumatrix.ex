@@ -493,10 +493,10 @@ defmodule Cumatrix do
     {n, 1, oh, ow, convolute1(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)}
   end
 
-  def deconvolute({n, c, h1, w1, dt1}, {c, h2, w2, dt2}, st, pad) do
-    oh = div(h1 + 2 * pad - h2, st) + 1
-    ow = div(w1 + 2 * pad - w2, st) + 1
-    {n, 1, oh, ow, deconvolute1(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)}
+  def deconvolute({n, c, oh, ow, dt1}, {c, h2, w2, dt2}, st, pad) do
+    h1 = (oh-1)*st - 2*pad + h2
+    w1 = (ow-1)*st - 2*pad + h2
+    {n, c, h1, w1, deconvolute1(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)}
   end
 
   def gradfilter({n1, c1, h1, w1, dt1}, {c1, h2, w2, dt2}, {n1, c1, _, _, dt3}, st, pad) do
