@@ -89,7 +89,6 @@ defmodule Deeppipe do
   end
 
   defp backward(l, [{:filter, w, st, pad, lr, v} | rest], [u | us], res) do
-    # |> Ctensor.average()
     w1 = CM.gradfilter(u, w, l, st, pad)
     l1 = CM.deconvolute(l, w, st, pad)
     backward(l1, rest, us, [{:filter, w1, st, lr, v} | res])
