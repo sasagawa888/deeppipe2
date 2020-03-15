@@ -30,7 +30,7 @@ defmodule Deeppipe do
     forward(x1, rest, [x1 | res])
   end
 
-  def forward(x, [{:filter, w, st, pad, _} | rest], res) do
+  def forward(x, [{:filter, w, st, pad, _, _} | rest], res) do
     x1 = CM.convolute(x, w, st, pad)
     forward(x1, rest, [x1 | res])
   end
@@ -88,7 +88,7 @@ defmodule Deeppipe do
     backward(l1, rest, us, [{:weight, w1, ir, lr, v} | res])
   end
 
-  defp backward(l, [{:filter, w, st, pad, lr, v} | rest], [u | us], res) do
+  defp backward(l, [{:filter, w, st, pad, ir, lr, v} | rest], [u | us], res) do
     w1 = CM.gradfilter(u, w, l, st, pad)
     l1 = CM.deconvolute(l, w, st, pad)
     backward(l1, rest, us, [{:filter, w1, st, lr, v} | res])
@@ -130,6 +130,12 @@ defmodule Deeppipe do
     w2 = CM.sub(w, CM.mult(w1, lr))
     [{:bias, w2, ir, lr, v} | learning(rest, rest1)]
   end
+
+  def learning([{:filter, w, st, pad, ir, lr, v} | rest], [{:filter, w1, _, _, _, _, _} | rest1]) do
+    w2 = CM.sub(w, CM.mult(w1, lr))
+    [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1)]
+  end
+
 
   def learning([network | rest], [_ | rest1]) do
     [network | learning(rest, rest1)]
