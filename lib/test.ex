@@ -3,6 +3,13 @@ defmodule Test do
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
 
+  def test do
+    t1 = Cumatrix.new([[[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]]])
+    f1 = Cumatrix.new([[[1.0, 2.0], [3.0, 4.0]]])
+    t2 = Cumatrix.new([[[[2.0, 3.0],[4.0,5.0]]]])
+
+    Cumatrix.gradfilter(t1,f1,t2,1,0) |> Cumatrix.to_list()
+  end
   
   # for DNN test
   defnetwork init_network1(_x) do

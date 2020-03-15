@@ -500,8 +500,11 @@ defmodule Cumatrix do
   end
 
   def gradfilter({n1, c1, h1, w1, dt1}, {c1, h2, w2, dt2}, {n1, c1, _, _, dt3}, st, pad) do
-    gradfilter1(n1, c1, h1, w1, h2, w2, dt1, dt2, dt3, st, pad)
+    {c1,h2,w2,gradfilter1(n1, c1, h1, w1, h2, w2, dt1, dt2, dt3, st, pad)}
   end
+  def gradfilter(_,_,_,_) do
+    raise "gradfilter illegal data form"
+  end 
 
   def full({n1, 1, h1, w1, dt1}) do
     {n1, h1 * w1, full1(n1, h1, w1, dt1)}
