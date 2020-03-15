@@ -34,12 +34,12 @@ defmodule Cumatrix do
     raise "NIF mult/6 not implemented"
   end
 
-  def add1(_a, _b, _c, _d) do
-    raise "NIF add1/4 not implemented"
+  def add1(_a, _b, _c)do
+    raise "NIF add1/3 not implemented"
   end
 
-  def sub1(_a, _b, _c, _d) do
-    raise "NIF sub1/4 not implemented"
+  def sub1(_a, _b, _c) do
+    raise "NIF sub1/3 not implemented"
   end
 
   def emult1(_a, _b, _c, _d) do
@@ -246,15 +246,23 @@ defmodule Cumatrix do
   end
 
   def add({r1, c1, dt1}, {r1, c1, dt2}) do
-    {r1, c1, add1(r1, c1, dt1, dt2)}
+    {r1, c1, add1(r1*c1, dt1, dt2)}
   end
 
   def add({r1, c1, dt1}, {1, c1, dt2}) do
-    {r1, c1, add1(r1, c1, dt1, expand({r1, c1, dt2}))}
+    {r1, c1, add1(r1*c1, dt1, expand({r1, c1, dt2}))}
   end
 
   def add({1, c1, dt1}, {r1, c1, dt2}) do
-    {r1, c1, add1(r1, c1, expand({r1, c1, dt1}), dt2)}
+    {r1, c1, add1(r1*c1, expand({r1, c1, dt1}), dt2)}
+  end
+
+  def add({c1,h1, w1, dt1}, {c1, h1, w1, dt2}) do
+    {c1, h1, w1, add1(c1*h1*w1, dt1, dt2)}
+  end
+
+  def add({n1,c1,h1, w1, dt1}, {n1,c1, h1, w1, dt2}) do
+    {n1,c1, h1, w1, add1(n1*c1*h1*w1, dt1, dt2)}
   end
 
   def add(_, _) do
@@ -275,8 +283,17 @@ defmodule Cumatrix do
   end
 
   def sub({r1, c1, dt1}, {r1, c1, dt2}) do
-    {r1, c1, sub1(r1, c1, dt1, dt2)}
+    {r1, c1, sub1(r1*c1, dt1, dt2)}
   end
+
+  def sub({c1,h1, w1, dt1}, {c1, h1, w1, dt2}) do
+    {c1, h1, w1, add1(c1*h1*w1, dt1, dt2)}
+  end
+
+  def sub({n1,c1,h1, w1, dt1}, {n1,c1, h1, w1, dt2}) do
+    {n1,c1, h1, w1, add1(n1*c1*h1*w1, dt1, dt2)}
+  end
+
 
   def sub(_, _) do
     raise "sub illegal data type"

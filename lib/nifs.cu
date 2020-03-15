@@ -262,15 +262,14 @@ static ERL_NIF_TERM
 add1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin, b_bin;
     ERL_NIF_TERM  c_bin;
-    int r1, c1, n;
+    int n;
     float *a,*b,*c;
     float *dev_a, *dev_b, *dev_c;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &b_bin)) return enif_make_badarg(env);
-    n = r1*c1;
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_badarg(env);
+
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
@@ -311,15 +310,14 @@ static ERL_NIF_TERM
 sub1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin, b_bin;
     ERL_NIF_TERM  c_bin;
-    int r1, c1, n;
+    int n;
     float *a,*b,*c;
     float *dev_a, *dev_b, *dev_c;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &b_bin)) return enif_make_badarg(env);
-    n = r1*c1;
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_badarg(env);
+
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
@@ -1934,8 +1932,8 @@ static ErlNifFunc nif_funcs[] = {
   {"new3", 4, new3},
   {"new4", 5, new4},
   {"rand1", 1, rand1},
-  {"add1", 4, add1},
-  {"sub1", 4, sub1},
+  {"add1", 3, add1},
+  {"sub1", 3, sub1},
   {"emult1", 4, emult1},
   {"transpose1", 3, transpose1},
   {"ident1", 1, ident1},
