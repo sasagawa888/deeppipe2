@@ -1393,7 +1393,7 @@ pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 __global__ void unpooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
-    int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1,max_h,max_w;
+    int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1;
     float loss;
     if(tid < n)
     {   
