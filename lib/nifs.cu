@@ -1432,6 +1432,24 @@ __global__ void unpooling_kernel(float *a, float *b, float *c, int st, int in_c,
 5th arg binary of sparse-tensor
 6th arg binary of loss-tensor
 7th arg stride 
+
+return gradiate tensor
+e.g.
+ts1 sparse-tensor
+  |0.0,0.0,0.0,0.0|
+  |0.0,0.6,0.0,0.8|
+  |0.0,0.0,0.0,0.0|
+  |0.0,1.4,0.0,1.6|
+ts2 loss-tensor
+  |0.1,0.2|
+  |0.3,0.4|
+
+return
+  |0.0,0.0,0.0,0.0|
+  |0.0,0.1,0.0,0.2|
+  |0.0,0.0,0.0,0.0|
+  |0.0,3.4,0.0,0.4|
+
 */
 static ERL_NIF_TERM
 unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
