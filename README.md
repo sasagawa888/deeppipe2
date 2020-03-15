@@ -294,8 +294,12 @@ ls is list that express 4-dimension or 3-dimension data
 - Cumatrix.to_list(tensor)
 tensor is 3-dimension or 4-dimension
 
-- Cumatrix.pooling(tensor,n)
-pooling with size n
+- Cumatrix.pooling(tensor,st)
+pooling with stride st 
+
+- Cumatrix.unpooing(ts1,ts2,st)
+unpooling with stride st.
+ts1 is input tensor. ts2 is sparse loss tensor.
 
 - Cumatrix.convolute(ts1,ts2,st,pad)
 convolution with input-tensor(ts1), filter-tensor(ts2), stride(st), padding(pad)
