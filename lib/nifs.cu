@@ -1390,7 +1390,7 @@ pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-__global__ void depooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
+__global__ void unpooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
     int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1,max_h,max_w;
@@ -1411,10 +1411,10 @@ __global__ void depooling_kernel(float *a, float *b, float *c, int st, int in_c,
                         for(w1=start_w1;w1<end_w1;w1++){
                             if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] != 0.0){
                                 loss = b[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)];
-                                c[IDX4C(n1,c1,max_h,max_w,in_c,in_h,in_w)] = loss;
+                                c[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] = loss;
                             }
                             else{
-                                c[IDX4C(n1,c1,max_h,max_w,in_c,in_h,in_w)] = 0.0;
+                                c[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] = 0.0;
                             }
                         }
                     }
@@ -1468,7 +1468,7 @@ unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice);
   
-    depooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
+    unpooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
   
     // copy to host d from GPU dev_d
     cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost);

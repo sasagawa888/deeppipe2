@@ -502,7 +502,7 @@ defmodule Cumatrix do
   end
 
   def unpooling({n1, c1, h1, w1, d1}, {n1, _, _, _, d2}, st) do
-    unpooling1(n1, c1, h1, w1, d1, d2, st)
+    {n1,c1,h1,w1,unpooling1(n1, c1, h1, w1, d1, d2, st)}
   end
 
   def convolute({n, c, h1, w1, dt1}, {c, h2, w2, dt2}, st, pad) do
