@@ -496,7 +496,8 @@ defmodule Cumatrix do
     if rem(h, st) != 0 || rem(w, st) != 0 do
       raise "pooling illegal argument"
     else
-      {n, c, div(h, st), div(w, st), pooling1(n, c, h, w, dt, st)}
+      [f,b] = pooling1(n, c, h, w, dt, st)
+      [{n, c, div(h, st), div(w, st), f},{n,c,h,w,b}]
     end
   end
 
