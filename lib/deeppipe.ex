@@ -91,7 +91,7 @@ defmodule Deeppipe do
   defp backward(l, [{:filter, w, st, pad, ir, lr, v} | rest], [u | us], res) do
     w1 = CM.gradfilter(u, w, l, st, pad)
     l1 = CM.deconvolute(l, w, st, pad)
-    backward(l1, rest, us, [{:filter, w1, st, lr, v} | res])
+    backward(l1, rest, us, [{:filter, w1, st, ir, lr, v} | res])
   end
 
   defp backward(l, [{:pooling, st} | rest], [u | us], res) do
@@ -156,6 +156,11 @@ defmodule Deeppipe do
     [{:bias, CM.add(w, v1), ir, lr, v1} | learning(rest, rest1, :momentum)]
   end
 
+  def learning([{:filter, w, st, pad, ir, lr, v} | rest], [{:filter, w1, _, _, _, _, _} | rest1], :momentum) do
+    w2 = CM.sub(w, CM.mult(w1, lr))
+    [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1, :momentum)]
+  end
+
   def learning([network | rest], [_ | rest1], :momentum) do
     [network | learning(rest, rest1, :momentum)]
   end
@@ -174,6 +179,13 @@ defmodule Deeppipe do
     h1 = CM.add(h, CM.emult(w1, w1))
     [{:bias, CM.adagrad(w, w1, h1, lr), ir, lr, h1} | learning(rest, rest1, :adagrad)]
   end
+
+  def learning([{:filter, w, st, pad, ir, lr, v} | rest], [{:filter, w1, _, _, _, _, _} | rest1], :adagrad) do
+    w2 = CM.sub(w, CM.mult(w1, lr))
+    [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1, :adagrad)]
+  end
+
+
 
   def learning([network | rest], [_ | rest1], :adagrad) do
     [network | learning(rest, rest1, :adagrad)]
