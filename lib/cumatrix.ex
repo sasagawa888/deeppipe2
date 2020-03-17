@@ -203,9 +203,28 @@ defmodule Cumatrix do
     {r, c, new1(r * c, 0.0)}
   end
 
-  def new(r, c, val) do
+  def new(r, c, val) when is_float(val) do
     {r, c, new1(r * c, val)}
   end
+
+  def new(c, h, w) when is_integer(w) do
+    {c, h, w, new1(c * h * w, 0.0)}
+  end
+
+  def new(c, h, w, val) when is_float(val) do
+    {c, h, w, new1(c * h * w, val)}
+  end
+
+  def new(n, c, h, w) when is_integer(w) do
+    {n, c, h, w, new1(n * c * h * w, 0.0)}
+  end
+
+  def new(n, c, h, w, val) when is_float(val) do
+    {n, c, h, w, new1(n * c * h * w, val)}
+  end
+
+
+
 
   # list to matrix
   def new(ls) when is_list(ls) do
