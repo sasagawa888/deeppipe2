@@ -127,7 +127,7 @@ defmodule Test do
     IO.puts("preparing data")
     image = MNIST.train_image(3000, :structure)
     label = MNIST.train_label_onehot(3000)
-    network = init_network1(0)
+    network = init_network4(0)
     IO.puts("ready")
     network1 = sgd1(image, network, label, m, n)
     test_image = MNIST.test_image(1000, :structure) |> CM.new()

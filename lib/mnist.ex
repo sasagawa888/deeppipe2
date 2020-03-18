@@ -27,7 +27,7 @@ defmodule MNIST do
   end
 
   # get n datas from train-image with normalization
-  def train_image(n) do
+  def train_image(n, :structure) do
     train_image()
     |> Enum.take(n)
     |> Enum.map(fn x -> structure(MNIST.normalize(x, 255), 28, 28) end)
