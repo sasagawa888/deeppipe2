@@ -30,7 +30,7 @@ defmodule Deeppipe do
     forward(x1, rest, [x1 | res])
   end
 
-  def forward(x, [{:filter, w, st, pad, _, _} | rest], res) do
+  def forward(x, [{:filter, w, st, pad, _, _, _} | rest], res) do
     x1 = CM.convolute(x, w, st, pad)
     forward(x1, rest, [x1 | res])
   end
