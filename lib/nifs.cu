@@ -7,9 +7,11 @@
 #define IDX2C(i,j,ld) (((j)*(ld))+(i))
 #define IDX3C(c,i,j,in_h,in_w) ((c)*((in_h)*(in_w)) + (i)*(in_w) +(j))
 #define IDX4C(n,c,i,j,in_c,in_h,in_w) ((n)*((in_c)*(in_h)*(in_w)) + (c)*((in_h)*(in_w)) + (i)*(in_w) +(j))
-#define DEBUG return(enif_make_int(env, 0));
+#define BREAK return(enif_make_int(env, 0));
 #define PI 3.14159265358979323846
 #define SIGMOID(x)  (1 / (1+exp(-1*x)))
+#define DEBUG 0
+#define DISP(x) if(DEBUG){printf(x);fflush(stdout);}
 
 
 static ERL_NIF_TERM
@@ -20,9 +22,10 @@ print1(ErlNifEnv *env, int argc, const ERL_NIF_TERM *argv) {
     int r,c,i,j;
 
 
-    if (!enif_get_int(env, argv[0], &r )) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    DISP("print1")
+    if (!enif_get_int(env, argv[0], &r )) {printf("print1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c )) {printf("print1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("print1"); return enif_make_badarg(env);}
     
     a  = (float *) a_bin.data;
   
@@ -46,8 +49,8 @@ new1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a;
     double d;
 
-    enif_get_int(env, argv[0], &n);
-    enif_get_double(env, argv[1], &d);
+    if (!enif_get_int(env, argv[0], &n)) {printf("new3"); return enif_make_badarg(env);}
+    if (!enif_get_double(env, argv[1], &d)) {printf("new3"); return enif_make_badarg(env);}
     a = (float *) enif_make_new_binary(env, n * sizeof(float), &a_bin);
 
     // Set matrix data 
@@ -67,8 +70,8 @@ new2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a;
     double d;
 
-    enif_get_int(env, argv[0], &r1);
-    enif_get_int(env, argv[1], &c1);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("new2"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("new2"); return enif_make_badarg(env);}
     a = (float *) enif_make_new_binary(env, r1 * c1 * sizeof(float), &a_bin);
 
     // Set matrix data 
@@ -92,9 +95,9 @@ new3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a;
     double d;
 
-    enif_get_int(env, argv[0], &c);
-    enif_get_int(env, argv[1], &h);
-    enif_get_int(env, argv[2], &w);
+    if (!enif_get_int(env, argv[0], &c)) {printf("new3"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &h)) {printf("new3"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[2], &w)) {printf("new3"); return enif_make_badarg(env);}
     a = (float *) enif_make_new_binary(env, c * h * w *  sizeof(float), &a_bin);
 
     // Set matrix data 
@@ -121,10 +124,10 @@ new4(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a;
     double d;
 
-    enif_get_int(env, argv[0], &n);
-    enif_get_int(env, argv[1], &c);
-    enif_get_int(env, argv[2], &h);
-    enif_get_int(env, argv[3], &w);
+    if (!enif_get_int(env, argv[0], &n)) {printf("new4"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c)) {printf("new4"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[2], &h)) {printf("new4"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[3], &w)) {printf("new4"); return enif_make_badarg(env);}
     a = (float *) enif_make_new_binary(env, n * c * h * w *  sizeof(float), &a_bin);
 
     // Set matrix data 
@@ -153,7 +156,7 @@ rand1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *result_data;
     ERL_NIF_TERM result;
 
-    enif_get_int(env, argv[0], &n);
+    if (!enif_get_int(env, argv[0], &n)) {printf("rand1"); return enif_make_badarg(env);}
     result_data = (float *) enif_make_new_binary(env, n * sizeof(float), &result);
 
     srand((unsigned) time(NULL));
@@ -181,12 +184,12 @@ mult(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float* devPtrC;
 
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[3], &r2)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[4], &c2)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[5], &b_bin)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("mult"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("mult"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("mult"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[3], &r2)) {printf("mult"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[4], &c2)) {printf("mult"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[5], &b_bin)) {printf("mult"); return enif_make_badarg(env);}
     n = r1*c2;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -266,9 +269,9 @@ add1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b,*c;
     float *dev_a, *dev_b, *dev_c;
 
-    if (!enif_get_int(env, argv[0], &n)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &n)) {printf("add1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) {printf("add1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &b_bin)) {printf("add1"); return enif_make_badarg(env);}
 
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -314,9 +317,9 @@ sub1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b,*c;
     float *dev_a, *dev_b, *dev_c;
 
-    if (!enif_get_int(env, argv[0], &n)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &n)) {printf("sub1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) {printf("sub1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &b_bin)) {printf("sub1"); return enif_make_badarg(env);}
 
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -365,10 +368,10 @@ emult1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b,*c;
     float *dev_a, *dev_b, *dev_c;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &b_bin)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("emult1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("emult1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("emult1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[3], &b_bin)) {printf("emult1"); return enif_make_badarg(env);}
     n = r1*c1;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -405,9 +408,9 @@ transpose1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     int r1, c1, n, i, j;
     float *a,*b;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("transpose1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("transpose1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("transpose1"); return enif_make_badarg(env);}
     n = r1*c1;
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
@@ -428,7 +431,7 @@ ident1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ERL_NIF_TERM a_bin;
     float *a;
 
-    enif_get_int(env, argv[0], &n);
+    if (!enif_get_int(env, argv[0], &n)) {printf("ident1"); return enif_make_badarg(env);}
     a = (float *) enif_make_new_binary(env, n * n * sizeof(float), &a_bin);
 
     // Set matrix data 
@@ -465,9 +468,9 @@ activate_sigmoid(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b;
     float *dev_a, *dev_b;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("activate_sigmoid"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("activate_sigmoid"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("activate_sigmoid"); return enif_make_badarg(env);}
     n = r1*c1;
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
@@ -521,9 +524,9 @@ activate_tanh(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b;
     float *dev_a, *dev_b;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("activate_tanh"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("activate_tanh"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("activate_tanh"); return enif_make_badarg(env);}
     n = r1*c1;
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
@@ -569,9 +572,9 @@ activate_relu(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b;
     float *dev_a, *dev_b;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("activate_relu"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("activate_relu"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("activate_relu"); return enif_make_badarg(env);}
     n = r1*c1;
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
@@ -601,9 +604,9 @@ activate_softmax(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b;
     float max,sum;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("activate_softmax"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("activate_softmax"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("activate_softmax"); return enif_make_badarg(env);}
     n = r1*c1;
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
@@ -649,10 +652,10 @@ differ_sigmoid(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b,*c;
     float *dev_a, *dev_b, *dev_c;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &b_bin)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("differ_sigmoid"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("differ_sigmoid"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("differ_sigmoid"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[3], &b_bin)) {printf("differ_sigmoid"); return enif_make_badarg(env);}
     n = r1*c1;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -700,10 +703,10 @@ differ_tanh(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b,*c;
     float *dev_a, *dev_b, *dev_c;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &b_bin)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("differ_tanh"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("differ_tanh"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("differ_tanh"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[3], &b_bin)) {printf("differ_tanh"); return enif_make_badarg(env);}
     n = r1*c1;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -755,10 +758,10 @@ differ_relu(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b,*c;
     float *dev_a, *dev_b, *dev_c;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &b_bin)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("differ_relu"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("differ_relu"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("differ_relu"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[3], &b_bin)) {printf("differ_relu"); return enif_make_badarg(env);}
     n = r1*c1;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -809,9 +812,9 @@ smult1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     double s;
 
 
-    if (!enif_get_double(env, argv[0], &s)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &n)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_double(env, argv[0], &s)) {printf("smult1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &n)) {printf("smult1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("smult1"); return enif_make_badarg(env);}
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
 
@@ -845,9 +848,9 @@ trace1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a;
     float trace;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("trace1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("trace1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("trace1"); return enif_make_badarg(env);}
     a = (float *) a_bin.data;
     
     trace = 0.0;
@@ -873,10 +876,10 @@ mean_square(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float d,s;
 
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &b_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("mean_square"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("mean_square"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("mean_square"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[3], &b_bin )) {printf("mean_square"); return enif_make_badarg(env);}
 
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -902,10 +905,10 @@ cross_entropy(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float d,s,delta;
 
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &b_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("cross_entropy"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("cross_entropy"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("cross_entropy"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[3], &b_bin )) {printf("cross_entropy"); return enif_make_badarg(env);}
 
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -935,11 +938,11 @@ elt1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     int r1, c1, i, j;
     float *a;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[2], &i)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[3], &j)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("elt1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("elt1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[2], &i)) {printf("elt1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[3], &j)) {printf("elt1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) {printf("elt1"); return enif_make_badarg(env);}
     a = (float *) a_bin.data;
     
     result = enif_make_double(env,(double)a[IDX2C(i,j,r1)]);
@@ -955,12 +958,12 @@ set1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b;
     double val;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[3], &x)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[4], &y)) return enif_make_badarg(env);
-    if (!enif_get_double(env, argv[5], &val)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("set1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("set1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("set1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[3], &x)) {printf("set1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[4], &y)) {printf("set1"); return enif_make_badarg(env);}
+    if (!enif_get_double(env, argv[5], &val)) {printf("set1"); return enif_make_badarg(env);}
 
 
     n = r1*c1;
@@ -988,9 +991,9 @@ average1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b;
     float sum;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("average1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("average1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("average1"); return enif_make_badarg(env);}
 
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, c1 * sizeof(float), &b_bin);
@@ -1016,9 +1019,9 @@ sum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a;
     float sum;
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("sum1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("sum1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("sum1"); return enif_make_badarg(env);}
     a = (float *) a_bin.data;
     
     sum = 0.0;
@@ -1041,9 +1044,9 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a;
 
 
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("to_list1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("to_list1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("to_list1"); return enif_make_badarg(env);}
     a = (float *) a_bin.data;
 
     
@@ -1065,10 +1068,10 @@ to_list2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     int c, h, w, i, j, k;
     float *a;
 
-    if (!enif_get_int(env, argv[0], &c)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &h)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[2], &w)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &c)) {printf("to_list2"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &h)) {printf("to_list2"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[2], &w)) {printf("to_list2"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[3], &a_bin )) {printf("to_list2"); return enif_make_badarg(env);}
    
     a = (float *) a_bin.data;
     
@@ -1093,11 +1096,11 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a;
 
 
-    if (!enif_get_int(env, argv[0], &n)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[2], &h)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[3], &w)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &n)) {printf("to_list3"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c)) {printf("to_list3"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[2], &h)) {printf("to_list3"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[3], &w)) {printf("to_list3"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) {printf("to_list3"); return enif_make_badarg(env);}
     a = (float *) a_bin.data;
 
     
@@ -1143,11 +1146,11 @@ momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *dev_a, *dev_b, *dev_c;
     double lr;
   
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &b_bin )) return enif_make_badarg(env);
-    if (!enif_get_double(env, argv[4], &lr)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("momentum1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("momentum1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("momentum1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[3], &b_bin )) {printf("momentum1"); return enif_make_badarg(env);}
+    if (!enif_get_double(env, argv[4], &lr)) {printf("momentum1"); return enif_make_badarg(env);}
 
     n = r1*c1;
     a = (float *) a_bin.data;
@@ -1208,12 +1211,12 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *dev_a, *dev_b, *dev_c;
     double h,lr;
   
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &b_bin )) return enif_make_badarg(env);
-    if (!enif_get_double(env, argv[4], &h)) return enif_make_badarg(env);
-    if (!enif_get_double(env, argv[5], &lr)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("adagrad1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("adagrad1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("adagrad1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[3], &b_bin )) {printf("adagrad1"); return enif_make_badarg(env);}
+    if (!enif_get_double(env, argv[4], &h)) {printf("adagrad1"); return enif_make_badarg(env);}
+    if (!enif_get_double(env, argv[5], &lr)) {printf("adagrad1"); return enif_make_badarg(env);}
 
     n = r1*c1;
     a = (float *) a_bin.data;
@@ -1246,9 +1249,9 @@ accuracy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a;
     double max,rate;
   
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &r1)) {printf("accuracy1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &c1)) {printf("accuracy1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) {printf("accuracy1"); return enif_make_badarg(env);}
 
     a = (float *) a_bin.data;
 
@@ -1346,12 +1349,12 @@ pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b, *c;
     float *dev_a, *dev_b, *dev_c;
   
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[5], &st)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &in_n)) {printf("pooling1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &in_c)) {printf("pooling1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[2], &in_h)) {printf("pooling1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[3], &in_w)) {printf("pooling1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) {printf("pooling1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[5], &st)) {printf("pooling1"); return enif_make_badarg(env);}
 
     n1 = in_n * in_c * in_h * in_w;
     n2 = in_n * in_c * (in_h / st) * (in_w / st);
@@ -1459,13 +1462,13 @@ unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b, *c;
     float *dev_a, *dev_b, *dev_c;
   
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[5], &b_bin )) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[6], &st)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &in_n)) {printf("unpooling1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &in_c)) {printf("unpooling1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[2], &in_h)) {printf("unpooling1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[3], &in_w)) {printf("unpooling1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) {printf("unpooling1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[5], &b_bin )) {printf("unpooling1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[6], &st)) {printf("unpooling1"); return enif_make_badarg(env);}
 
     n1 = in_n * in_c * in_h * in_w;
     n2 = in_n * in_c * (in_h / st) * (in_w / st);
@@ -1550,16 +1553,16 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b, *c;
     float *dev_a, *dev_b, *dev_c;
   
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[8], &st)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[9], &pad)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &in_n)) {printf("convolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &in_c)) {printf("convolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[2], &in_h)) {printf("convolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[3], &in_w)) {printf("convolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[4], &filt_h)) {printf("convolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[5], &filt_w)) {printf("convolute1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[6], &a_bin )) {printf("convolute1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[7], &b_bin )) {printf("convolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[8], &st)) {printf("convolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[9], &pad)) {printf("convolute1"); return enif_make_badarg(env);}
 
     n1 = in_n * in_c * in_h * in_w;
     n2 = in_c * filt_h * filt_w;
@@ -1645,16 +1648,16 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b, *b1, *c;
     float *dev_a, *dev_b, *dev_c;
   
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[8], &st)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[9], &pad)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &in_n)) {printf("deconvolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &in_c)) {printf("deconvolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[2], &in_h)) {printf("deconvolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[3], &in_w)) {printf("deconvolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[4], &filt_h)) {printf("deconvolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[5], &filt_w)) {printf("deconvolute1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[6], &a_bin )) {printf("deconvolute1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[7], &b_bin )) {printf("deconvolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[8], &st)) {printf("deconvolute1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[9], &pad)) {printf("deconvolute1"); return enif_make_badarg(env);}
 
     n1 = in_n * in_c * in_h * in_w;
     n2 = in_c * filt_h * filt_w;
@@ -1774,17 +1777,17 @@ __global__ void gradfilter_kernel(float *a, float *b, float *c, float *d, int fi
       float *a,*b,*c,*d;
       float *dev_a, *dev_b, *dev_c, *dev_d;
   
-      if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[1], &in_c)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_badarg(env);
-      if (!enif_inspect_binary(env, argv[8], &c_bin )) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[9], &st)) return enif_make_badarg(env);
-      if (!enif_get_int(env, argv[10], &pad)) return enif_make_badarg(env);
+      if (!enif_get_int(env, argv[0], &in_n)) {printf("gradfilter1"); return enif_make_badarg(env);}
+      if (!enif_get_int(env, argv[1], &in_c)) {printf("gradfilter1"); return enif_make_badarg(env);}
+      if (!enif_get_int(env, argv[2], &in_h)) {printf("gradfilter1"); return enif_make_badarg(env);}
+      if (!enif_get_int(env, argv[3], &in_w)) {printf("gradfilter1"); return enif_make_badarg(env);}
+      if (!enif_get_int(env, argv[4], &filt_h)) {printf("gradfilter1"); return enif_make_badarg(env);}
+      if (!enif_get_int(env, argv[5], &filt_w)) {printf("gradfilter1"); return enif_make_badarg(env);}
+      if (!enif_inspect_binary(env, argv[6], &a_bin )) {printf("gradfilter1"); return enif_make_badarg(env);}
+      if (!enif_inspect_binary(env, argv[7], &b_bin )) {printf("gradfilter1"); return enif_make_badarg(env);}
+      if (!enif_inspect_binary(env, argv[8], &c_bin )) {printf("gradfilter1"); return enif_make_badarg(env);}
+      if (!enif_get_int(env, argv[9], &st)) {printf("gradfilter1"); return enif_make_badarg(env);}
+      if (!enif_get_int(env, argv[10], &pad)) {printf("gradfilter1"); return enif_make_badarg(env);}
 
       n1 = in_n * in_c * in_h * in_w;
       n2 = in_c * filt_h * filt_w;
@@ -1851,11 +1854,12 @@ full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     int in_n,in_h,in_w,n1;
     float *a,*b;
     float *dev_a, *dev_b;
-  
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &in_h)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[2], &in_w)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_badarg(env);
+
+    DISP("full1")
+    if (!enif_get_int(env, argv[0], &in_n)) {printf("full1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &in_h)) {printf("full1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[2], &in_w)) {printf("full1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[3], &a_bin )) {printf("full1"); return enif_make_badarg(env);}
 
     // in_c is allways 1 
     n1 = in_n * in_h * in_w;
@@ -1912,10 +1916,10 @@ unfull1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *dev_a, *dev_b;
     
       
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[1], &in_h)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[2], &in_w)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[0], &in_n)) {printf("unfull1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[1], &in_h)) {printf("unfull1"); return enif_make_badarg(env);}
+    if (!enif_get_int(env, argv[2], &in_w)) {printf("unfull1"); return enif_make_badarg(env);}
+    if (!enif_inspect_binary(env, argv[3], &a_bin )) {printf("unfull1"); return enif_make_badarg(env);}
 
     // in_c is allways 1 
     n1 = in_n * in_h * in_w;
