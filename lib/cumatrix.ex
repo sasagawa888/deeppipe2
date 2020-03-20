@@ -168,31 +168,66 @@ defmodule Cumatrix do
 
   # ----------------------------------------------------------------
   def mult({r1, c1, dt1}, {r2, c2, dt2}) do
-    {r1, c2, mult1(r1, c1, dt1, r2, c2, dt2)}
+    result = mult1(r1, c1, dt1, r2, c2, dt2)
+    if !is_integer(result) do 
+      {r1, c2, result}
+    else 
+      badarg("mult",result)
+    end 
   end
 
   def mult(s, {r, c, dt}) when is_float(s) do
-    {r, c, smult1(s, r * c, dt)}
+    result = smult1(s, r * c, dt)
+    if !is_integer(result) do 
+      {r, c, result}
+    else 
+      badarg("smult",result)
+    end 
   end
 
   def mult({r, c, dt}, s) when is_float(s) do
-    {r, c, smult1(s, r * c, dt)}
+    result = smult1(s, r * c, dt)
+    if !is_integer(result) do  
+      {r, c, result}
+    else 
+      badarg("smult",result)
+    end 
   end
 
   def mult(s, {c, h, w, dt}) when is_float(s) do
-    {c, h, w, smult1(s, c * h * w, dt)}
+    result = smult1(s, c * h * w, dt)
+    if !is_integer(result) do
+      {c, h, w, result}
+    else 
+      badarg("smult",result)
+    end 
   end
 
   def mult({c, h, w, dt}, s) when is_float(s) do
-    {c, h, w, smult1(s, c * h * w, dt)}
+    result = smult1(s, c * h * w, dt)
+    if !is_integer(result) do 
+      {c, h, w, result}
+    else 
+      badarg("smult",result)
+    end 
   end
 
   def mult(s, {n, c, h, w, dt}) when is_float(s) do
-    {n, c, h, w, smult1(s, n * c * h * w, dt)}
+    result = smult1(s, n * c * h * w, dt)
+    if !is_integer(result) do
+      {n, c, h, w, result}
+    else 
+      badarg("smult",result)
+    end 
   end
 
   def mult({n, c, h, w, dt}, s) when is_float(s) do
-    {n, c, h, w, smult1(s, n * c * h * w, dt)}
+    result = smult1(s, n * c * h * w, dt)
+    if !is_integer(result) do 
+      {n, c, h, w, result}
+    else 
+      badarg("smult",result)
+    end 
   end
 
   def mult(_, _) do
@@ -200,27 +235,57 @@ defmodule Cumatrix do
   end
 
   def new(r, c) do
-    {r, c, new1(r * c, 0.0)}
+    result = new1(r * c, 0.0)
+    if !is_integer(result) do 
+      {r, c, result}
+    else 
+      badarg("new1",result)
+    end 
   end
 
   def new(r, c, val) when is_float(val) do
-    {r, c, new1(r * c, val)}
+    result = new1(r * c, val)
+    if !is_integer(result) do 
+      {r, c, result}
+    else 
+      badarg("new1",result)
+    end 
   end
 
   def new(c, h, w) when is_integer(w) do
-    {c, h, w, new1(c * h * w, 0.0)}
+    result = new1(c * h * w, 0.0)
+    if !is_integer(result) do   
+      {c, h, w, result}
+    else 
+      badarg("new1",result)
+    end 
   end
 
   def new(c, h, w, val) when is_float(val) do
-    {c, h, w, new1(c * h * w, val)}
+    result = new1(c * h * w, val)
+    if !is_integer(result) do 
+      {c, h, w, result}
+    else 
+      badarg("new1",result)
+    end 
   end
 
   def new(n, c, h, w) when is_integer(w) do
-    {n, c, h, w, new1(n * c * h * w, 0.0)}
+    result = new1(n * c * h * w, 0.0)
+    if !is_integer(result) do 
+      {n, c, h, w, result}
+    else 
+      badarg("new1",result)
+    end 
   end
 
   def new(n, c, h, w, val) when is_float(val) do
-    {n, c, h, w, new1(n * c * h * w, val)}
+    result = new1(n * c * h * w, val)
+    if !is_integer(result) do
+      {n, c, h, w, result}
+    else 
+      badarg("new1",result)
+    end 
   end
 
 
@@ -233,14 +298,24 @@ defmodule Cumatrix do
         r = length(ls)
         c = length(hd(ls))
         ls1 = ls |> flatten()
-        {r, c, new2(r, c, ls1)}
+        result = new2(r, c, ls1)
+        if !is_integer(result) do 
+          {r, c, result}
+        else 
+          badarg("new2",result)
+        end 
 
       list_dim(ls) == 3 ->
         c = length(ls)
         h = length(hd(ls))
         w = length(hd(hd(ls)))
         ls1 = ls |> flatten()
-        {c, h, w, new3(c, h, w, ls1)}
+        result = new3(c, h, w, ls1)
+        if !is_integer(result) do 
+          {c, h, w, result}
+        else   
+          badarg("new3",result)
+        end 
 
       list_dim(ls) == 4 ->
         n = length(ls)
@@ -248,40 +323,85 @@ defmodule Cumatrix do
         h = length(hd(hd(ls)))
         w = length(hd(hd(hd(ls))))
         ls1 = ls |> flatten()
-        {n, c, h, w, new4(n, c, h, w, ls1)}
+        result = new4(n, c, h, w, ls1)
+        if !is_integer(result) do 
+          {n, c, h, w, result}
+        else 
+          badarg("new4",result)
+        end 
     end
   end
 
   def rand(r, c) do
-    {r, c, rand1(r * c)}
+    result = rand1(r * c)
+    if !is_integer(result) do 
+      {r, c, result}
+    else 
+      badarg("rand1",result)
+    end 
   end
 
   def rand(c, h, w) do
-    {c, h, w, rand1(c * h * w)}
+    result = rand1(c * h * w)
+    if !is_integer(result) do 
+      {c, h, w, result}
+    else 
+      badarg("rand1",result)
+    end 
   end
 
   def rand(n, c, h, w) do
-    {n, c, h, w, rand1(n * c * h * w)}
+    result = rand1(n * c * h * w)
+    if !is_integer(result) do 
+      {n, c, h, w, result}
+    else 
+      badarg("rand1",result)
+    end 
   end
 
   def add({r1, c1, dt1}, {r1, c1, dt2}) do
-    {r1, c1, add1(r1*c1, dt1, dt2)}
+    result = add1(r1*c1, dt1, dt2)
+    if !is_integer(result) do 
+      {r1, c1, result}
+    else
+      badarg("add1",result)
+    end 
   end
 
   def add({r1, c1, dt1}, {1, c1, dt2}) do
-    {r1, c1, add1(r1*c1, dt1, expand({r1, c1, dt2}))}
+    result = add1(r1*c1, dt1, expand({r1, c1, dt2}))
+    if !is_integer(result) do 
+      {r1, c1, result}
+    else 
+      badarg("add1+expand",result)
+    end 
   end
 
   def add({1, c1, dt1}, {r1, c1, dt2}) do
-    {r1, c1, add1(r1*c1, expand({r1, c1, dt1}), dt2)}
+    result = add1(r1*c1, expand({r1, c1, dt1}), dt2)
+    if !is_integer(result) do
+      {r1, c1, result}
+    else 
+      badarg("add1+expand",result)
+    end 
   end
 
   def add({c1,h1, w1, dt1}, {c1, h1, w1, dt2}) do
-    {c1, h1, w1, add1(c1*h1*w1, dt1, dt2)}
+    result = add1(c1*h1*w1, dt1, dt2)
+    if !is_integer(result) do 
+      {c1, h1, w1, result}
+    else 
+      badarg("add1",result)
+    end 
   end
 
   def add({n1,c1,h1, w1, dt1}, {n1,c1, h1, w1, dt2}) do
-    {n1,c1, h1, w1, add1(n1*c1*h1*w1, dt1, dt2)}
+    result = add1(n1*c1*h1*w1, dt1, dt2)
+    if !is_integer(result) do 
+      {n1,c1, h1, w1, result}
+    else 
+      badarg("add1",result)
+    end 
   end
 
   def add(_, _) do
@@ -302,15 +422,30 @@ defmodule Cumatrix do
   end
 
   def sub({r1, c1, dt1}, {r1, c1, dt2}) do
-    {r1, c1, sub1(r1*c1, dt1, dt2)}
+    result = sub1(r1*c1, dt1, dt2)
+    if !is_integer(result) do
+      {r1, c1, result}
+    else 
+      badarg("sub1",result)
+    end 
   end
 
   def sub({c1,h1, w1, dt1}, {c1, h1, w1, dt2}) do
-    {c1, h1, w1, add1(c1*h1*w1, dt1, dt2)}
+    result = sub1(c1*h1*w1, dt1, dt2)
+    if !is_integer(result) do
+      {c1, h1, w1, result}
+    else
+      badarg("sub1",result)
+    end 
   end
 
   def sub({n1,c1,h1, w1, dt1}, {n1,c1, h1, w1, dt2}) do
-    {n1,c1, h1, w1, add1(n1*c1*h1*w1, dt1, dt2)}
+    result = sub1(n1*c1*h1*w1, dt1, dt2)
+    if !is_integer(result) do 
+      {n1,c1, h1, w1, result}
+    else 
+      badarg("sub1",result)
+    end 
   end
 
 
@@ -319,7 +454,12 @@ defmodule Cumatrix do
   end
 
   def emult({r1, c1, dt1}, {r1, c1, dt2}) do
-    {r1, c1, emult1(r1, c1, dt1, dt2)}
+    result = emult1(r1, c1, dt1, dt2)
+    if !is_integer(result) do 
+      {r1, c1, result}
+    else 
+      badarg("emult1",result)
+    end 
   end
 
   def emult(_, _) do
@@ -327,11 +467,21 @@ defmodule Cumatrix do
   end
 
   def elt({r, c, dt}, x, y) do
-    elt1(r, c, x - 1, y - 1, dt)
+    result = elt1(r, c, x - 1, y - 1, dt)
+    if !is_integer(result) do
+      result
+    else 
+      badarg("elt1",result)
+    end 
   end
 
   def set({r, c, dt}, x, y, val) do
-    {r, c, set1(r, c, dt, x - 1, y - 1, val)}
+    result = set1(r, c, dt, x - 1, y - 1, val)
+    if !is_integer(result) do 
+      {r, c, result}
+    else 
+      badarg("set1",result)
+    end 
   end
 
   @doc """
@@ -373,31 +523,60 @@ defmodule Cumatrix do
   end
 
   def transpose({r, c, dt}) do
-    {c, r, transpose1(r, c, dt)}
+    result = transpose1(r, c, dt)
+    if !is_integer(result) do 
+      {c, r, result}
+    else 
+      badarg("transpose1",result)
+    end 
   end
 
   def ident(r) do
     if !is_number(r) || !is_number(r) || r <= 0 do
       raise "ident illegal size"
     end
-
-    {r, r, ident1(r)}
+    result = ident1(r)
+    if !is_integer(result)
+      {r, r, result}
+    else 
+      badarg("ident1",result)
+    end 
   end
 
   def activate({r, c, dt}, :sigmoid) do
-    {r, c, activate_sigmoid(r, c, dt)}
+    result = activate_sigmoid(r, c, dt)
+    if !is_integer(result) do 
+      {r, c, result}
+    else 
+      badarg("activate_sigmoid",result)
+    end 
   end
 
   def activate({r, c, dt}, :tanh) do
-    {r, c, activate_tanh(r, c, dt)}
+    result = activate_tanh(r, c, dt)
+    if !is_integer(result) do  
+      {r, c, result}
+    else 
+      badarg("activate_tanh",result)
+    end 
   end
 
   def activate({r, c, dt}, :relu) do
-    {r, c, activate_relu(r, c, dt)}
+    result = activate_relu(r, c, dt)
+    if !is_integer(result) do 
+      {r, c, activate_relu(r, c, dt)}
+    else
+      badarg("activate_rerlu",result)
+    end 
   end
 
   def activate({r, c, dt}, :softmax) do
-    {r, c, activate_softmax(r, c, dt)}
+    result = activate_softmax(r, c, dt)
+    if !is_integer(result) do 
+      {r, c, result}
+    else 
+      badarg("activate_softmax",result)
+    end 
   end
 
   def activate(_, _) do
@@ -550,6 +729,10 @@ defmodule Cumatrix do
   def unfull({r, _, dt1}, h, w) do
     {r, 1, h, w, unfull1(r, h, w, dt1)}
   end
+
+  def badarg(func,n) do
+    raise func <> " badarg" <> Integer.to_string(n)
+  end 
 
   def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do
