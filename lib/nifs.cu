@@ -499,7 +499,11 @@ activate_sigmoid(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 	sigmoid_kernel << <128, 128 >> >(dev_a, dev_b, n);
 
 	// copy to host c from GPU dev_c
-	cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost);
+    
+    // free 
+    cudaFree(dev_a);
+    cudaFree(dev_b);
 
     return(b_bin);
 }
@@ -545,7 +549,11 @@ activate_tanh(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 	tanh_kernel << <128, 128 >> >(dev_a, dev_b, n);
 
 	// copy to host c from GPU dev_c
-	cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost);
+    
+    // free 
+    cudaFree(dev_a);
+    cudaFree(dev_b);
 
     return(b_bin);
 }
@@ -594,7 +602,11 @@ activate_relu(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 	relu_kernel << <128, 128 >> >(dev_a, dev_b, n);
 
 	// copy to host c from GPU dev_c
-	cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost);
+    
+    // free 
+    cudaFree(dev_a);
+    cudaFree(dev_b);
 
     return(b_bin);
 }
