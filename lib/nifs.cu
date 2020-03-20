@@ -1841,7 +1841,7 @@ __global__ void full_kernel(float *a, float *b, int in_h, int in_w, int n)
 /*
 1st arg in_n of input tensor
 2rd arg in_h of input tensor
-3th arg in_w of input tensor
+3rd arg in_w of input tensor
 4th arg binary of input tensor
 */
 static ERL_NIF_TERM
@@ -1853,9 +1853,9 @@ full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *dev_a, *dev_b;
   
     if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[1], &in_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[2], &in_w)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_badarg(env);
 
     // in_c is allways 1 
     n1 = in_n * in_h * in_w;
