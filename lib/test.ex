@@ -129,7 +129,7 @@ defmodule Test do
     label = MNIST.train_label_onehot(3000)
     network = init_network4(0)
     IO.puts("ready")
-    network1 = sgd1(image, network, label, m, n)
+    network1 = cnn1(image, network, label, m, n)
     test_image = MNIST.test_image(1000, :structure) |> CM.new()
     test_label = MNIST.test_label(1000)
     correct = DP.accuracy(test_image, network1, test_label)

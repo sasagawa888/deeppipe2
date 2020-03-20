@@ -100,7 +100,7 @@ defmodule Deeppipe do
   end
 
   defp backward(l, [{:full} | rest], [u | us], res) do
-    {_, _, h, w} = CM.size(hd(u))
+    {_, _, h, w} = CM.size(u)
     l1 = CM.unfull(l, h, w)
     backward(l1, rest, us, [{:full} | res])
   end
