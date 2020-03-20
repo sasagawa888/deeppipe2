@@ -50,8 +50,14 @@ defmodule MNIST do
     Enum.take(test_label(), n) |> Enum.map(fn y -> to_onehot0(y) end)
   end
 
-  # get n datas from test-image with normalization
+  # get n datas from test-image with normalization as structured list
   def test_image(n) do
+    test_image()
+    |> Enum.take(n)
+    |> Enum.map(fn x -> structure(MNIST.normalize(x, 255), 28, 28) end)
+  end
+
+  def test_image(n, :structure) do
     test_image()
     |> Enum.take(n)
     |> Enum.map(fn x -> structure(MNIST.normalize(x, 255), 28, 28) end)
