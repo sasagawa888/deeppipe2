@@ -10,7 +10,7 @@
 #define BREAK return(enif_make_int(env, 0));
 #define PI 3.14159265358979323846
 #define SIGMOID(x)  (1 / (1+exp(-1*x)))
-#define DEBUG 1
+#define DEBUG 0
 #define DISP(x) if(DEBUG){printf(x);fflush(stdout);}
 
 
