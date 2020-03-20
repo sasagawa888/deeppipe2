@@ -536,7 +536,7 @@ defmodule Cumatrix do
       raise "ident illegal size"
     end
     result = ident1(r)
-    if !is_integer(result)
+    if !is_integer(result) do
       {r, r, result}
     else 
       badarg("ident1",result)
@@ -694,8 +694,13 @@ defmodule Cumatrix do
     if rem(h, st) != 0 || rem(w, st) != 0 do
       raise "pooling illegal argument"
     else
-      [f,b] = pooling1(n, c, h, w, dt, st)
-      [{n, c, div(h, st), div(w, st), f},{n,c,h,w,b}]
+      result = pooling1(n, c, h, w, dt, st)
+      if !is_integer(result) do
+        [f,b] = result
+        [{n, c, div(h, st), div(w, st), f},{n,c,h,w,b}]
+      else 
+        badarg("pooling1",result)
+      end 
     end
   end
 
