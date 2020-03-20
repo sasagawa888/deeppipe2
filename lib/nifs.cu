@@ -1913,9 +1913,9 @@ unfull1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     
       
     if (!enif_get_int(env, argv[0], &in_n)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_badarg(env);
-    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_badarg(env);
-    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[1], &in_h)) return enif_make_badarg(env);
+    if (!enif_get_int(env, argv[2], &in_w)) return enif_make_badarg(env);
+    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_badarg(env);
 
     // in_c is allways 1 
     n1 = in_n * in_h * in_w;
