@@ -10,7 +10,7 @@
 #define BREAK return(enif_make_int(env, 0));
 #define PI 3.14159265358979323846
 #define SIGMOID(x)  (1 / (1+exp(-1*x)))
-#define DEBUG 0
+#define DEBUG 1
 #define DISP(x) if(DEBUG){printf(x);fflush(stdout);}
 
 
@@ -210,23 +210,23 @@ mult1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     stat = cublasAlloc (r1*c1, sizeof(*a), (void**)&devPtrA);
     if(stat != CUBLAS_STATUS_SUCCESS)
-        return(enif_make_int(env, 0)); 
+        return(enif_make_int(env, 91)); 
     stat = cublasAlloc (r2*c2, sizeof(*b), (void**)&devPtrB);
     if(stat != CUBLAS_STATUS_SUCCESS)
-        return(enif_make_int(env, 0)); 
+        return(enif_make_int(env, 92)); 
     stat = cublasAlloc (r1*c2, sizeof(*c), (void**)&devPtrC);
     if(stat != CUBLAS_STATUS_SUCCESS)
-        return(enif_make_int(env, 0)); 
+        return(enif_make_int(env, 93)); 
 
     stat = cublasSetMatrix (r1, c1, sizeof(*a), a, r1, devPtrA, r1);
     if(stat != CUBLAS_STATUS_SUCCESS)
-        return(enif_make_int(env, 0)); 
+        return(enif_make_int(env, 94)); 
     stat = cublasSetMatrix (r2, c2, sizeof(*b), b, r2, devPtrB, r2);
     if(stat != CUBLAS_STATUS_SUCCESS)
-        return(enif_make_int(env, 0)); 
+        return(enif_make_int(env, 95)); 
     stat = cublasSetMatrix (r1, c2, sizeof(*c), c, r1, devPtrC, r1);
     if(stat != CUBLAS_STATUS_SUCCESS)
-        return(enif_make_int(env, 0)); 
+        return(enif_make_int(env, 96)); 
 
 
     //Sgemm
@@ -1185,6 +1185,11 @@ momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     // copy to host c from GPU dev_c
     cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+	cudaFree(dev_c);
   
     return(c_bin);
 }
@@ -1252,6 +1257,11 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     // copy to host c from GPU dev_c
     cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+	cudaFree(dev_c);
   
     return(c_bin);
 }
@@ -1404,7 +1414,11 @@ pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     list = enif_make_list(env, 0);
     list = enif_make_list_cell(env,c_bin,list);
     list = enif_make_list_cell(env,b_bin,list);
-        
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+	cudaFree(dev_c);
 
     return(list);
 }
@@ -1511,7 +1525,11 @@ unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     // copy to host d from GPU dev_d
     cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost);
-    
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+	cudaFree(dev_c);
 
     return(c_bin);
 }
@@ -1607,6 +1625,11 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     // copy to host c from GPU dev_c
     cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+	cudaFree(dev_c);
   
     return(c_bin);
 }
@@ -1724,6 +1747,11 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     // copy to host c from GPU dev_c
     cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+	cudaFree(dev_c);
   
     return(c_bin);
 }
@@ -1840,6 +1868,12 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     // copy to host d from GPU dev_d
     cudaMemcpy(d, dev_d, n2 * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+    cudaFree(dev_c);
+    cudaFree(dev_d);
   
     return(d_bin);
 }
@@ -1900,6 +1934,10 @@ full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     // copy to host d from GPU dev_d
     cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
   
     return(b_bin);
 }
@@ -1960,6 +1998,10 @@ unfull1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     // copy to host d from GPU dev_d
     cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
   
     return(b_bin);
 }

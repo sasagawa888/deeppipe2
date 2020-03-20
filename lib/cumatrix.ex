@@ -172,7 +172,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {r1, c2, result}
     else 
-      badarg("mult",result)
+      error("mult",result)
     end 
   end
 
@@ -181,7 +181,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {r, c, result}
     else 
-      badarg("smult",result)
+      error("smult",result)
     end 
   end
 
@@ -190,7 +190,7 @@ defmodule Cumatrix do
     if !is_integer(result) do  
       {r, c, result}
     else 
-      badarg("smult",result)
+      error("smult",result)
     end 
   end
 
@@ -199,7 +199,7 @@ defmodule Cumatrix do
     if !is_integer(result) do
       {c, h, w, result}
     else 
-      badarg("smult",result)
+      error("smult",result)
     end 
   end
 
@@ -208,7 +208,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {c, h, w, result}
     else 
-      badarg("smult",result)
+      error("smult",result)
     end 
   end
 
@@ -217,7 +217,7 @@ defmodule Cumatrix do
     if !is_integer(result) do
       {n, c, h, w, result}
     else 
-      badarg("smult",result)
+      error("smult",result)
     end 
   end
 
@@ -226,7 +226,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {n, c, h, w, result}
     else 
-      badarg("smult",result)
+      error("smult",result)
     end 
   end
 
@@ -239,7 +239,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {r, c, result}
     else 
-      badarg("new1",result)
+      error("new1",result)
     end 
   end
 
@@ -248,7 +248,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {r, c, result}
     else 
-      badarg("new1",result)
+      error("new1",result)
     end 
   end
 
@@ -257,7 +257,7 @@ defmodule Cumatrix do
     if !is_integer(result) do   
       {c, h, w, result}
     else 
-      badarg("new1",result)
+      error("new1",result)
     end 
   end
 
@@ -266,7 +266,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {c, h, w, result}
     else 
-      badarg("new1",result)
+      error("new1",result)
     end 
   end
 
@@ -275,7 +275,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {n, c, h, w, result}
     else 
-      badarg("new1",result)
+      error("new1",result)
     end 
   end
 
@@ -284,7 +284,7 @@ defmodule Cumatrix do
     if !is_integer(result) do
       {n, c, h, w, result}
     else 
-      badarg("new1",result)
+      error("new1",result)
     end 
   end
 
@@ -302,7 +302,7 @@ defmodule Cumatrix do
         if !is_integer(result) do 
           {r, c, result}
         else 
-          badarg("new2",result)
+          error("new2",result)
         end 
 
       list_dim(ls) == 3 ->
@@ -314,7 +314,7 @@ defmodule Cumatrix do
         if !is_integer(result) do 
           {c, h, w, result}
         else   
-          badarg("new3",result)
+          error("new3",result)
         end 
 
       list_dim(ls) == 4 ->
@@ -327,7 +327,7 @@ defmodule Cumatrix do
         if !is_integer(result) do 
           {n, c, h, w, result}
         else 
-          badarg("new4",result)
+          error("new4",result)
         end 
     end
   end
@@ -337,7 +337,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {r, c, result}
     else 
-      badarg("rand1",result)
+      error("rand1",result)
     end 
   end
 
@@ -346,7 +346,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {c, h, w, result}
     else 
-      badarg("rand1",result)
+      error("rand1",result)
     end 
   end
 
@@ -355,7 +355,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {n, c, h, w, result}
     else 
-      badarg("rand1",result)
+      error("rand1",result)
     end 
   end
 
@@ -364,7 +364,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {r1, c1, result}
     else
-      badarg("add1",result)
+      error("add1",result)
     end 
   end
 
@@ -373,7 +373,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {r1, c1, result}
     else 
-      badarg("add1+expand",result)
+      error("add1+expand",result)
     end 
   end
 
@@ -382,7 +382,7 @@ defmodule Cumatrix do
     if !is_integer(result) do
       {r1, c1, result}
     else 
-      badarg("add1+expand",result)
+      error("add1+expand",result)
     end 
   end
 
@@ -391,7 +391,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {c1, h1, w1, result}
     else 
-      badarg("add1",result)
+      error("add1",result)
     end 
   end
 
@@ -400,7 +400,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {n1,c1, h1, w1, result}
     else 
-      badarg("add1",result)
+      error("add1",result)
     end 
   end
 
@@ -426,7 +426,7 @@ defmodule Cumatrix do
     if !is_integer(result) do
       {r1, c1, result}
     else 
-      badarg("sub1",result)
+      error("sub1",result)
     end 
   end
 
@@ -435,7 +435,7 @@ defmodule Cumatrix do
     if !is_integer(result) do
       {c1, h1, w1, result}
     else
-      badarg("sub1",result)
+      error("sub1",result)
     end 
   end
 
@@ -444,7 +444,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {n1,c1, h1, w1, result}
     else 
-      badarg("sub1",result)
+      error("sub1",result)
     end 
   end
 
@@ -458,7 +458,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {r1, c1, result}
     else 
-      badarg("emult1",result)
+      error("emult1",result)
     end 
   end
 
@@ -471,7 +471,7 @@ defmodule Cumatrix do
     if !is_integer(result) do
       result
     else 
-      badarg("elt1",result)
+      error("elt1",result)
     end 
   end
 
@@ -480,7 +480,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {r, c, result}
     else 
-      badarg("set1",result)
+      error("set1",result)
     end 
   end
 
@@ -527,7 +527,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {c, r, result}
     else 
-      badarg("transpose1",result)
+      error("transpose1",result)
     end 
   end
 
@@ -539,7 +539,7 @@ defmodule Cumatrix do
     if !is_integer(result) do
       {r, r, result}
     else 
-      badarg("ident1",result)
+      error("ident1",result)
     end 
   end
 
@@ -548,7 +548,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {r, c, result}
     else 
-      badarg("activate_sigmoid",result)
+      error("activate_sigmoid",result)
     end 
   end
 
@@ -557,7 +557,7 @@ defmodule Cumatrix do
     if !is_integer(result) do  
       {r, c, result}
     else 
-      badarg("activate_tanh",result)
+      error("activate_tanh",result)
     end 
   end
 
@@ -566,7 +566,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {r, c, activate_relu(r, c, dt)}
     else
-      badarg("activate_rerlu",result)
+      error("activate_rerlu",result)
     end 
   end
 
@@ -575,7 +575,7 @@ defmodule Cumatrix do
     if !is_integer(result) do 
       {r, c, result}
     else 
-      badarg("activate_softmax",result)
+      error("activate_softmax",result)
     end 
   end
 
@@ -584,15 +584,30 @@ defmodule Cumatrix do
   end
 
   def diff({r, c, dt1}, {r, c, dt2}, :sigmoid) do
-    {r, c, differ_sigmoid(r, c, dt1, dt2)}
+    result = differ_sigmoid(r, c, dt1, dt2)
+    if !is_integer(result) do 
+      {r, c, result}
+    else 
+      error("differ_sigmoid",result)
+    end 
   end
 
   def diff({r, c, dt1}, {r, c, dt2}, :tanh) do
-    {r, c, differ_tanh(r, c, dt1, dt2)}
+    result = differ_tanh(r, c, dt1, dt2)
+    if !is_integer(result) do 
+      {r, c, result}
+    else 
+      error("differ_tanh",result)
+    end 
   end
 
   def diff({r, c, dt1}, {r, c, dt2}, :relu) do
-    {r, c, differ_relu(r, c, dt1, dt2)}
+    result = differ_relu(r, c, dt1, dt2)
+    if !is_integer(result) do 
+      {r, c, result}
+    else 
+      error("differ_relu",result)
+    end 
   end
 
   def diff(_, _, _) do
@@ -612,11 +627,21 @@ defmodule Cumatrix do
   end
 
   def average({r, c, dt}) do
-    {1, c, average1(r, c, dt)}
+    result = average1(r, c, dt)
+    if !is_integer(result) do 
+      {1, c, result}
+    else 
+      error("average1",result)
+    end 
   end
 
   def sum({r, c, dt}) do
-    sum1(r, c, dt)
+    result = sum1(r, c, dt)
+    if !is_integer(result) do 
+      result 
+    else 
+      error("sum1",result)
+    end 
   end
 
   def to_list({r, c, dt}) do
@@ -647,19 +672,39 @@ defmodule Cumatrix do
       raise "trace not square matrix"
     end
 
-    trace1(r, c, dt)
+    result = trace1(r, c, dt)
+    if !is_integer(result) do 
+      result
+    else 
+      error("trace1",result)
+    end 
   end
 
   def loss({r1, c1, dt1}, {r1, c1, dt2}, :square) do
-    mean_square(r1, c1, dt1, dt2)
+    result = mean_square(r1, c1, dt1, dt2)
+    if !is_integer(result) do 
+      result
+    else 
+      error("mean_square",result)
+    end
   end
 
   def loss({r1, c1, dt1}, {r1, c1, dt2}, :cross) do
-    cross_entropy(r1, c1, dt1, dt2)
+    result = cross_entropy(r1, c1, dt1, dt2)
+    if !is_integer(result) do
+      result 
+    else
+      error("cross_entropy",result)
+    end 
   end
 
   def momentum({r1, c1, dt1}, {r1, c1, dt2}, lr) do
-    {r1, c1, momentum1(r1, c1, dt1, dt2, lr)}
+    result = momentum1(r1, c1, dt1, dt2, lr)
+    if !is_integer(result) do 
+      {r1, c1, result}
+    else 
+      error("momentum1",result)
+    end 
   end
 
   def momentum(_, _, _) do
@@ -667,7 +712,12 @@ defmodule Cumatrix do
   end
 
   def adagrad({r1, c1, dt1}, {r1, c1, dt2}, h, lr) do
-    {r1, c1, adagrad1(r1, c1, dt1, dt2, h, lr)}
+    result = adagrad1(r1, c1, dt1, dt2, h, lr)
+    if !is_integer(result) do 
+      {r1, c1, result}
+    else 
+      error("adagrad1",result)
+    end 
   end
 
   def adagrad(_, _, _, _) do
@@ -678,7 +728,12 @@ defmodule Cumatrix do
     if length(ls) != r1 do
       raise "accuracy illegal argument"
     else
-      accuracy1(r1, c1, dt1, ls)
+      result = accuracy1(r1, c1, dt1, ls)
+      if !is_integer(result) do 
+        result
+      else 
+        error("accuracy1",result)
+      end
     end
   end
 
@@ -699,44 +754,74 @@ defmodule Cumatrix do
         [f,b] = result
         [{n, c, div(h, st), div(w, st), f},{n,c,h,w,b}]
       else 
-        badarg("pooling1",result)
+        error("pooling1",result)
       end 
     end
   end
 
   def unpooling({n1, c1, h1, w1, d1}, {n1, _, _, _, d2}, st) do
-    {n1,c1,h1,w1,unpooling1(n1, c1, h1, w1, d1, d2, st)}
+    result = unpooling1(n1, c1, h1, w1, d1, d2, st)
+    if !is_integer(result) do 
+      {n1,c1,h1,w1,result}
+    else 
+      error("unpooling1",result)
+    end 
   end
 
   def convolute({n, c, h1, w1, dt1}, {c, h2, w2, dt2}, st, pad) do
     oh = div(h1 + 2 * pad - h2, st) + 1
     ow = div(w1 + 2 * pad - w2, st) + 1
-    {n, 1, oh, ow, convolute1(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)}
+    result = convolute1(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)
+    if !is_integer(result) do 
+      {n, 1, oh, ow, result}
+    else 
+      error("convolute1",result)
+    end 
   end
 
   def deconvolute({n, c, oh, ow, dt1}, {c, h2, w2, dt2}, st, pad) do
     h1 = (oh-1)*st - 2*pad + h2
     w1 = (ow-1)*st - 2*pad + h2
-    {n, c, h1, w1, deconvolute1(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)}
+    result = deconvolute1(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)
+    if !is_integer(result) do 
+      {n, c, h1, w1, result}
+    else 
+      error("deconvolute1",result)
+    end 
   end
 
   def gradfilter({n1, c1, h1, w1, dt1}, {c1, h2, w2, dt2}, {n1, c1, _, _, dt3}, st, pad) do
-    {c1,h2,w2,gradfilter1(n1, c1, h1, w1, h2, w2, dt1, dt2, dt3, st, pad)}
+    result = gradfilter1(n1, c1, h1, w1, h2, w2, dt1, dt2, dt3, st, pad)
+    if !is_integer(result) do 
+      {c1,h2,w2,result}
+    else 
+      error("gradfilter",result)
+    end 
   end
   def gradfilter(_,_,_,_) do
     raise "gradfilter illegal data form"
   end 
 
   def full({n1, 1, h1, w1, dt1}) do
-    {n1, h1 * w1, full1(n1, h1, w1, dt1)}
+    result = full1(n1, h1, w1, dt1)
+    if !is_integer(result) do 
+      {n1, h1 * w1, result}
+    else 
+      error("full1",result)
+    end 
   end
 
   def unfull({r, _, dt1}, h, w) do
-    {r, 1, h, w, unfull1(r, h, w, dt1)}
+    result = unfull1(r, h, w, dt1)
+    if !is_integer(result) do 
+      {r, 1, h, w, result}
+    else
+      error("unfull1",result)
+    end 
   end
 
-  def badarg(func,n) do
-    raise func <> " badarg" <> Integer.to_string(n)
+  def error(func,n) do
+    raise func <> " error" <> Integer.to_string(n)
   end 
 
   def is_matrix({r, c, dt}) do
