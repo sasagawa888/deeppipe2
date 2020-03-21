@@ -229,20 +229,20 @@ unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
       
     // Allocate for GPU
-    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
-    cudaMalloc((void**)&dev_c, n1 * sizeof(float));
+    CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n1 * sizeof(float)));
 
   
     // copy from host a,b to GPU dev_a, dev_b
-    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice));
   
     unpooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
   
     // copy to host d from GPU dev_d
-    cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK(cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
@@ -337,7 +337,7 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     // copy from host a,b,c to GPU dev_a, dev_b, dev_c
     CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
-    cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
+    CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
     convolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad, in_c, in_h, in_w, in_n);
   
@@ -451,20 +451,20 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     }
     */
     // Allocate for GPU
-    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
-    cudaMalloc((void**)&dev_c, n3 * sizeof(float));
+    CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
 
   
     // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
-    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
+    CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
     deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, in_n);
   
     // copy to host c from GPU dev_c
-    cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
@@ -552,20 +552,20 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
       
     // Allocate for GPU
-    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
-    cudaMalloc((void**)&dev_c, n3 * sizeof(float));
+    CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
 
     
     // copy from host a,b,c to GPU dev_a, dev_b, dev_c
-    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
+    CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
     gradfilter_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, loss_h, loss_w, st, pad, in_c, in_h, in_w, in_n);
   
     // copy to host d from GPU dev_d
-    cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
@@ -626,13 +626,13 @@ full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMalloc((void**)&dev_b, n1 * sizeof(float)));
   
     // copy from host a,b to GPU dev_a, dev_b
-    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice));
 
     full_kernel << <1, in_n>> >(dev_a, dev_b, in_h, in_w, in_n);
   
     // copy to host d from GPU dev_d
-    cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK(cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
@@ -699,8 +699,8 @@ unfull1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
-    CHECK(cudaFree(dev_a));
-	CHECK(cudaFree(dev_b));
+    cudaFree(dev_a);
+	cudaFree(dev_b);
   
     return(b_bin);
 }
@@ -977,20 +977,20 @@ add1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
 
-    	// Allocate for GPU
-	cudaMalloc((void**)&dev_a, n * sizeof(float));
-	cudaMalloc((void**)&dev_b, n * sizeof(float));
-	cudaMalloc((void**)&dev_c, n * sizeof(float));
+    // Allocate for GPU
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
 
 
     // copy from host a,b to GPU dev_a, dev_b
-	cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
 
 	add1_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, n);
 
 	// copy to host c from GPU dev_c
-	cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+	CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
@@ -1027,19 +1027,19 @@ sub1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
 
     	// Allocate for GPU
-	cudaMalloc((void**)&dev_a, n * sizeof(float));
-	cudaMalloc((void**)&dev_b, n * sizeof(float));
-	cudaMalloc((void**)&dev_c, n * sizeof(float));
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
 
 
     // copy from host a,b to GPU dev_a, dev_b
-	cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
 
 	sub1_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, n);
 
 	// copy to host c from GPU dev_c
-	cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+	CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
@@ -1080,19 +1080,19 @@ emult1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
 
     	// Allocate for GPU
-	cudaMalloc((void**)&dev_a, n * sizeof(float));
-	cudaMalloc((void**)&dev_b, n * sizeof(float));
-	cudaMalloc((void**)&dev_c, n * sizeof(float));
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
 
 
     // copy from host a,b to GPU dev_a, dev_b
-	cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
 
 	emult1_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, n);
 
 	// copy to host c from GPU dev_c
-	cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+	CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
@@ -1181,18 +1181,18 @@ activate_sigmoid(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
 
     	// Allocate for GPU
-	cudaMalloc((void**)&dev_a, n * sizeof(float));
-	cudaMalloc((void**)&dev_b, n * sizeof(float));
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
 
 
     // copy from host a,b to GPU dev_a, dev_b
-	cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
 
 	sigmoid_kernel << <128, 128 >> >(dev_a, dev_b, n);
 
 	// copy to host c from GPU dev_c
-    cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK(cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost));
     
     // free 
     cudaFree(dev_a);
@@ -1231,18 +1231,18 @@ activate_tanh(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
 
     	// Allocate for GPU
-	cudaMalloc((void**)&dev_a, n * sizeof(float));
-	cudaMalloc((void**)&dev_b, n * sizeof(float));
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
 
 
     // copy from host a,b to GPU dev_a, dev_b
-	cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
 
 	tanh_kernel << <128, 128 >> >(dev_a, dev_b, n);
 
 	// copy to host c from GPU dev_c
-    cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK(cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost));
     
     // free 
     cudaFree(dev_a);
@@ -1284,18 +1284,18 @@ activate_relu(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
 
     	// Allocate for GPU
-	cudaMalloc((void**)&dev_a, n * sizeof(float));
-	cudaMalloc((void**)&dev_b, n * sizeof(float));
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
 
 
     // copy from host a,b to GPU dev_a, dev_b
-	cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
 
 	relu_kernel << <128, 128 >> >(dev_a, dev_b, n);
 
 	// copy to host c from GPU dev_c
-    cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK(cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost));
     
     // free 
     cudaFree(dev_a);
@@ -1372,19 +1372,19 @@ differ_sigmoid(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
 
     	// Allocate for GPU
-	cudaMalloc((void**)&dev_a, n * sizeof(float));
-	cudaMalloc((void**)&dev_b, n * sizeof(float));
-	cudaMalloc((void**)&dev_c, n * sizeof(float));
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
 
 
     // copy from host a,b to GPU dev_a, dev_b
-	cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
 
 	differ_sigmoid_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, n);
 
 	// copy to host c from GPU dev_c
-	cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+	CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
@@ -1424,19 +1424,19 @@ differ_tanh(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
 
     	// Allocate for GPU
-	cudaMalloc((void**)&dev_a, n * sizeof(float));
-	cudaMalloc((void**)&dev_b, n * sizeof(float));
-	cudaMalloc((void**)&dev_c, n * sizeof(float));
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
 
 
     // copy from host a,b to GPU dev_a, dev_b
-	cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
 
 	differ_tanh_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, n);
 
 	// copy to host c from GPU dev_c
-	cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+	CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
@@ -1480,19 +1480,19 @@ differ_relu(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
 
     	// Allocate for GPU
-	cudaMalloc((void**)&dev_a, n * sizeof(float));
-	cudaMalloc((void**)&dev_b, n * sizeof(float));
-	cudaMalloc((void**)&dev_c, n * sizeof(float));
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
 
 
     // copy from host a,b to GPU dev_a, dev_b
-	cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
 
 	differ_relu_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, n);
 
 	// copy to host c from GPU dev_c
-	cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+	CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
@@ -1531,18 +1531,18 @@ smult1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
 
     	// Allocate for GPU
-	cudaMalloc((void**)&dev_a, n * sizeof(float));
-	cudaMalloc((void**)&dev_b, n * sizeof(float));
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
 
 
     // copy from host a,b to GPU dev_a, dev_b
-	cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
 
 	smult_kernel << <128, 128 >> >((float)s,dev_a, dev_b, n);
 
 	// copy to host c from GPU dev_c
-	cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost);
+	CHECK(cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
@@ -1877,19 +1877,19 @@ momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
   
     // Allocate for GPU
-    cudaMalloc((void**)&dev_a, n * sizeof(float));
-    cudaMalloc((void**)&dev_b, n * sizeof(float));
-    cudaMalloc((void**)&dev_c, n * sizeof(float));
+    CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
   
     // copy from host a,b to GPU dev_a, dev_b
-    cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice);
+    CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice));
   
     momentum_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, float(lr), n);
   
     // copy to host c from GPU dev_c
-    cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
@@ -1949,19 +1949,19 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
   
     // Allocate for GPU
-    cudaMalloc((void**)&dev_a, n * sizeof(float));
-    cudaMalloc((void**)&dev_b, n * sizeof(float));
-    cudaMalloc((void**)&dev_c, n * sizeof(float));
+    CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
   
     // copy from host a,b to GPU dev_a, dev_b
-    cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice);
+    CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice));
   
     adagrad_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, float(h), float(lr), n);
   
     // copy to host c from GPU dev_c
-    cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
