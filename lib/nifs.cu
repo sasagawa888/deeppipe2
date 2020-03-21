@@ -17,7 +17,7 @@
     const cudaError_t error = call;                   \
     if (error != cudaSuccess)                         \
     {                                                 \
-        return enif_make_int(env,99);                 \
+        return enif_make_int(env,99+(int)error);                 \
     }                                                 \
 }
 
@@ -258,6 +258,7 @@ __global__ void convolute_kernel(float *a, float *b, float *c, int filt_h, int f
     int tid = threadIdx.x;
     int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
     float sum,elt1,elt2;
+    
     if(tid < n)
     {   
         n1 = tid;
@@ -319,11 +320,12 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[8], &st)) return enif_make_int(env,9);
     if (!enif_get_int(env, argv[9], &pad)) return enif_make_int(env,10);
 
+    
     n1 = in_n * in_c * in_h * in_w;
     n2 = in_c * filt_h * filt_w;
     oh = (in_h+2*pad-filt_h)/st + 1;
     ow = (in_w+2*pad-filt_w)/st + 1;
-    n3 = oh * ow;
+    n3 = in_n * oh * ow;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
@@ -342,13 +344,13 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     convolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad, in_c, in_h, in_w, in_n);
   
     // copy to host c from GPU dev_c
-    cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);
 	cudaFree(dev_b);
 	cudaFree(dev_c);
-  
+    
     return(c_bin);
 }
 
@@ -425,7 +427,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     pad1 = filt_h - 1 + pad;
     oh = (in_h+2*pad1-filt_h)/st + 1;
     ow = (in_w+2*pad1-filt_w)/st + 1;
-    n3 = oh * ow;
+    n3 = in_n * oh * ow;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     b1 = (float *) malloc(n2 * sizeof(float));
@@ -636,7 +638,7 @@ full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     // free 
     cudaFree(dev_a);
-	cudaFree(dev_b);
+    cudaFree(dev_b);
   
     return(b_bin);
 }
