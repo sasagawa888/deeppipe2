@@ -102,7 +102,6 @@ see test.ex
     |> w(300,100) |> b(100) |> relu
     |> w(100,10) |> b(10) |> softmax
   end
-
 ```
 
 ## specification:
@@ -134,8 +133,16 @@ bias row_vector size(n). elements are all zero
 ir is rate for random number. (default is 0.1)
 lr is learning rate (default is 0.1)
 
-##### function
+#### function
 sigmoid,tanh,relu,softmax
+
+#### filter(convolution)
+{:filter,w,st,pad,ir,lr,v}
+
+#### pooling
+{:pooling,st}
+
+
 
 ## module Deeppipe
 - forward/3
@@ -275,6 +282,17 @@ iex(5)>
 
 ## CNN
 Now under constrction.
+
+```
+# for CNN test
+  defnetwork init_network4(_x) do
+    _x |> f(5,5) |> full
+    |> w(576,300) |> b(300) |> relu
+    |> w(300,100) |> b(100) |> relu
+    |> w(100,10) |> b(10) |> softmax
+  end
+
+```
 
 data structure is 4-dimensions tensor (N,C,H,W) or 3-dimension tensor (C,H,W)
 N is mini batch size.

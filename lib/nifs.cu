@@ -17,7 +17,7 @@
     const cudaError_t error = call;                   \
     if (error != cudaSuccess)                         \
     {                                                 \
-        return enif_make_int(env,99+(int)error);                 \
+        return enif_make_int(env,9000+(int)error);                 \
     }                                                 \
 }
 
