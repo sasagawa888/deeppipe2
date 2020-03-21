@@ -29,8 +29,7 @@ defmodule Test do
   # for CNN test
   defnetwork init_network4(_x) do
     _x |> f(5,5) |> full
-    |> w(576,300) |> b(300) |> relu
-    |> w(300,100) |> b(100) |> relu
+    |> w(576,100) |> b(100) |> relu
     |> w(100,10) |> b(10) |> softmax
   end
 
@@ -132,9 +131,9 @@ defmodule Test do
     network1 = cnn1(image, network, label, m, n)
     test_image = MNIST.test_image(1000, :structure) |> CM.new()
     test_label = MNIST.test_label(1000)
-    #correct = DP.accuracy(test_image, network1, test_label)
+    correct = DP.accuracy(test_image, network1, test_label)
     IO.write("accuracy rate = ")
-    #IO.puts(correct)
+    IO.puts(correct)
     IO.puts("end")
   end
 
@@ -147,8 +146,8 @@ defmodule Test do
     network1 = DP.gradient(image1, network, train1)
     network2 = DP.learning(network, network1)
     [y | _] = DP.forward(image1, network2, [])
-    #loss = CM.loss(y, train1, :cross)
-    #IO.puts(loss)
+    loss = CM.loss(y, train1, :cross)
+    IO.puts(loss)
     cnn1(image, network2, train, m, n - 1)
   end
 

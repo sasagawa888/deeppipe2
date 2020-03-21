@@ -1907,6 +1907,8 @@ full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[2], &in_w)) return enif_make_int(env,3);
     if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,4);
 
+    //printf("%d %d %d \n\r", in_n, in_h, in_w);
+
     // in_c is allways 1 
     n1 = in_n * in_h * in_w;
     a = (float *) a_bin.data;
@@ -1917,7 +1919,7 @@ full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     cudaMalloc((void**)&dev_a, n1 * sizeof(float));
     cudaMalloc((void**)&dev_b, n1 * sizeof(float));
   
-    // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
+    // copy from host a,b to GPU dev_a, dev_b
     cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice);
 
