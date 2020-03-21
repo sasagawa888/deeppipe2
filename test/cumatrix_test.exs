@@ -74,7 +74,7 @@ defmodule CumatrixTest do
     assert Cumatrix.deconvolute(t2,f1,1,0) |> Cumatrix.to_list() == Cumatrix.new([[[[2.0, 7.0, 10.0], [8.0, 11.0, 27.0], [24.0, 16.0, 15.0]]]]) |> Cumatrix.to_list()
 
     assert Cumatrix.gradfilter(t1,f1,t2,1,0) |> Cumatrix.to_list() ==
-     Cumatrix.new([[[0.24252039194107056, 0.4850407838821411],[0.7275611758232117, 0.9700815677642822]]]) |> Cumatrix.to_list()
+     Cumatrix.new([[[49.0, 63.0], [91.0, 105.0]]]) |> Cumatrix.to_list()
     
     t3 = Cumatrix.new([[[[1.0, 2.0, 3.0,3.3], [7.0,4.0, 5.0, 6.0], [1.1,7.0, 8.0, 9.0], [1.2,1.3,1.4,1.0]]]])
     t4 = Cumatrix.new([[[[0.1,0.2],[0.3,0.4]]]])
