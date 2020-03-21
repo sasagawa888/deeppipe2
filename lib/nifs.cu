@@ -12,6 +12,699 @@
 #define SIGMOID(x)  (1 / (1+exp(-1*x)))
 #define DEBUG 0
 #define DISP(x) if(DEBUG){printf(x);fflush(stdout);}
+#define CHECK(call)                                   \
+{                                                     \
+    const cudaError_t error = call;                   \
+    if (error != cudaSuccess)                         \
+    {                                                 \
+        return enif_make_int(env,99);                 \
+    }                                                 \
+}
+
+ 
+__global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1,max_h,max_w;
+    float max;
+    if(tid < n)
+    {   
+        n1 = tid;
+        in_h2 = in_h / st;
+        in_w2 = in_w / st;
+        for(c1=0;c1<in_c;c1++){
+            for(w2=0;w2<in_w2;w2++){
+                for(h2=0;h2<in_h2;h2++){
+                    max = 0.0;
+                    start_h1 = st*h2;
+                    end_h1 = st*(h2+1);
+                    start_w1 = st*w2;
+                    end_w1 = st*(w2+1);
+                    for(h1=start_h1;h1<end_h1;h1++){
+                        for(w1=start_w1;w1<end_w1;w1++){
+                            if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] > max){
+                                max = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
+                                max_h = h1;
+                                max_w = w1;
+                            }
+                        }
+                    }
+                    b[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)] = max;
+                    c[IDX4C(n1,c1,max_h,max_w,in_c,in_h,in_w)] = max; 
+                }
+            }
+        }
+    }
+}
+  
+  /*
+  1st arg in_n of tensor
+  2nd arg in_c of tensor
+  3rd arg in_h of tensor
+  4th arg in_w of tensor
+  5th arg binary of tensor
+  6th arg stride 
+
+  return list [ts1,ts2]
+  ts1 is result data for forward
+  ts2 is result data dor backward. this is sparse matrix 
+  e.g. 
+  |0.1,0.2,0.3,0.4|
+  |0.5,0.6,0.7,0.8|
+  |0.9,1.0,1.1,1.2|
+  |1.3,1.4,1.5,1.6|
+  
+  ts1
+  |0.6,0.8|
+  |1.4,1.6|
+
+  ts2
+  |0.0,0.0,0.0,0.0|
+  |0.0,0.6,0.0,0.8|
+  |0.0,0.0,0.0,0.0|
+  |0.0,1.4,0.0,1.6|
+  
+  */
+static ERL_NIF_TERM
+pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin,c_bin,list;
+    int in_n,in_c,in_h,in_w,st, n1, n2, i;
+    float *a,*b, *c;
+    float *dev_a, *dev_b, *dev_c;
+  
+    DISP("pooling1")
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[5], &st)) return enif_make_int(env,6);
+
+    n1 = in_n * in_c * in_h * in_w;
+    n2 = in_n * in_c * (in_h / st) * (in_w / st);
+    a = (float *) a_bin.data;
+    b = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &b_bin);
+    c = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &c_bin);
+
+    for(i=0;i<n1;i++){
+        c[i] = 0.0;
+    }
+  
+    // Allocate for GPU
+    CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n1 * sizeof(float)));
+  
+    // copy from host a,b to GPU dev_a, dev_b
+    CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice));
+  
+    pooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
+  
+    // copy to host b,c from GPU dev_b,dev_c
+    CHECK(cudaMemcpy(b, dev_b, n2 * sizeof(float), cudaMemcpyDeviceToHost));
+    CHECK(cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost));
+      
+
+    // return forward data and backward data with list 
+    list = enif_make_list(env, 0);
+    list = enif_make_list_cell(env,c_bin,list);
+    list = enif_make_list_cell(env,b_bin,list);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+	cudaFree(dev_c);
+
+    return(list);
+}
+
+
+__global__ void unpooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1;
+    float loss;
+    if(tid < n)
+    {   
+        n1 = tid;
+        in_h2 = in_h / st;
+        in_w2 = in_w / st;
+        for(c1=0;c1<in_c;c1++){
+            for(w2=0;w2<in_w2;w2++){
+                for(h2=0;h2<in_h2;h2++){
+                    start_h1 = st*h2;
+                    end_h1 = st*(h2+1);
+                    start_w1 = st*w2;
+                    end_w1 = st*(w2+1);
+                    for(h1=start_h1;h1<end_h1;h1++){
+                        for(w1=start_w1;w1<end_w1;w1++){
+                            if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] != 0.0){
+                                loss = b[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)];
+                                c[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] = loss;
+                            }
+                            else{
+                                c[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] = 0.0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+  }
+  
+/*
+1st arg in_n of sparse-tensor
+2nd arg in_c of sparse-tensor
+3rd arg in_h of sparse-tensor
+4th arg in_w of sparse-tensor
+5th arg binary of sparse-tensor
+6th arg binary of loss-tensor
+7th arg stride 
+
+return gradiate tensor
+e.g.
+ts1 sparse-tensor
+  |0.0,0.0,0.0,0.0|
+  |0.0,0.6,0.0,0.8|
+  |0.0,0.0,0.0,0.0|
+  |0.0,1.4,0.0,1.6|
+ts2 loss-tensor
+  |0.1,0.2|
+  |0.3,0.4|
+
+return
+  |0.0,0.0,0.0,0.0|
+  |0.0,0.1,0.0,0.2|
+  |0.0,0.0,0.0,0.0|
+  |0.0,3.4,0.0,0.4|
+
+*/
+static ERL_NIF_TERM
+unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin;
+    int in_n,in_c,in_h,in_w,st, n1, n2;
+    float *a,*b, *c;
+    float *dev_a, *dev_b, *dev_c;
+  
+    DISP("unpooling")
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_int(env,5);
+    if (!enif_inspect_binary(env, argv[5], &b_bin )) return enif_make_int(env,6);
+    if (!enif_get_int(env, argv[6], &st)) return enif_make_int(env,7);
+
+    n1 = in_n * in_c * in_h * in_w;
+    n2 = in_n * in_c * (in_h / st) * (in_w / st);
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &c_bin);
+
+
+      
+    // Allocate for GPU
+    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
+    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
+    cudaMalloc((void**)&dev_c, n1 * sizeof(float));
+
+  
+    // copy from host a,b to GPU dev_a, dev_b
+    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice);
+  
+    unpooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
+  
+    // copy to host d from GPU dev_d
+    cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+	cudaFree(dev_c);
+
+    return(c_bin);
+}
+
+  
+__global__ void convolute_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
+    float sum,elt1,elt2;
+    if(tid < n)
+    {   
+        n1 = tid;
+        oh = (in_h+2*pad-filt_h)/st + 1;
+        ow = (in_w+2*pad-filt_w)/st + 1;
+        for(w2=0;w2<ow;w2++){
+            for(h2=0;h2<oh;h2++){
+                sum = 0.0;
+                start_h1 = st*h2-pad;
+                end_h1 = start_h1 + filt_h;
+                start_w1 = st*w2-pad;
+                end_w1 = start_w1 + filt_w;
+                for(c1=0;c1<in_c;c1++){
+                    for(h1=start_h1;h1<end_h1;h1++){
+                        for(w1=start_w1;w1<end_w1;w1++){
+                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
+                                elt1 = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
+                                elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
+                                sum = sum + elt1*elt2;
+                            }
+                        }
+                    }
+                }
+                c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] = sum;   
+              }
+          }
+    }
+}
+  
+/*
+1st arg in_n of input tensor
+2nd arg in_c of input tensor
+3rd arg in_h of input tensor
+4th arg in_w of input tensor
+5th arg filt_h of filter tensor
+6th arg filt_w of filter tensor
+7th arg binary of input tensor
+8th arg binary of filter tensor
+9th arg stride
+10th arg padding   
+*/
+static ERL_NIF_TERM
+convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin;
+    int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, n1, n2, n3, oh, ow;
+    float *a,*b, *c;
+    float *dev_a, *dev_b, *dev_c;
+  
+    DISP("convolute1")
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
+    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_int(env,6);
+    if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_int(env,7);
+    if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_int(env,8);
+    if (!enif_get_int(env, argv[8], &st)) return enif_make_int(env,9);
+    if (!enif_get_int(env, argv[9], &pad)) return enif_make_int(env,10);
+
+    n1 = in_n * in_c * in_h * in_w;
+    n2 = in_c * filt_h * filt_w;
+    oh = (in_h+2*pad-filt_h)/st + 1;
+    ow = (in_w+2*pad-filt_w)/st + 1;
+    n3 = oh * ow;
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
+  
+    // Allocate for GPU
+    CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
+
+  
+    // copy from host a,b,c to GPU dev_a, dev_b, dev_c
+    CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
+    cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
+
+    convolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad, in_c, in_h, in_w, in_n);
+  
+    // copy to host c from GPU dev_c
+    cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+	cudaFree(dev_c);
+  
+    return(c_bin);
+}
+
+  
+__global__ void deconvolute_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
+    float sum,elt1,elt2;
+    if(tid < n)
+    {   
+        n1 = tid;
+        oh = (in_h+2*pad-filt_h)/st + 1;
+        ow = (in_w+2*pad-filt_w)/st + 1;
+        for(w2=0;w2<ow;w2++){
+            for(h2=0;h2<oh;h2++){
+                sum = 0.0;
+                start_h1 = st*h2-pad;
+                end_h1 = start_h1 + filt_h;
+                start_w1 = st*w2-pad;
+                end_w1 = start_w1 + filt_w;
+                for(c1=0;c1<in_c;c1++){
+                    for(h1=start_h1;h1<end_h1;h1++){
+                        for(w1=start_w1;w1<end_w1;w1++){
+                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
+                                elt1 = a[IDX4C(n1,0,h1,w1,in_c,in_h,in_w)];
+                                elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
+                                sum = sum + elt1*elt2;
+                            }
+                        }
+                    }
+                    c[IDX4C(n1,c1,h2,w2,in_c,oh,ow)] = sum;  
+                }
+                 
+            }
+        }
+    }
+}
+  
+/*
+1st arg in_n of input tensor
+2nd arg in_c of input tensor
+3rd arg in_h of input tensor
+4th arg in_w of input tensor
+5th arg filt_h of filter tensor
+6th arg filt_w of filter tensor
+7th arg binary of input tensor
+8th arg binary of filter tensor
+9th arg stride
+10th arg padding   
+*/
+static ERL_NIF_TERM
+deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin;
+    int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k;
+    float *a,*b, *b1, *c;
+    float *dev_a, *dev_b, *dev_c;
+  
+    DISP("deconvolute1")
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
+    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_int(env,6);
+    if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_int(env,7);
+    if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_int(env,8);
+    if (!enif_get_int(env, argv[8], &st)) return enif_make_int(env,9);
+    if (!enif_get_int(env, argv[9], &pad)) return enif_make_int(env,10);
+
+    n1 = in_n * in_c * in_h * in_w;
+    n2 = in_c * filt_h * filt_w;
+    pad1 = filt_h - 1 + pad;
+    oh = (in_h+2*pad1-filt_h)/st + 1;
+    ow = (in_w+2*pad1-filt_w)/st + 1;
+    n3 = oh * ow;
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    b1 = (float *) malloc(n2 * sizeof(float));
+    c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
+  
+      
+    //rotate 180 degree
+    for(i=0;i<in_c;i++){
+        for(j=0;j<filt_h;j++){
+            for(k=0;k<filt_w;k++){
+                b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
+            }
+        }
+    }
+
+    /*
+    for(i=0;i<in_c;i++){
+        for(j=0;j<filt_h;j++){
+            for(k=0;k<filt_w;k++){
+                printf("%f",  b1[IDX3C(i,j,k,filt_h,filt_w)]);
+            }
+        }
+    }
+    */
+    // Allocate for GPU
+    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
+    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
+    cudaMalloc((void**)&dev_c, n3 * sizeof(float));
+
+  
+    // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
+    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
+
+    deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, in_n);
+  
+    // copy to host c from GPU dev_c
+    cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+	cudaFree(dev_c);
+  
+    return(c_bin);
+}
+
+__global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int loss_h, int loss_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,c1,h1,w1,h2,w2,start_h1,end_h1,start_w1,end_w1;
+    float sum,elt1,elt2;
+    if(tid < n)
+    {   
+        n1 = tid;
+        for(h2=0;h2<loss_h;h2++){
+            for(w2=0;w2<loss_w;w2++){
+                sum = 0.0;
+                start_h1 = st*h2-pad;
+                end_h1 = start_h1 + filt_h;
+                start_w1 = st*w2-pad;
+                end_w1 = start_w1 + filt_w;
+
+                for(c1=0;c1<in_c;c1++){
+                    for(h1=start_h1;h1<end_h1;h1=h1+st){
+                        for(w1=start_w1;w1<end_w1;w1=w1+st){
+                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
+                                elt1 = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
+                                elt2 = b[IDX4C(n1,0,h1-start_h1,w1-start_w1,in_c,loss_h,loss_w)];
+                                sum = sum + elt1*elt2;
+                            }
+                        }
+                    }
+                    c[IDX3C(c1,h2,w2,filt_h,filt_w)] = sum;
+                }
+            }
+        }
+    }
+}
+  
+/*
+1st arg in_n of input tensor
+2nd arg in_c of input tensor
+3rd arg in_h of input tensor
+4th arg in_w of input tensor
+5th arg filt_h of filter tensor
+6th arg filt_w of filter tensor
+7th arg loss_h of loss tensor
+8th arg loss_w of loss tensor
+9th arg binary of input tensor
+10th arg binary of loss tensor
+11th arg stride
+12th arg padding   
+*/
+static ERL_NIF_TERM
+gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin;
+    int in_n,in_c,in_h,in_w,filt_h,filt_w,loss_h,loss_w,st,pad,n1,n2,n3;
+    float *a,*b,*c;
+    float *dev_a, *dev_b, *dev_c;
+  
+    DISP("gradfilter1")
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
+    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_int(env,6);
+    if (!enif_get_int(env, argv[6], &loss_h)) return enif_make_int(env,7);
+    if (!enif_get_int(env, argv[7], &loss_w)) return enif_make_int(env,8);
+    if (!enif_inspect_binary(env, argv[8], &a_bin )) return enif_make_int(env,9);
+    if (!enif_inspect_binary(env, argv[9], &b_bin )) return enif_make_int(env,10);
+    if (!enif_get_int(env, argv[10], &st)) return enif_make_int(env,10);
+    if (!enif_get_int(env, argv[11], &pad)) return enif_make_int(env,11);
+
+    n1 = in_n * in_c * in_h * in_w;
+    n2 = in_n * loss_h * loss_w;
+    n3 = in_c * filt_h * filt_w;
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
+  
+      
+    // Allocate for GPU
+    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
+    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
+    cudaMalloc((void**)&dev_c, n3 * sizeof(float));
+
+    
+    // copy from host a,b,c to GPU dev_a, dev_b, dev_c
+    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
+
+    gradfilter_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, loss_h, loss_w, st, pad, in_c, in_h, in_w, in_n);
+  
+    // copy to host d from GPU dev_d
+    cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+    cudaFree(dev_c);
+  
+    return(c_bin);
+}
+
+
+__global__ void full_kernel(float *a, float *b, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,i,j;
+    float elt;
+    if(tid < n)
+    {   
+        n1 = tid;
+        for(i=0;i<in_h;i++){
+            for(j=0;j<in_w;j++){
+                elt = a[IDX4C(n1,0,i,j,1,in_h,in_w)];
+                b[IDX2C(n1,i*in_w + j,n)] = elt;
+            }
+        }
+    }
+}
+  
+/*
+1st arg in_n of input tensor
+2rd arg in_h of input tensor
+3rd arg in_w of input tensor
+4th arg binary of input tensor
+*/
+static ERL_NIF_TERM
+full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin;
+    int in_n,in_h,in_w,n1;
+    float *a,*b;
+    float *dev_a, *dev_b;
+
+    DISP("full1")
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &in_h)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &in_w)) return enif_make_int(env,3);
+    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,4);
+
+    //printf("%d %d %d \n\r", in_n, in_h, in_w);
+
+    // in_c is allways 1 
+    n1 = in_n * in_h * in_w;
+    a = (float *) a_bin.data;
+    b = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &b_bin);
+  
+      
+    // Allocate for GPU
+    CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n1 * sizeof(float)));
+  
+    // copy from host a,b to GPU dev_a, dev_b
+    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice);
+
+    full_kernel << <1, in_n>> >(dev_a, dev_b, in_h, in_w, in_n);
+  
+    // copy to host d from GPU dev_d
+    cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+  
+    return(b_bin);
+}
+
+
+__global__ void unfull_kernel(float *a, float *b, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,i,j;
+    float elt;
+    if(tid < n)
+    {   
+        n1 = tid;
+        for(i=0;i<in_h;i++){
+            for(j=0;j<in_w;j++){
+                elt = a[IDX4C(n1,0,i,j,1,in_h,in_w)];
+                b[IDX2C(n1,i*in_w + j,n)] = elt;
+            }
+        }
+    }
+}
+  
+/*
+1st arg in_n of input tensor
+2rd arg in_h of input tensor
+3th arg in_w of input tensor
+4th arg binary of input tensor
+*/
+static ERL_NIF_TERM
+unfull1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin;
+    int in_n,in_h,in_w,n1;
+    float *a,*b;
+    float *dev_a, *dev_b;
+    
+    DISP("unfull1")
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &in_h)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &in_w)) return enif_make_int(env,3);
+    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,4);
+
+    // in_c is allways 1 
+    n1 = in_n * in_h * in_w;
+    a = (float *) a_bin.data;
+    b = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &b_bin);
+  
+      
+      // Allocate for GPU
+    CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n1 * sizeof(float)));
+  
+    // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
+    CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice));
+
+    unfull_kernel << <1, in_n>> >(dev_a, dev_b, in_h, in_w, in_n);
+  
+    // copy to host d from GPU dev_d
+    CHECK(cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost));
+
+    // free 
+    CHECK(cudaFree(dev_a));
+	CHECK(cudaFree(dev_b));
+  
+    return(b_bin);
+}
+
 
 
 static ERL_NIF_TERM
@@ -1315,689 +2008,6 @@ accuracy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
- 
-__global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
-{
-    int tid = threadIdx.x;
-    int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1,max_h,max_w;
-    float max;
-    if(tid < n)
-    {   
-        n1 = tid;
-        in_h2 = in_h / st;
-        in_w2 = in_w / st;
-        for(c1=0;c1<in_c;c1++){
-            for(w2=0;w2<in_w2;w2++){
-                for(h2=0;h2<in_h2;h2++){
-                    max = 0.0;
-                    start_h1 = st*h2;
-                    end_h1 = st*(h2+1);
-                    start_w1 = st*w2;
-                    end_w1 = st*(w2+1);
-                    for(h1=start_h1;h1<end_h1;h1++){
-                        for(w1=start_w1;w1<end_w1;w1++){
-                            if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] > max){
-                                max = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
-                                max_h = h1;
-                                max_w = w1;
-                            }
-                        }
-                    }
-                    b[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)] = max;
-                    c[IDX4C(n1,c1,max_h,max_w,in_c,in_h,in_w)] = max; 
-                }
-            }
-        }
-    }
-}
-  
-  /*
-  1st arg in_n of tensor
-  2nd arg in_c of tensor
-  3rd arg in_h of tensor
-  4th arg in_w of tensor
-  5th arg binary of tensor
-  6th arg stride 
-
-  return list [ts1,ts2]
-  ts1 is result data for forward
-  ts2 is result data dor backward. this is sparse matrix 
-  e.g. 
-  |0.1,0.2,0.3,0.4|
-  |0.5,0.6,0.7,0.8|
-  |0.9,1.0,1.1,1.2|
-  |1.3,1.4,1.5,1.6|
-  
-  ts1
-  |0.6,0.8|
-  |1.4,1.6|
-
-  ts2
-  |0.0,0.0,0.0,0.0|
-  |0.0,0.6,0.0,0.8|
-  |0.0,0.0,0.0,0.0|
-  |0.0,1.4,0.0,1.6|
-  
-  */
-static ERL_NIF_TERM
-pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin;
-    ERL_NIF_TERM  b_bin,c_bin,list;
-    int in_n,in_c,in_h,in_w,st, n1, n2, i;
-    float *a,*b, *c;
-    float *dev_a, *dev_b, *dev_c;
-  
-    DISP("pooling1")
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
-    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
-    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
-    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_int(env,5);
-    if (!enif_get_int(env, argv[5], &st)) return enif_make_int(env,6);
-
-    n1 = in_n * in_c * in_h * in_w;
-    n2 = in_n * in_c * (in_h / st) * (in_w / st);
-    a = (float *) a_bin.data;
-    b = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &b_bin);
-    c = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &c_bin);
-
-    for(i=0;i<n1;i++){
-        c[i] = 0.0;
-    }
-  
-    // Allocate for GPU
-    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
-    cudaMalloc((void**)&dev_c, n1 * sizeof(float));
-  
-    // copy from host a,b to GPU dev_a, dev_b
-    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice);
-  
-    pooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
-  
-    // copy to host b,c from GPU dev_b,dev_c
-    cudaMemcpy(b, dev_b, n2 * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost);
-      
-
-    // return forward data and backward data with list 
-    list = enif_make_list(env, 0);
-    list = enif_make_list_cell(env,c_bin,list);
-    list = enif_make_list_cell(env,b_bin,list);
-
-    // free 
-    cudaFree(dev_a);
-	cudaFree(dev_b);
-	cudaFree(dev_c);
-
-    return(list);
-}
-
-
-__global__ void unpooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
-{
-    int tid = threadIdx.x;
-    int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1;
-    float loss;
-    if(tid < n)
-    {   
-        n1 = tid;
-        in_h2 = in_h / st;
-        in_w2 = in_w / st;
-        for(c1=0;c1<in_c;c1++){
-            for(w2=0;w2<in_w2;w2++){
-                for(h2=0;h2<in_h2;h2++){
-                    start_h1 = st*h2;
-                    end_h1 = st*(h2+1);
-                    start_w1 = st*w2;
-                    end_w1 = st*(w2+1);
-                    for(h1=start_h1;h1<end_h1;h1++){
-                        for(w1=start_w1;w1<end_w1;w1++){
-                            if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] != 0.0){
-                                loss = b[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)];
-                                c[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] = loss;
-                            }
-                            else{
-                                c[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] = 0.0;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-  }
-  
-/*
-1st arg in_n of sparse-tensor
-2nd arg in_c of sparse-tensor
-3rd arg in_h of sparse-tensor
-4th arg in_w of sparse-tensor
-5th arg binary of sparse-tensor
-6th arg binary of loss-tensor
-7th arg stride 
-
-return gradiate tensor
-e.g.
-ts1 sparse-tensor
-  |0.0,0.0,0.0,0.0|
-  |0.0,0.6,0.0,0.8|
-  |0.0,0.0,0.0,0.0|
-  |0.0,1.4,0.0,1.6|
-ts2 loss-tensor
-  |0.1,0.2|
-  |0.3,0.4|
-
-return
-  |0.0,0.0,0.0,0.0|
-  |0.0,0.1,0.0,0.2|
-  |0.0,0.0,0.0,0.0|
-  |0.0,3.4,0.0,0.4|
-
-*/
-static ERL_NIF_TERM
-unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin,b_bin;
-    ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w,st, n1, n2;
-    float *a,*b, *c;
-    float *dev_a, *dev_b, *dev_c;
-  
-    DISP("unpooling")
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
-    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
-    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
-    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_int(env,5);
-    if (!enif_inspect_binary(env, argv[5], &b_bin )) return enif_make_int(env,6);
-    if (!enif_get_int(env, argv[6], &st)) return enif_make_int(env,7);
-
-    n1 = in_n * in_c * in_h * in_w;
-    n2 = in_n * in_c * (in_h / st) * (in_w / st);
-    a = (float *) a_bin.data;
-    b = (float *) b_bin.data;
-    c = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &c_bin);
-
-
-      
-    // Allocate for GPU
-    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
-    cudaMalloc((void**)&dev_c, n1 * sizeof(float));
-
-  
-    // copy from host a,b to GPU dev_a, dev_b
-    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice);
-  
-    unpooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
-  
-    // copy to host d from GPU dev_d
-    cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost);
-
-    // free 
-    cudaFree(dev_a);
-	cudaFree(dev_b);
-	cudaFree(dev_c);
-
-    return(c_bin);
-}
-
-  
-__global__ void convolute_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
-{
-    int tid = threadIdx.x;
-    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
-    float sum,elt1,elt2;
-    if(tid < n)
-    {   
-        n1 = tid;
-        oh = (in_h+2*pad-filt_h)/st + 1;
-        ow = (in_w+2*pad-filt_w)/st + 1;
-        for(w2=0;w2<ow;w2++){
-            for(h2=0;h2<oh;h2++){
-                sum = 0.0;
-                start_h1 = st*h2-pad;
-                end_h1 = start_h1 + filt_h;
-                start_w1 = st*w2-pad;
-                end_w1 = start_w1 + filt_w;
-                for(c1=0;c1<in_c;c1++){
-                    for(h1=start_h1;h1<end_h1;h1++){
-                        for(w1=start_w1;w1<end_w1;w1++){
-                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
-                                elt1 = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
-                                elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
-                                sum = sum + elt1*elt2;
-                            }
-                        }
-                    }
-                }
-                c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] = sum;   
-              }
-          }
-    }
-}
-  
-/*
-1st arg in_n of input tensor
-2nd arg in_c of input tensor
-3rd arg in_h of input tensor
-4th arg in_w of input tensor
-5th arg filt_h of filter tensor
-6th arg filt_w of filter tensor
-7th arg binary of input tensor
-8th arg binary of filter tensor
-9th arg stride
-10th arg padding   
-*/
-static ERL_NIF_TERM
-convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin,b_bin;
-    ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, n1, n2, n3, oh, ow;
-    float *a,*b, *c;
-    float *dev_a, *dev_b, *dev_c;
-  
-    DISP("convolute1")
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
-    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
-    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
-    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_int(env,5);
-    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_int(env,6);
-    if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_int(env,7);
-    if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_int(env,8);
-    if (!enif_get_int(env, argv[8], &st)) return enif_make_int(env,9);
-    if (!enif_get_int(env, argv[9], &pad)) return enif_make_int(env,10);
-
-    n1 = in_n * in_c * in_h * in_w;
-    n2 = in_c * filt_h * filt_w;
-    oh = (in_h+2*pad-filt_h)/st + 1;
-    ow = (in_w+2*pad-filt_w)/st + 1;
-    n3 = oh * ow;
-    a = (float *) a_bin.data;
-    b = (float *) b_bin.data;
-    c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
-  
-    // Allocate for GPU
-    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
-    cudaMalloc((void**)&dev_c, n3 * sizeof(float));
-
-  
-    // copy from host a,b,c to GPU dev_a, dev_b, dev_c
-    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
-
-    convolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad, in_c, in_h, in_w, in_n);
-  
-    // copy to host c from GPU dev_c
-    cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
-
-    // free 
-    cudaFree(dev_a);
-	cudaFree(dev_b);
-	cudaFree(dev_c);
-  
-    return(c_bin);
-}
-
-  
-__global__ void deconvolute_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
-{
-    int tid = threadIdx.x;
-    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
-    float sum,elt1,elt2;
-    if(tid < n)
-    {   
-        n1 = tid;
-        oh = (in_h+2*pad-filt_h)/st + 1;
-        ow = (in_w+2*pad-filt_w)/st + 1;
-        for(w2=0;w2<ow;w2++){
-            for(h2=0;h2<oh;h2++){
-                sum = 0.0;
-                start_h1 = st*h2-pad;
-                end_h1 = start_h1 + filt_h;
-                start_w1 = st*w2-pad;
-                end_w1 = start_w1 + filt_w;
-                for(c1=0;c1<in_c;c1++){
-                    for(h1=start_h1;h1<end_h1;h1++){
-                        for(w1=start_w1;w1<end_w1;w1++){
-                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
-                                elt1 = a[IDX4C(n1,0,h1,w1,in_c,in_h,in_w)];
-                                elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
-                                sum = sum + elt1*elt2;
-                            }
-                        }
-                    }
-                    c[IDX4C(n1,c1,h2,w2,in_c,oh,ow)] = sum;  
-                }
-                 
-            }
-        }
-    }
-}
-  
-/*
-1st arg in_n of input tensor
-2nd arg in_c of input tensor
-3rd arg in_h of input tensor
-4th arg in_w of input tensor
-5th arg filt_h of filter tensor
-6th arg filt_w of filter tensor
-7th arg binary of input tensor
-8th arg binary of filter tensor
-9th arg stride
-10th arg padding   
-*/
-static ERL_NIF_TERM
-deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin,b_bin;
-    ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k;
-    float *a,*b, *b1, *c;
-    float *dev_a, *dev_b, *dev_c;
-  
-    DISP("deconvolute1")
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
-    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
-    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
-    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_int(env,5);
-    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_int(env,6);
-    if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_int(env,7);
-    if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_int(env,8);
-    if (!enif_get_int(env, argv[8], &st)) return enif_make_int(env,9);
-    if (!enif_get_int(env, argv[9], &pad)) return enif_make_int(env,10);
-
-    n1 = in_n * in_c * in_h * in_w;
-    n2 = in_c * filt_h * filt_w;
-    pad1 = filt_h - 1 + pad;
-    oh = (in_h+2*pad1-filt_h)/st + 1;
-    ow = (in_w+2*pad1-filt_w)/st + 1;
-    n3 = oh * ow;
-    a = (float *) a_bin.data;
-    b = (float *) b_bin.data;
-    b1 = (float *) malloc(n2 * sizeof(float));
-    c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
-  
-      
-    //rotate 180 degree
-    for(i=0;i<in_c;i++){
-        for(j=0;j<filt_h;j++){
-            for(k=0;k<filt_w;k++){
-                b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
-            }
-        }
-    }
-
-    /*
-    for(i=0;i<in_c;i++){
-        for(j=0;j<filt_h;j++){
-            for(k=0;k<filt_w;k++){
-                printf("%f",  b1[IDX3C(i,j,k,filt_h,filt_w)]);
-            }
-        }
-    }
-    */
-    // Allocate for GPU
-    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
-    cudaMalloc((void**)&dev_c, n3 * sizeof(float));
-
-  
-    // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
-    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
-
-    deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, in_n);
-  
-    // copy to host c from GPU dev_c
-    cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
-
-    // free 
-    cudaFree(dev_a);
-	cudaFree(dev_b);
-	cudaFree(dev_c);
-  
-    return(c_bin);
-}
-
-__global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int loss_h, int loss_w, int st, int pad, int in_c, int in_h, int in_w, int n)
-{
-    int tid = threadIdx.x;
-    int n1,c1,h1,w1,h2,w2,start_h1,end_h1,start_w1,end_w1;
-    float sum,elt1,elt2;
-    if(tid < n)
-    {   
-        n1 = tid;
-        for(h2=0;h2<loss_h;h2++){
-            for(w2=0;w2<loss_w;w2++){
-                sum = 0.0;
-                start_h1 = st*h2-pad;
-                end_h1 = start_h1 + filt_h;
-                start_w1 = st*w2-pad;
-                end_w1 = start_w1 + filt_w;
-
-                for(c1=0;c1<in_c;c1++){
-                    for(h1=start_h1;h1<end_h1;h1=h1+st){
-                        for(w1=start_w1;w1<end_w1;w1=w1+st){
-                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
-                                elt1 = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
-                                elt2 = b[IDX4C(n1,0,h1-start_h1,w1-start_w1,in_c,loss_h,loss_w)];
-                                sum = sum + elt1*elt2;
-                            }
-                        }
-                    }
-                    c[IDX3C(c1,h2,w2,filt_h,filt_w)] = sum;
-                }
-            }
-        }
-    }
-}
-  
-/*
-1st arg in_n of input tensor
-2nd arg in_c of input tensor
-3rd arg in_h of input tensor
-4th arg in_w of input tensor
-5th arg filt_h of filter tensor
-6th arg filt_w of filter tensor
-7th arg loss_h of loss tensor
-8th arg loss_w of loss tensor
-9th arg binary of input tensor
-10th arg binary of loss tensor
-11th arg stride
-12th arg padding   
-*/
-static ERL_NIF_TERM
-gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin,b_bin;
-    ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w,filt_h,filt_w,loss_h,loss_w,st,pad,n1,n2,n3;
-    float *a,*b,*c;
-    float *dev_a, *dev_b, *dev_c;
-  
-    DISP("gradfilter1")
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
-    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
-    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
-    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_int(env,5);
-    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_int(env,6);
-    if (!enif_get_int(env, argv[6], &loss_h)) return enif_make_int(env,7);
-    if (!enif_get_int(env, argv[7], &loss_w)) return enif_make_int(env,8);
-    if (!enif_inspect_binary(env, argv[8], &a_bin )) return enif_make_int(env,9);
-    if (!enif_inspect_binary(env, argv[9], &b_bin )) return enif_make_int(env,10);
-    if (!enif_get_int(env, argv[10], &st)) return enif_make_int(env,10);
-    if (!enif_get_int(env, argv[11], &pad)) return enif_make_int(env,11);
-
-    n1 = in_n * in_c * in_h * in_w;
-    n2 = in_n * loss_h * loss_w;
-    n3 = in_c * filt_h * filt_w;
-    a = (float *) a_bin.data;
-    b = (float *) b_bin.data;
-    c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
-  
-      
-    // Allocate for GPU
-    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-    cudaMalloc((void**)&dev_b, n2 * sizeof(float));
-    cudaMalloc((void**)&dev_c, n3 * sizeof(float));
-
-    
-    // copy from host a,b,c to GPU dev_a, dev_b, dev_c
-    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice);
-
-    gradfilter_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, loss_h, loss_w, st, pad, in_c, in_h, in_w, in_n);
-  
-    // copy to host d from GPU dev_d
-    cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost);
-
-    // free 
-    cudaFree(dev_a);
-	cudaFree(dev_b);
-    cudaFree(dev_c);
-  
-    return(c_bin);
-}
-
-
-__global__ void full_kernel(float *a, float *b, int in_h, int in_w, int n)
-{
-    int tid = threadIdx.x;
-    int n1,i,j;
-    float elt;
-    if(tid < n)
-    {   
-        n1 = tid;
-        for(i=0;i<in_h;i++){
-            for(j=0;j<in_w;j++){
-                elt = a[IDX4C(n1,0,i,j,1,in_h,in_w)];
-                b[IDX2C(n1,i*in_w + j,n)] = elt;
-            }
-        }
-    }
-}
-  
-/*
-1st arg in_n of input tensor
-2rd arg in_h of input tensor
-3rd arg in_w of input tensor
-4th arg binary of input tensor
-*/
-static ERL_NIF_TERM
-full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin;
-    ERL_NIF_TERM  b_bin;
-    int in_n,in_h,in_w,n1;
-    float *a,*b;
-    float *dev_a, *dev_b;
-
-    DISP("full1")
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &in_h)) return enif_make_int(env,2);
-    if (!enif_get_int(env, argv[2], &in_w)) return enif_make_int(env,3);
-    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,4);
-
-    //printf("%d %d %d \n\r", in_n, in_h, in_w);
-
-    // in_c is allways 1 
-    n1 = in_n * in_h * in_w;
-    a = (float *) a_bin.data;
-    b = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &b_bin);
-  
-      
-    // Allocate for GPU
-    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-    cudaMalloc((void**)&dev_b, n1 * sizeof(float));
-  
-    // copy from host a,b to GPU dev_a, dev_b
-    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice);
-
-    full_kernel << <1, in_n>> >(dev_a, dev_b, in_h, in_w, in_n);
-  
-    // copy to host d from GPU dev_d
-    cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost);
-
-    // free 
-    cudaFree(dev_a);
-	cudaFree(dev_b);
-  
-    return(b_bin);
-}
-
-
-__global__ void unfull_kernel(float *a, float *b, int in_h, int in_w, int n)
-{
-    int tid = threadIdx.x;
-    int n1,i,j;
-    float elt;
-    if(tid < n)
-    {   
-        n1 = tid;
-        for(i=0;i<in_h;i++){
-            for(j=0;j<in_w;j++){
-                elt = a[IDX4C(n1,0,i,j,1,in_h,in_w)];
-                b[IDX2C(n1,i*in_w + j,n)] = elt;
-            }
-        }
-    }
-}
-  
-/*
-1st arg in_n of input tensor
-2rd arg in_h of input tensor
-3th arg in_w of input tensor
-4th arg binary of input tensor
-*/
-static ERL_NIF_TERM
-unfull1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin;
-    ERL_NIF_TERM  b_bin;
-    int in_n,in_h,in_w,n1;
-    float *a,*b;
-    float *dev_a, *dev_b;
-    
-    DISP("unfull1")
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &in_h)) return enif_make_int(env,2);
-    if (!enif_get_int(env, argv[2], &in_w)) return enif_make_int(env,3);
-    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,4);
-
-    // in_c is allways 1 
-    n1 = in_n * in_h * in_w;
-    a = (float *) a_bin.data;
-    b = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &b_bin);
-  
-      
-      // Allocate for GPU
-    cudaMalloc((void**)&dev_a, n1 * sizeof(float));
-    cudaMalloc((void**)&dev_b, n1 * sizeof(float));
-  
-    // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
-    cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice);
-
-    unfull_kernel << <1, in_n>> >(dev_a, dev_b, in_h, in_w, in_n);
-  
-    // copy to host d from GPU dev_d
-    cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost);
-
-    // free 
-    cudaFree(dev_a);
-	cudaFree(dev_b);
-  
-    return(b_bin);
-}
 
 
 // define the array of ErlNifFunc
