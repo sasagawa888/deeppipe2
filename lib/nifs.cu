@@ -939,7 +939,7 @@ cross_entropy(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     for(i=0;i<r1;i++){
         for (j=0;j<c1;j++){
             d = fabsf(a[IDX2C(i,j,r1)])+delta;
-            s = s + b[IDX2C(i,j,r1)] * log(d);      
+            s = s + b[IDX2C(i,j,r1)] * log(d); 
         }
     }
     s = s / (float)r1;
@@ -1881,7 +1881,7 @@ __global__ void full_kernel(float *a, float *b, int in_h, int in_w, int n)
         for(i=0;i<in_h;i++){
             for(j=0;j<in_w;j++){
                 elt = a[IDX4C(n1,0,i,j,1,in_h,in_w)];
-                b[IDX2C(n1,i*in_h + j*in_w,in_h)] = elt;
+                b[IDX2C(n1,i*in_w + j,n)] = elt;
             }
         }
     }
@@ -1913,7 +1913,7 @@ full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     b = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &b_bin);
   
       
-      // Allocate for GPU
+    // Allocate for GPU
     cudaMalloc((void**)&dev_a, n1 * sizeof(float));
     cudaMalloc((void**)&dev_b, n1 * sizeof(float));
   
@@ -1945,7 +1945,7 @@ __global__ void unfull_kernel(float *a, float *b, int in_h, int in_w, int n)
         for(i=0;i<in_h;i++){
             for(j=0;j<in_w;j++){
                 elt = a[IDX4C(n1,0,i,j,1,in_h,in_w)];
-                b[IDX2C(n1,i*in_h + j*in_w,in_h)] = elt;
+                b[IDX2C(n1,i*in_w + j,n)] = elt;
             }
         }
     }

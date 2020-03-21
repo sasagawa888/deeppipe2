@@ -132,9 +132,9 @@ defmodule Test do
     network1 = cnn1(image, network, label, m, n)
     test_image = MNIST.test_image(1000, :structure) |> CM.new()
     test_label = MNIST.test_label(1000)
-    correct = DP.accuracy(test_image, network1, test_label)
+    #correct = DP.accuracy(test_image, network1, test_label)
     IO.write("accuracy rate = ")
-    IO.puts(correct)
+    #IO.puts(correct)
     IO.puts("end")
   end
 
@@ -147,8 +147,8 @@ defmodule Test do
     network1 = DP.gradient(image1, network, train1)
     network2 = DP.learning(network, network1)
     [y | _] = DP.forward(image1, network2, [])
-    loss = CM.loss(y, train1, :cross)
-    IO.puts(loss)
+    #loss = CM.loss(y, train1, :cross)
+    #IO.puts(loss)
     cnn1(image, network2, train, m, n - 1)
   end
 
