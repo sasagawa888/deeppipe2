@@ -325,3 +325,6 @@ convolution with input-tensor(ts1), filter-tensor(ts2), stride(st), padding(pad)
 - Cumatrix.deconvolute(ts1,ts2,st,pad)
 deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st), padding(pad)
 
+- Cumatrix.gradfilter(ts1,ts2,ts3,st,pad)
+gradient by backpropagation. ts1 is input-tesor, ts2 is filter-tensor, ts3 is loss-tensor, st is stride size, pad is padding size.
+

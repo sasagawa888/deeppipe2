@@ -246,8 +246,8 @@ unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     // free 
     cudaFree(dev_a);
-	cudaFree(dev_b);
-	cudaFree(dev_c);
+    cudaFree(dev_b);
+    cudaFree(dev_c);
 
     return(c_bin);
 }
@@ -348,8 +348,8 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     // free 
     cudaFree(dev_a);
-	cudaFree(dev_b);
-	cudaFree(dev_c);
+    cudaFree(dev_b);
+    cudaFree(dev_c);
     
     return(c_bin);
 }
@@ -470,8 +470,8 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     // free 
     cudaFree(dev_a);
-	cudaFree(dev_b);
-	cudaFree(dev_c);
+    cudaFree(dev_b);
+    cudaFree(dev_c);
   
     return(c_bin);
 }
@@ -571,7 +571,7 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     // free 
     cudaFree(dev_a);
-	cudaFree(dev_b);
+    cudaFree(dev_b);
     cudaFree(dev_c);
   
     return(c_bin);
@@ -702,7 +702,7 @@ unfull1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     // free 
     cudaFree(dev_a);
-	cudaFree(dev_b);
+    cudaFree(dev_b);
   
     return(b_bin);
 }
