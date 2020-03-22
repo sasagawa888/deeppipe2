@@ -328,3 +328,9 @@ deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st), padding(pa
 - Cumatrix.gradfilter(ts1,ts2,ts3,st,pad)
 gradient by backpropagation. ts1 is input-tesor, ts2 is filter-tensor, ts3 is loss-tensor, st is stride size, pad is padding size.
 
+
+## error code
+
+- N<10000  bad argument error   N is argument number 
+- 10000<= N <11000 CUDA error   N is error code of CUDA
+- 11000 < N  N is error of cuBLAS

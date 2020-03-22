@@ -17,7 +17,15 @@
     const cudaError_t error = call;                   \
     if (error != cudaSuccess)                         \
     {                                                 \
-        return enif_make_int(env,9000+(int)error);                 \
+        return enif_make_int(env,10000+(int)error);   \
+    }                                                 \
+}
+#define CUBLAS(call)                                  \
+{                                                     \
+    const cublasStatus error = call;                  \
+    if (error != CUBLAS_STATUS_SUCCESS)               \
+    {                                                 \
+        return enif_make_int(env,11000+(int)error);   \
     }                                                 \
 }
 
@@ -878,7 +886,6 @@ mult1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ERL_NIF_TERM  c_bin;
     int r1, c1, r2, c2, n, i, j;
     float *a,*b,*c;
-    cublasStatus stat;
     float* devPtrA;
     float* devPtrB;
     float* devPtrC;
@@ -903,40 +910,21 @@ mult1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     // Initialize CUBLAS
     cublasInit();
 
-    stat = cublasAlloc (r1*c1, sizeof(*a), (void**)&devPtrA);
-    if(stat != CUBLAS_STATUS_SUCCESS)
-        return(enif_make_int(env, 91)); 
-    stat = cublasAlloc (r2*c2, sizeof(*b), (void**)&devPtrB);
-    if(stat != CUBLAS_STATUS_SUCCESS)
-        return(enif_make_int(env, 92)); 
-    stat = cublasAlloc (r1*c2, sizeof(*c), (void**)&devPtrC);
-    if(stat != CUBLAS_STATUS_SUCCESS)
-        return(enif_make_int(env, 93)); 
+    CUBLAS(cublasAlloc (r1*c1, sizeof(*a), (void**)&devPtrA));
+    CUBLAS(cublasAlloc (r2*c2, sizeof(*b), (void**)&devPtrB));
+    CUBLAS(cublasAlloc (r1*c2, sizeof(*c), (void**)&devPtrC));
 
-    stat = cublasSetMatrix (r1, c1, sizeof(*a), a, r1, devPtrA, r1);
-    if(stat != CUBLAS_STATUS_SUCCESS)
-        return(enif_make_int(env, 94)); 
-    stat = cublasSetMatrix (r2, c2, sizeof(*b), b, r2, devPtrB, r2);
-    if(stat != CUBLAS_STATUS_SUCCESS)
-        return(enif_make_int(env, 95)); 
-    stat = cublasSetMatrix (r1, c2, sizeof(*c), c, r1, devPtrC, r1);
-    if(stat != CUBLAS_STATUS_SUCCESS)
-        return(enif_make_int(env, 96)); 
+    CUBLAS(cublasSetMatrix (r1, c1, sizeof(*a), a, r1, devPtrA, r1));
+    CUBLAS(cublasSetMatrix (r2, c2, sizeof(*b), b, r2, devPtrB, r2));
+    CUBLAS(cublasSetMatrix (r1, c2, sizeof(*c), c, r1, devPtrC, r1));
 
 
     //Sgemm
     cublasSgemm('N', 'N', r1, c2, c1, 1.0, devPtrA, r1, devPtrB, r2, 0.0, devPtrC, r1);
 
 
-    stat = cublasGetMatrix (r1, c2, sizeof(*c), devPtrC, r1, c, r1);
-    if(stat != CUBLAS_STATUS_SUCCESS){
-        cublasFree(devPtrA);
-        cublasFree(devPtrB);
-        cublasFree(devPtrC);
-        cublasShutdown();
-        return(enif_make_int(env, 0)); 
-    }
-
+    CUBLAS(cublasGetMatrix (r1, c2, sizeof(*c), devPtrC, r1, c, r1));
+    
     // Shutdown CUBLAS
     cublasFree(devPtrA);
     cublasFree(devPtrB);

@@ -821,7 +821,11 @@ defmodule Cumatrix do
   end
 
   def error(func,n) do
-    raise func <> " error" <> Integer.to_string(n)
+    cond do 
+      n < 10000 -> raise func <> " bad argument error" <> Integer.to_string(n)
+      n >= 10000 && n <11000 -> raise func <> "cuda error" <> Integer.to_string(n-10000)
+      true -> raise func <> "cuBLAS error" <> Integer.to_string(n-11000)
+    end 
   end 
 
   def is_matrix({r, c, dt}) do
