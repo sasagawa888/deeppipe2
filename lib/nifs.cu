@@ -50,7 +50,7 @@ __global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, i
                     end_w1 = st*(w2+1);
                     for(h1=start_h1;h1<end_h1;h1++){
                         for(w1=start_w1;w1<end_w1;w1++){
-                            if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] > max){
+                            if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] >= max){
                                 max = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
                                 max_h = h1;
                                 max_w = w1;

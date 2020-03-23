@@ -120,7 +120,7 @@ defmodule Network do
 
 
   # pooling
-  def parse({:pool, _, [x]}, _) do
+  def parse({:pooling, _, [x]}, _) do
     quote do
       {:pooling, unquote(x)}
     end
