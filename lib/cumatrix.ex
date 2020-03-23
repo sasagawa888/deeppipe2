@@ -167,8 +167,8 @@ defmodule Cumatrix do
   end
 
   # ----------------------------------------------------------------
-  def mult({r1, c1, dt1}, {r2, c2, dt2}) do
-    result = mult1(r1, c1, dt1, r2, c2, dt2)
+  def mult({r1, c1, dt1}, {c1, c2, dt2}) do
+    result = mult1(r1, c1, dt1, c1, c2, dt2)
     if !is_integer(result) do 
       {r1, c2, result}
     else 
