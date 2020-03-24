@@ -29,7 +29,6 @@
     }                                                 \
 }
 
- 
 __global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
