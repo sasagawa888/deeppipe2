@@ -33,7 +33,7 @@ __global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, i
 {
     int tid = threadIdx.x;
     int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1,max_h,max_w;
-    float max;
+    float max,fmax_h,fmax_w;
     if(tid < n)
     {   
         n1 = tid;
@@ -57,7 +57,9 @@ __global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, i
                         }
                     }
                     b[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)] = max;
-                    c[IDX4C(n1,c1,max_h,max_w,in_c,in_h,in_w)] = max; 
+                    fmax_h = (float)max_h;
+                    fmax_w = (float)max_w;
+                    c[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)] = fmax_h * 1000.0 + fmax_w; 
                 }
             }
         }
@@ -86,17 +88,16 @@ __global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, i
   |1.4,1.6|
 
   ts2
-  |0.0,0.0,0.0,0.0|
-  |0.0,0.6,0.0,0.8|
-  |0.0,0.0,0.0,0.0|
-  |0.0,1.4,0.0,1.6|
+  each element is  row*1000+col
+  |1.0*1000+1.0,1.0*1000*3.0|
+  |3.0*1000+1.0,3.0*1000+3.0|
   
   */
 static ERL_NIF_TERM
 pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin,c_bin,list;
-    int in_n,in_c,in_h,in_w,st, n1, n2, i;
+    int in_n,in_c,in_h,in_w,st, n1, n2;
     float *a,*b, *c;
     float *dev_a, *dev_b, *dev_c;
   
@@ -112,27 +113,24 @@ pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     n2 = in_n * in_c * (in_h / st) * (in_w / st);
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &b_bin);
-    c = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &c_bin);
+    c = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &c_bin);
 
-    for(i=0;i<n1;i++){
-        c[i] = 0.0;
-    }
-  
+   
     // Allocate for GPU
     CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
     CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
-    CHECK(cudaMalloc((void**)&dev_c, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n2 * sizeof(float)));
   
     // copy from host a,b to GPU dev_a, dev_b
     CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_c, c, n2 * sizeof(float), cudaMemcpyHostToDevice));
   
     pooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
   
     // copy to host b,c from GPU dev_b,dev_c
     CHECK(cudaMemcpy(b, dev_b, n2 * sizeof(float), cudaMemcpyDeviceToHost));
-    CHECK(cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost));
+    CHECK(cudaMemcpy(c, dev_c, n2 * sizeof(float), cudaMemcpyDeviceToHost));
       
 
     // return forward data and backward data with list 
@@ -152,28 +150,31 @@ pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 __global__ void unpooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
-    int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1;
-    float loss;
+    int n1,c1,h1,w1,h2,w2,start_h1,end_h1,start_w1,end_w1,max_h,max_w,in_h1,in_w1;
+    float loss,elt;
     if(tid < n)
     {   
         n1 = tid;
-        in_h2 = in_h / st;
-        in_w2 = in_w / st;
+        in_h1 = in_h * st;
+        in_w1 = in_w * st;
         for(c1=0;c1<in_c;c1++){
-            for(w2=0;w2<in_w2;w2++){
-                for(h2=0;h2<in_h2;h2++){
+            for(h2=0;h2<in_h;h2++){
+                for(w2=0;w2<in_w;w2++){
                     start_h1 = st*h2;
                     end_h1 = st*(h2+1);
                     start_w1 = st*w2;
                     end_w1 = st*(w2+1);
+                    elt = a[IDX4C(n1,c1,h2,w2,in_c,in_h,in_w)];
+                    loss = b[IDX4C(n1,c1,h2,w2,in_c,in_h,in_w)];
+                    max_h = (int) floor(elt / 1000.0);
+                    max_w = (int) fmodf(elt,1000.0);
                     for(h1=start_h1;h1<end_h1;h1++){
                         for(w1=start_w1;w1<end_w1;w1++){
-                            if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] != 0.0){
-                                loss = b[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)];
-                                c[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] = loss;
+                            if(h1 == max_h && w1 == max_w){
+                                c[IDX4C(n1,c1,h1,w1,in_c,in_h1,in_w1)] = loss;
                             }
                             else{
-                                c[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] = 0.0;
+                                c[IDX4C(n1,c1,h1,w1,in_c,in_h1,in_w1)] = 0.0;
                             }
                         }
                     }
@@ -181,7 +182,7 @@ __global__ void unpooling_kernel(float *a, float *b, float *c, int st, int in_c,
             }
         }
     }
-  }
+}
   
 /*
 1st arg in_n of sparse-tensor
@@ -194,11 +195,10 @@ __global__ void unpooling_kernel(float *a, float *b, float *c, int st, int in_c,
 
 return gradiate tensor
 e.g.
-ts1 sparse-tensor
-  |0.0,0.0,0.0,0.0|
-  |0.0,0.6,0.0,0.8|
-  |0.0,0.0,0.0,0.0|
-  |0.0,1.4,0.0,1.6|
+ts1 index-tensor
+  each element is  row*1000+col
+  |1.0*1000+1.0,1.0*1000*3.0|
+  |3.0*1000+1.0,3.0*1000+3.0|
 ts2 loss-tensor
   |0.1,0.2|
   |0.3,0.4|
@@ -228,28 +228,28 @@ unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[6], &st)) return enif_make_int(env,7);
 
     n1 = in_n * in_c * in_h * in_w;
-    n2 = in_n * in_c * (in_h / st) * (in_w / st);
+    n2 = in_n * in_c * (in_h * st) * (in_w * st);
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
-    c = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &c_bin);
+    c = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &c_bin);
 
 
       
     // Allocate for GPU
     CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
-    CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
-    CHECK(cudaMalloc((void**)&dev_c, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n2 * sizeof(float)));
 
   
     // copy from host a,b to GPU dev_a, dev_b
     CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(dev_c, c, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_c, c, n2 * sizeof(float), cudaMemcpyHostToDevice));
   
     unpooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
   
     // copy to host d from GPU dev_d
-    CHECK(cudaMemcpy(c, dev_c, n1 * sizeof(float), cudaMemcpyDeviceToHost));
+    CHECK(cudaMemcpy(c, dev_c, n2 * sizeof(float), cudaMemcpyDeviceToHost));
 
     // free 
     cudaFree(dev_a);

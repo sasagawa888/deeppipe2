@@ -753,17 +753,21 @@ defmodule Cumatrix do
       result = pooling1(n, c, h, w, dt, st)
       if !is_integer(result) do
         [f,b] = result
-        [{n, c, div(h, st), div(w, st), f},{n,c,h,w,b}]
+        h1 = div(h, st)
+        w1 = div(w, st)
+        [{n, c, h1, w1, f},{n, c, h1, w1, b}]
       else 
         error("pooling1",result)
       end 
     end
   end
 
-  def unpooling({n1, c1, h1, w1, d1}, {n1, _, _, _, d2}, st) do
+  def unpooling({n1, c1, h1, w1, d1}, {n1, c1, h1, w1, d2}, st) do
     result = unpooling1(n1, c1, h1, w1, d1, d2, st)
     if !is_integer(result) do 
-      {n1,c1,h1,w1,result}
+      h2 = h1 * st
+      w2 = w1 * st
+      {n1,c1,h2,w2,result}
     else 
       error("unpooling1",result)
     end 
