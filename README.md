@@ -334,3 +334,12 @@ gradient by backpropagation. ts1 is input-tesor, ts2 is filter-tensor, ts3 is lo
 - N<10000  bad argument error   N is argument number 
 - 10000<= N <11000 CUDA error   N is error code of CUDA
 - 11000 < N  N is error of cuBLAS
+
+## segmentation fault
+if DeepPipe2 down by segmentation fault. expand stack memory size with ulimit command.
+
+e.g.
+
+```
+ulimit -s 65536
+```
