@@ -441,7 +441,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
   
       
-    //rotate 180 degree
+    //rotate 180 degree  
     for(i=0;i<in_c;i++){
         for(j=0;j<filt_h;j++){
             for(k=0;k<filt_w;k++){
@@ -479,6 +479,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     cudaFree(dev_a);
     cudaFree(dev_b);
     cudaFree(dev_c);
+    free(b1);
   
     return(c_bin);
 }

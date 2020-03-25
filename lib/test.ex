@@ -30,8 +30,8 @@ defmodule Test do
   defnetwork init_network4(_x) do
     _x |> f(5,5) |> pooling(2) |> full
     |> w(144,300) |> b(300) |> relu
-    |> w(300,100) |> b(100) |> relu
-    |> w(100,10) |> b(10) |> softmax
+    |> w(300, 100) |> b(100) |> relu
+    |> w(100, 10) |> b(10) |> softmax
   end
 
 
