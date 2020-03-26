@@ -286,8 +286,8 @@ Now under constrction.
 ```
 # for CNN test
   defnetwork init_network4(_x) do
-    _x |> f(5,5) |> full
-    |> w(576,300) |> b(300) |> relu
+    _x |> f(5,5) |> pooling(2) |> full
+    |> w(144,300) |> b(300) |> relu
     |> w(300,100) |> b(100) |> relu
     |> w(100,10) |> b(10) |> softmax
   end
@@ -313,7 +313,7 @@ ls is list that express 4-dimension or 3-dimension data
 tensor is 3-dimension or 4-dimension
 
 - Cumatrix.pooling(tensor,st)
-pooling with stride st 
+pooling with stride st. size of H and W must be less 1000. max 999*999
 
 - Cumatrix.unpooing(ts1,ts2,st)
 unpooling with stride st.

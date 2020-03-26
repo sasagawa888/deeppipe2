@@ -445,6 +445,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     for(i=0;i<in_c;i++){
         for(j=0;j<filt_h;j++){
             for(k=0;k<filt_w;k++){
+                //if(IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w) >= n2) return enif_make_int(env,11001);
                 b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
             }
         }
