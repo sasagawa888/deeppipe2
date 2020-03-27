@@ -429,59 +429,130 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[8], &st)) return enif_make_int(env,9);
     if (!enif_get_int(env, argv[9], &pad)) return enif_make_int(env,10);
 
-    n1 = in_n * in_c * in_h * in_w;
-    n2 = in_c * filt_h * filt_w;
-    pad1 = filt_h - 1 + pad;
-    oh = (in_h+2*pad1-filt_h)/st + 1;
-    ow = (in_w+2*pad1-filt_w)/st + 1;
-    n3 = in_n * oh * ow;
-    a = (float *) a_bin.data;
-    b = (float *) b_bin.data;
-    b1 = (float *) malloc(n2 * sizeof(float));
-    c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
+    if(st == 1){
+
+        n1 = in_n * in_c * in_h * in_w;
+        n2 = in_c * filt_h * filt_w;
+        pad1 = filt_h - 1 + pad;
+        oh = (in_h+2*pad1-filt_h)/st + 1;
+        ow = (in_w+2*pad1-filt_w)/st + 1;
+        n3 = in_n * oh * ow;
+        a = (float *) a_bin.data;
+        b = (float *) b_bin.data;
+        b1 = (float *) malloc(n2 * sizeof(float));
+        c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
   
       
-    //rotate 180 degree  
-    for(i=0;i<in_c;i++){
-        for(j=0;j<filt_h;j++){
-            for(k=0;k<filt_w;k++){
-                //if(IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w) >= n2) return enif_make_int(env,11001);
-                b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
+        //rotate 180 degree  
+        for(i=0;i<in_c;i++){
+            for(j=0;j<filt_h;j++){
+                for(k=0;k<filt_w;k++){
+                    //if(IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w) >= n2) return enif_make_int(env,11001);
+                    b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
+                }
+            }
+     }
+
+        /*
+        for(i=0;i<in_c;i++){
+            for(j=0;j<filt_h;j++){
+                for(k=0;k<filt_w;k++){
+                    printf("%f",  b1[IDX3C(i,j,k,filt_h,filt_w)]);
+                }
             }
         }
-    }
+        */
+        // Allocate for GPU
+        CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
+        CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
+        CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
 
-    /*
-    for(i=0;i<in_c;i++){
-        for(j=0;j<filt_h;j++){
-            for(k=0;k<filt_w;k++){
-                printf("%f",  b1[IDX3C(i,j,k,filt_h,filt_w)]);
+  
+        // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
+        CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
+        CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
+        CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
+
+        deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, in_n);
+  
+        // copy to host c from GPU dev_c
+        CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
+
+        // free 
+        cudaFree(dev_a);
+        cudaFree(dev_b);
+        cudaFree(dev_c);
+        free(b1);  
+    }
+    else{
+        // when st > 1 dilate loss tensor
+        int in_h1,in_w1,l,k1,l1;
+        float *a1;
+        float elt;
+        
+        // reset size for dilate
+        in_h1 = filt_h * st * (in_h - 1) + filt_h;
+        in_w1 = filt_w * st * (in_w - 1) + filt_w;
+
+        n1 = in_n * in_c * in_h1 * in_w1;
+        n2 = in_c * filt_h * filt_w;
+        pad1 = filt_h - 1 + pad;
+        oh = (in_h1+2*pad1-filt_h)/st + 1;
+        ow = (in_w1+2*pad1-filt_w)/st + 1;
+        n3 = in_n * oh * ow;
+        a = (float *) a_bin.data;
+        b = (float *) b_bin.data;
+        b1 = (float *) malloc(n2 * sizeof(float));
+        c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
+
+        //rotate 180 degree  
+        for(i=0;i<in_c;i++){
+            for(j=0;j<filt_h;j++){
+                for(k=0;k<filt_w;k++){
+                    //if(IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w) >= n2) return enif_make_int(env,11001);
+                    b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
+                }
             }
         }
+
+        // dilate 
+        a1 = (float *) malloc(n1 * sizeof(float));
+
+        for(i=0;i<in_n;i++){
+            for(j=0;j<in_c;j++){
+                for(k=0;k<in_h;k++){
+                    for(l=0;l<in_w;l++){
+                        elt = a[IDX4C(i,j,k,l,in_c,in_h,in_w)];
+                        k1 = k * filt_h * st;
+                        l1 = l * filt_w * st;
+                        a1[IDX4C(i,j,k1,l1,in_c,in_h1,in_w1)] = elt;
+                    }
+                }
+            }
+        }
+        CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
+        CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
+        CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
+
+        deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h1, in_w1, in_n);
+
+        CHECK(cudaMemcpy(dev_a, a1, n1 * sizeof(float), cudaMemcpyHostToDevice));
+        CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
+        CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
+
+        deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h1, in_w1, in_n);
+  
+        // copy to host c from GPU dev_c
+        CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
+
+        // free 
+        cudaFree(dev_a);
+        cudaFree(dev_b);
+        cudaFree(dev_c);
+        free(a1);
+        free(b1);
+  
     }
-    */
-    // Allocate for GPU
-    CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
-    CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
-    CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
-
-  
-    // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
-    CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
-
-    deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, in_n);
-  
-    // copy to host c from GPU dev_c
-    CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
-
-    // free 
-    cudaFree(dev_a);
-    cudaFree(dev_b);
-    cudaFree(dev_c);
-    free(b1);
-  
     return(c_bin);
 }
 
