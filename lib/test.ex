@@ -43,7 +43,7 @@ defmodule Test do
 
   defnetwork init_network6(_x) do
     _x |> f(4,4,1,1,1) |> full
-    |> w(196,300) |> b(300) |> relu
+    |> w(729,300) |> b(300) |> relu
     |> w(300, 100) |> b(100) |> relu
     |> w(100, 10) |> b(10) |> softmax
   end
