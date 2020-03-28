@@ -34,6 +34,20 @@ defmodule Test do
     |> w(100, 10) |> b(10) |> softmax
   end
 
+  defnetwork init_network5(_x) do
+    _x |> f(4,4,1,2) |> full
+    |> w(169,300) |> b(300) |> relu
+    |> w(300, 100) |> b(100) |> relu
+    |> w(100, 10) |> b(10) |> softmax
+  end
+
+  defnetwork init_network6(_x) do
+    _x |> f(4,4,1,1,1) |> full
+    |> w(196,300) |> b(300) |> relu
+    |> w(300, 100) |> b(100) |> relu
+    |> w(100, 10) |> b(10) |> softmax
+  end
+
 
   def sgd(m, n) do
     IO.puts("preparing data")
@@ -152,6 +166,34 @@ defmodule Test do
     cnn1(image, network2, train, m, n - 1)
   end
 
+  def st(m, n) do
+    IO.puts("preparing data")
+    image = MNIST.train_image(3000, :structure)
+    label = MNIST.train_label_onehot(3000)
+    network = init_network5(0)
+    IO.puts("ready")
+    network1 = cnn1(image, network, label, m, n)
+    test_image = MNIST.test_image(1000, :structure) |> CM.new()
+    test_label = MNIST.test_label(1000)
+    correct = DP.accuracy(test_image, network1, test_label)
+    IO.write("accuracy rate = ")
+    IO.puts(correct)
+    IO.puts("end")
+  end
 
+  def pad(m, n) do
+    IO.puts("preparing data")
+    image = MNIST.train_image(3000, :structure)
+    label = MNIST.train_label_onehot(3000)
+    network = init_network6(0)
+    IO.puts("ready")
+    network1 = cnn1(image, network, label, m, n)
+    test_image = MNIST.test_image(1000, :structure) |> CM.new()
+    test_label = MNIST.test_label(1000)
+    correct = DP.accuracy(test_image, network1, test_label)
+    IO.write("accuracy rate = ")
+    IO.puts(correct)
+    IO.puts("end")
+  end
 
 end

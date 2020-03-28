@@ -412,7 +412,7 @@ __global__ void deconvolute_kernel(float *a, float *b, float *c, int filt_h, int
 static ERL_NIF_TERM
 deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
-    ERL_NIF_TERM  c_bin,a1_bin,b1_bin;
+    ERL_NIF_TERM  c_bin;
     int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k;
     float *a,*b, *b1, *c;
     float *dev_a, *dev_b, *dev_c;
@@ -439,7 +439,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         n3 = in_n * oh * ow;
         a = (float *) a_bin.data;
         b = (float *) b_bin.data;
-        b1 = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &b1_bin);
+        b1 = (float *) malloc(n2 * sizeof(float));
         c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
   
       
@@ -483,6 +483,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         cudaFree(dev_a);
         cudaFree(dev_b);
         cudaFree(dev_c);
+        free(b1);
     }
     else{
         // when st > 1 dilate loss tensor
@@ -502,8 +503,8 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         n3 = in_n * oh * ow;
         a = (float *) a_bin.data;
         b = (float *) b_bin.data;
-        a1 = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &a1_bin);
-        b1 = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &b1_bin);
+        a1 = (float *) malloc(n1 * sizeof(float));
+        b1 = (float *) malloc(n2 * sizeof(float));
         c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
 
         //rotate 180 degree  
@@ -517,6 +518,10 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         }
 
         // dilate 
+        for(i=0;i<n1;i++){
+            a1[i] = 0.0;
+        }
+
         for(i=0;i<in_n;i++){
             for(j=0;j<in_c;j++){
                 for(k=0;k<in_h;k++){
@@ -548,6 +553,8 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         cudaFree(dev_a);
         cudaFree(dev_b);
         cudaFree(dev_c);
+        free(a1);
+        free(b1);
   
     }
     return(c_bin);

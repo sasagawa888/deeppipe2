@@ -231,7 +231,9 @@ defmodule Cumatrix do
     end 
   end
 
-  def mult(_, _) do
+  def mult(a, b) do
+    IO.inspect(a)
+    IO.inspect(b)
     raise "mult illegal data type"
   end
 
