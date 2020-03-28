@@ -343,3 +343,7 @@ e.g.
 ```
 ulimit -s 65536
 ```
+
+recomend  memory 16GB or over.
+
+recomend GTX2080 GPU
