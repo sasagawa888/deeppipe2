@@ -119,7 +119,7 @@ element
 - w(r,c,ir,lr) ir is initial rate to multiple randam, lr is learning rate.
 - b(n) bias row vector size n.  initial val is randam * 0.1, default learning late 0.1 
 - b(n,ir,lr) ir is initial rate to multiple randam, lr is learning rate.
-- activate function  leru sigmoid tanh
+- activate function  leru sigmoid tanh softmax
 - f(r,c) filter matrix row-size is r col-size is c. channel is 1, initial val random * 0.1, default learning late 0.1
 - f(r,c,n)  filter matrix. n channel.
 - f(r,c,n,st) filter matrix. st is stride size.
