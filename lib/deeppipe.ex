@@ -6,6 +6,11 @@ defmodule Deeppipe do
     raise("stop")
   end
 
+  # garbage collection
+  def gbc() do
+    :erlang.garbage_collect()
+  end 
+
   # forward
   # return all middle data
   # 1st arg is input data matrix

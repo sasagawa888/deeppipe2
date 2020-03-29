@@ -104,6 +104,28 @@ see test.ex
   end
 ```
 
+## describe network
+
+'''
+defnetwork  name(_x) do
+  element of network
+
+end
+
+'''
+
+element 
+
+- w(r,c)  weight matrix row-size is r col-size is c. initial val is randam * 0.1, default learning late 0.1
+- w(r,c,ir,lr) ir is initial rate to multiple randam, lr is learning rate.
+- b(n) bias row vector size n.  initial val is randam * 0.1, default learning late 0.1 
+- b(n,ir,lr) ir is initial rate to multiple randam, lr is learning rate.
+
+
+
+
+
+
 ## specification:
 
 ### data structure
@@ -281,7 +303,7 @@ iex(5)>
 ```
 
 ## CNN
-Now under constrction.
+Now testing.
 
 ```
 # for CNN test
