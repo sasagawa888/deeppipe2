@@ -106,13 +106,13 @@ see test.ex
 
 ## describe network
 
-'''
+```
 defnetwork  name(_x) do
   element of network
 
 end
 
-'''
+```
 
 element 
 
