@@ -1,4 +1,6 @@
 defmodule MNIST do
+  alias Deeppipe, as: DP
+
   # structure from flat vector to matrix(r,c) as 1 channel 
   def structure([x], r, c) do
     [structure1(x, r, c)]
@@ -23,7 +25,7 @@ defmodule MNIST do
 
   # transfer from train-label to onehot list
   def train_label_onehot(n) do
-    Enum.take(train_label(), n) |> Enum.map(fn y -> to_onehot0(y) end)
+    Enum.take(train_label(), n) |> Enum.map(fn y -> DP.to_onehot(y,9) end)
   end
 
   # get n datas from train-image with normalization
@@ -47,7 +49,7 @@ defmodule MNIST do
 
   # transfer from test-label to onehot list
   def test_label_onehot(n) do
-    Enum.take(test_label(), n) |> Enum.map(fn y -> to_onehot0(y) end)
+    Enum.take(test_label(), n) |> Enum.map(fn y -> DP.to_onehot(y,9) end)
   end
 
   # get n datas from test-image with normalization as structured list
@@ -114,40 +116,5 @@ defmodule MNIST do
     [Enum.map(x, fn z -> z / y end)]
   end
 
-  # e.g. 1 => [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
-  def to_onehot0(x) do
-    to_onehot1(x, 9, [])
-  end
-
-  def to_onehot(x) do
-    [to_onehot1(x, 9, [])]
-  end
-
-  def to_onehot1(_, -1, res) do
-    res
-  end
-
-  def to_onehot1(x, x, res) do
-    to_onehot1(x, x - 1, [1.0 | res])
-  end
-
-  def to_onehot1(x, c, res) do
-    to_onehot1(x, c - 1, [0.0 | res])
-  end
-
-  def onehot_to_num([x]) do
-    onehot_to_num1(x, 0)
-  end
-
-  def onehot_to_num(x) do
-    onehot_to_num1(x, 0)
-  end
-
-  def onehot_to_num1([x | xs], n) do
-    if x == Enum.max([x | xs]) do
-      n
-    else
-      onehot_to_num1(xs, n + 1)
-    end
-  end
+  
 end

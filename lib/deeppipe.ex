@@ -240,6 +240,39 @@ defmodule Deeppipe do
     random_select1(image, train, [image1 | res1], [train1 | res2], m - 1, n)
   end
 
+  # e.g. to_onehot(1,9) => [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+  def to_onehot(x, n) do
+    to_onehot1(x, n, [])
+  end
+
+  def to_onehot1(_, -1, res) do
+    res
+  end
+
+  def to_onehot1(x, x, res) do
+    to_onehot1(x, x - 1, [1.0 | res])
+  end
+
+  def to_onehot1(x, c, res) do
+    to_onehot1(x, c - 1, [0.0 | res])
+  end
+
+  def onehot_to_num([x]) do
+    onehot_to_num1(x, 0)
+  end
+
+  def onehot_to_num(x) do
+    onehot_to_num1(x, 0)
+  end
+
+  def onehot_to_num1([x | xs], n) do
+    if x == Enum.max([x | xs]) do
+      n
+    else
+      onehot_to_num1(xs, n + 1)
+    end
+  end
+
   # save/load to file
   def save(file, network) do
     network1 = save1(network)
@@ -337,4 +370,6 @@ defmodule Deeppipe do
   def newline() do
     IO.puts("")
   end
+
+  
 end
