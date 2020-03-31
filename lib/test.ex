@@ -165,7 +165,6 @@ defmodule Test do
     [y | _] = DP.forward(image1, network2, [])
     loss = CM.loss(y, train1, :cross)
     IO.puts(loss)
-    DP.gbc()
     cnn1(image, network2, train, m, n - 1)
   end
 

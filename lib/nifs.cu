@@ -439,7 +439,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         n3 = in_n * oh * ow;
         a = (float *) a_bin.data;
         b = (float *) b_bin.data;
-        b1 = (float *) malloc(n2 * sizeof(float));
+        b1 = (float *) enif_alloc(n2 * sizeof(float));
         c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
   
       
@@ -483,7 +483,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         cudaFree(dev_a);
         cudaFree(dev_b);
         cudaFree(dev_c);
-        free(b1);
+        enif_free(b1);
     }
     else{
         // when st > 1 dilate loss tensor
@@ -503,8 +503,8 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         n3 = in_n * oh * ow;
         a = (float *) a_bin.data;
         b = (float *) b_bin.data;
-        a1 = (float *) malloc(n1 * sizeof(float));
-        b1 = (float *) malloc(n2 * sizeof(float));
+        a1 = (float *) enif_alloc(n1 * sizeof(float));
+        b1 = (float *) enif_alloc(n2 * sizeof(float));
         c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
 
         //rotate 180 degree  
@@ -553,8 +553,8 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         cudaFree(dev_a);
         cudaFree(dev_b);
         cudaFree(dev_c);
-        free(a1);
-        free(b1);
+        enif_free(a1);
+        enif_free(b1);
   
     }
     return(c_bin);

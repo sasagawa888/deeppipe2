@@ -64,7 +64,10 @@ defmodule Deeppipe do
     [x1 | x2] = forward(x, network, [x])
     loss = CM.sub(x1, t)
     network1 = Enum.reverse(network)
-    backward(loss, network1, x2, [])
+    gbc()
+    result = backward(loss, network1, x2, [])
+    gbc()
+    result
   end
 
   # backward
