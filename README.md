@@ -353,6 +353,12 @@ deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st), padding(pa
 - Cumatrix.gradfilter(ts1,ts2,ts3,st,pad)
 gradient by backpropagation. ts1 is input-tesor, ts2 is filter-tensor, ts3 is loss-tensor, st is stride size, pad is padding size.
 
+- Cumatrix.full(ts) 
+transfer from 4 DIM tensor to matrix.
+
+- Cumatrix.unfull(mt,h,w)
+transfer from matrix to 4 DIM tensor. tensor(N,C,H,W). N is row size of matrix. C is 1.
+
 
 ## error code
 
