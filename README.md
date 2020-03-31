@@ -342,7 +342,7 @@ pooling with stride st. size of H and W must be less 1000. max 999*999
 
 - Cumatrix.unpooing(ts1,ts2,st)
 unpooling with stride st.
-ts1 is input tensor. ts2 is sparse loss tensor.
+ts1 is sparse tensor that save index of max element. ts2 is loss tensor.
 
 - Cumatrix.convolute(ts1,ts2,st,pad)
 convolution with input-tensor(ts1), filter-tensor(ts2), stride(st), padding(pad)
