@@ -4,9 +4,9 @@ defmodule Iris do
     alias Cumatrix, as: CM
 
     defnetwork init_network0(_x) do
-        _x |> w(4,10) |> b(10) |> relu
-        |> w(10,5) |> b(5) |> relu
-        |> w(5, 3) |> b(3) |> softmax
+        _x |> w(4,100) |> b(100) |> relu
+        |> w(100,50) |> b(50) |> relu
+        |> w(50, 3) |> b(3) |> softmax
     end
 
 
