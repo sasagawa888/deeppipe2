@@ -2,7 +2,7 @@ defmodule MNIST do
   alias Deeppipe, as: DP
 
   # structure from flat vector to matrix(r,c) as 1 channel 
-  def structure([x], r, c) do
+  def structure(x, r, c) do
     [structure1(x, r, c)]
   end
 
@@ -32,14 +32,14 @@ defmodule MNIST do
   def train_image(n, :structure) do
     train_image()
     |> Enum.take(n)
-    |> Enum.map(fn x -> structure(MNIST.normalize(x, 255), 28, 28) end)
+    |> Enum.map(fn x -> structure(DP.normalize(x, 255), 28, 28) end)
   end
 
   # get n datas from train-image as flatten list
   def train_image(n, :flatten) do
     train_image()
     |> Enum.take(n)
-    |> Enum.map(fn x -> hd(MNIST.normalize(x, 255)) end)
+    |> Enum.map(fn x -> DP.normalize(x, 255) end)
   end
 
   # get n datas from test-label 
@@ -56,20 +56,20 @@ defmodule MNIST do
   def test_image(n) do
     test_image()
     |> Enum.take(n)
-    |> Enum.map(fn x -> structure(MNIST.normalize(x, 255), 28, 28) end)
+    |> Enum.map(fn x -> structure(DP.normalize(x, 255), 28, 28) end)
   end
 
   def test_image(n, :structure) do
     test_image()
     |> Enum.take(n)
-    |> Enum.map(fn x -> structure(MNIST.normalize(x, 255), 28, 28) end)
+    |> Enum.map(fn x -> structure(DP.normalize(x, 255), 28, 28) end)
   end
 
   # get n datas from train-image as flatten list
   def test_image(n, :flatten) do
     test_image()
     |> Enum.take(n)
-    |> Enum.map(fn x -> hd(MNIST.normalize(x, 255)) end)
+    |> Enum.map(fn x -> DP.normalize(x, 255) end)
   end
 
   def train_label() do
@@ -110,10 +110,6 @@ defmodule MNIST do
 
   def byte_to_list1(<<b, bs::binary>>, n, ls, res) do
     byte_to_list1(bs, n - 1, [b | ls], res)
-  end
-
-  def normalize(x, y) do
-    [Enum.map(x, fn z -> z / y end)]
   end
 
   

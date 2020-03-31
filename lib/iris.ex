@@ -4,8 +4,9 @@ defmodule Iris do
     alias Cumatrix, as: CM
 
     defnetwork init_network0(_x) do
-        _x |> w(4,3) |> b(3) |> relu
-        |> w(3, 3) |> b(3) |> softmax
+        _x |> w(4,10) |> b(10) |> relu
+        |> w(10,5) |> b(5) |> relu
+        |> w(5, 3) |> b(3) |> softmax
     end
 
 
@@ -17,7 +18,8 @@ defmodule Iris do
         IO.puts("ready")
         network1 = sgd1(image, network, label, m, n)
         image1 = image |> CM.new()
-        correct = DP.accuracy(image1, network1, label)
+        label1 = train_label()
+        correct = DP.accuracy(image1, network1, label1)
         IO.write("accuracy rate = ")
         IO.puts(correct)
         IO.puts("end")
@@ -48,6 +50,7 @@ defmodule Iris do
     def train_image1(x) do
         x1 = x |> String.split(",") |> Enum.take(4) 
         x1 |> Enum.map(fn(y) -> String.to_float(y) end)
+        |> DP.normalize(1)
     end 
 
     def train_label() do
@@ -67,6 +70,6 @@ defmodule Iris do
     end 
 
     def train_label_onehot() do
-        train_label() |> Enum.map(fn(x) -> DP.to_onehot(x,3) end)
+        train_label() |> Enum.map(fn(x) -> DP.to_onehot(x,2) end)
     end 
 end

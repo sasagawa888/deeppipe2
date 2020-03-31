@@ -273,6 +273,11 @@ defmodule Deeppipe do
     end
   end
 
+  def normalize(x, y) do
+    Enum.map(x, fn z -> z / y end)
+  end
+
+
   # save/load to file
   def save(file, network) do
     network1 = save1(network)
