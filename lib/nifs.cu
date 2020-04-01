@@ -1792,6 +1792,12 @@ average1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(b_bin);
 }
 
+/*
+1st arg row-size of matrix
+2nd arg col-size of matrix
+3rd arg matrix data binary
+*/
+
 
 static ERL_NIF_TERM
 sum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
@@ -1819,6 +1825,9 @@ sum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(result);
 }
 
+/*
+transfer 2 DIm matrix to list 
+*/
 static ERL_NIF_TERM
 to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
@@ -1843,6 +1852,9 @@ to_list1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     return(list);
 }
+/*
+transfer 3 DIm matrix to list
+*/
 
 static ERL_NIF_TERM
 to_list2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
@@ -1871,7 +1883,9 @@ to_list2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     return(list);
 }
-
+/*
+transfer 4 DIm matrix to list
+*/
 static ERL_NIF_TERM
 to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
@@ -1920,7 +1934,14 @@ __global__ void momentum_kernel(float *a, float *b, float *c, float lr, int n)
         tid += blockDim.x * gridDim.x;
     }
 }
-  
+
+/*
+1st arg row-size of v-matrix
+2nd arg col-size of v-matrix
+3rd arg v-matrix
+4th arg g-matrix
+5th arg learning rate
+*/
 static ERL_NIF_TERM
 momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
@@ -2036,6 +2057,13 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     return(c_bin);
 }
+
+/*
+1st arg row-size of matrix
+2nd arg col-size of matris
+3rd arg predicted matrix
+4th arg list of label. each element is integer
+*/
 
 static ERL_NIF_TERM
 accuracy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
