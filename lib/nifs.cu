@@ -2136,6 +2136,7 @@ accuracy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
 
     a = (float *) a_bin.data;
+    
 
     // calculate accuracy
     sum = 0;
@@ -2158,7 +2159,65 @@ accuracy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(result);
 }
 
+__global__ void dropout1_kernel(float *a, float *b, int n)
+{
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	while (tid < n)
+	{
+		b[tid] = a[tid];
+		tid += blockDim.x * gridDim.x;
+	}
+}
 
+/*
+1st arg size of tensor or matrix
+2nd arg input tesor or matrix
+3rd arg rate of dropout
+*/
+static ERL_NIF_TERM
+dropout1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin;
+    int i, c, r, n;
+    float *a, *b;
+    float *dev_a, *dev_b;
+    double rate;
+  
+    DISP("dropout1")
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
+    if (!enif_get_double(env, argv[2], &rate)) return enif_make_int(env,3);
+
+    a = (float *) a_bin.data;
+    b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
+
+    // Allocate for GPU
+    CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
+
+    // copy from host a,b to GPU dev_a, dev_b
+    CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
+  
+    dropout1_kernel << <128, 128 >> >(dev_a, dev_b, n);
+  
+    // copy to host b from GPU dev_b
+    CHECK(cudaMemcpy(b, dev_b, n * sizeof(float), cudaMemcpyDeviceToHost));
+
+    
+    // dropout
+    c = (int)((double)n * rate);
+    for(i=0;i<c;i++){
+        r = rand() % n;
+        b[r] = 0.0;
+    }
+
+    // free 
+    cudaFree(dev_a);
+    cudaFree(dev_b);
+
+    return(b_bin);
+}
 
 
 // define the array of ErlNifFunc
@@ -2204,7 +2263,8 @@ static ErlNifFunc nif_funcs[] = {
   {"deconvolute1", 10, deconvolute1},
   {"gradfilter1", 12, gradfilter1},
   {"full1", 4, full1},
-  {"unfull1", 4, unfull1}
+  {"unfull1", 4, unfull1},
+  {"dropout1", 3, dropout1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)

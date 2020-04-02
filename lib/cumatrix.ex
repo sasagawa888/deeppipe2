@@ -170,6 +170,10 @@ defmodule Cumatrix do
     raise "NIF unfull1/4 not implemented"
   end
 
+  def dropout1(_1, _2, _3) do
+    raise "NIF dropout1/3 not implemented"
+  end
+
   # ----------------------------------------------------------------
   # c1 == r2 
   def mult({r1, c1, dt1}, {c1, c2, dt2}) do
@@ -861,6 +865,37 @@ defmodule Cumatrix do
       error("unfull1",result)
     end 
   end
+
+  def dropout({r,c,dt},rate) when is_float(rate) do
+    result = dropout(r*c, dt, rate)
+    if !is_integer(result) do 
+      {r, c, result}
+    else 
+      error("dropout1",result)
+    end 
+  end 
+
+  def dropout({c,h,w,dt},rate) when is_float(rate) do
+    result = dropout(c*h*w, dt, rate)
+    if !is_integer(result) do 
+      {c, h, w, result}
+    else 
+      error("dropout1",result)
+    end 
+  end 
+
+  def dropout({n,c,h,w,dt},rate) when is_float(rate) do
+    result = dropout(n*c*h*w, dt, rate)
+    if !is_integer(result) do 
+      {n, c, h, w, result}
+    else 
+      error("dropout1",result)
+    end 
+  end 
+
+  def dropout(_,_,_) do 
+    raise "dropout illegal argument"
+  end 
 
   def error(func,n) do
     cond do 

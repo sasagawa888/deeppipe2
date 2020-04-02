@@ -359,6 +359,13 @@ transfer from 4 DIM tensor to matrix.
 - Cumatrix.unfull(mt,h,w)
 transfer from matrix to 4 DIM tensor. tensor(N,C,H,W). N is row size of matrix. C is 1.
 
+- Cumatrix.nzsub(ts1,ts2)
+when element of ts1 is not zero ts1 - ts2
+
+- Cumatrix.droput(ts,rate)
+genarate tensor that element calculated probability with rate is zero.
+
+
 
 ## error code
 
