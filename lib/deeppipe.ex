@@ -20,7 +20,7 @@ defmodule Deeppipe do
     res
   end
 
-  def forward(x, [{:weight, w, _, _, _} | rest], res) do
+  def forward(x, [{:weight, w, _, _, _, _} | rest], res) do
     #IO.puts("FD weight")
     x1 = CM.mult(x, w)
     forward(x1, rest, [x1 | res])
@@ -98,12 +98,12 @@ defmodule Deeppipe do
     backward(l, rest, us, [{:bias, b1, ir, lr, v} | res])
   end
 
-  defp backward(l, [{:weight, w, ir, lr, v} | rest], [u | us], res) do
+  defp backward(l, [{:weight, w, ir, lr, dr, v} | rest], [u | us], res) do
     #IO.puts("BK weight")
     {n, _} = CM.size(l)
     w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n)
     l1 = CM.mult(l, CM.transpose(w))
-    backward(l1, rest, us, [{:weight, w1, ir, lr, v} | res])
+    backward(l1, rest, us, [{:weight, w1, ir, lr, dr, v} | res])
   end
 
   defp backward(l, [{:filter, w, st, pad, ir, lr, v} | rest], [u | us], res) do
@@ -144,12 +144,14 @@ defmodule Deeppipe do
     []
   end
 
-  def learning([{:weight, w, ir, lr, v} | rest], [{:weight, w1, _, _, _} | rest1]) do
-    w2 = CM.sub(w, CM.mult(w1, lr))
-    [{:weight, w2, ir, lr, v} | learning(rest, rest1)]
+  def learning([{:weight, w, ir, lr, dr, v} | rest], [{:weight, w1, _, _, _, _} | rest1]) do
+    #IO.puts("LN weight")
+    w2 = CM.nzsub(w, CM.mult(w1, lr)) |> CM.dropout(dr)
+    [{:weight, w2, ir, lr, dr, v} | learning(rest, rest1)]
   end
 
   def learning([{:bias, w, ir, lr, v} | rest], [{:bias, w1, _, _, _} | rest1]) do
+    #IO.puts("LN bias")
     w2 = CM.sub(w, CM.mult(w1, lr))
     [{:bias, w2, ir, lr, v} | learning(rest, rest1)]
   end
@@ -161,6 +163,7 @@ defmodule Deeppipe do
 
 
   def learning([network | rest], [_ | rest1]) do
+    #IO.puts("LN else")
     [network | learning(rest, rest1)]
   end
 
@@ -169,9 +172,9 @@ defmodule Deeppipe do
     []
   end
 
-  def learning([{:weight, w, ir, lr, v} | rest], [{:weight, w1, _, _, _} | rest1], :momentum) do
+  def learning([{:weight, w, ir, lr, dr, v} | rest], [{:weight, w1, _, _, _, _} | rest1], :momentum) do
     v1 = CM.momentum(v, w1, lr)
-    [{:weight, CM.add(w, v1), ir, lr, v1} | learning(rest, rest1, :momentum)]
+    [{:weight, CM.add(w, v1), ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
   end
 
   def learning([{:bias, w, ir, lr, v} | rest], [{:bias, w1, _, _, _} | rest1], :momentum) do
@@ -193,9 +196,9 @@ defmodule Deeppipe do
     []
   end
 
-  def learning([{:weight, w, ir, lr, h} | rest], [{:weight, w1, _, _, _} | rest1], :adagrad) do
+  def learning([{:weight, w, ir, lr, dr, h} | rest], [{:weight, w1, _, _, _, _} | rest1], :adagrad) do
     h1 = CM.add(h, CM.emult(w1, w1))
-    [{:weight, CM.adagrad(w, w1, h1, lr), ir, lr, h1} | learning(rest, rest1, :adagrad)]
+    [{:weight, CM.adagrad(w, w1, h1, lr), ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
   def learning([{:bias, w, ir, lr, h} | rest], [{:bias, w1, _, _, _} | rest1], :adagrad) do

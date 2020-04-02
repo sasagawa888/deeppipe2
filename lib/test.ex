@@ -54,7 +54,7 @@ defmodule Test do
   # 
   defnetwork init_network7(_x) do
     _x
-    |> w(784, 300) |> b(300) |> relu
+    |> w(784, 300, 0.1, 0.1, 0.001) |> b(300) |> relu
     |> w(300, 100) |> b(100) |> relu
     |> w(100, 10) |> b(10) |> softmax
   end
@@ -83,7 +83,7 @@ defmodule Test do
   def sgd1(image, network, train, m, n) do
     {image1, train1} = DP.random_select(image, train, m, 2000)
     network1 = DP.gradient(image1, network, train1)
-    network2 = DP.learning(network, network1, :momentum)
+    network2 = DP.learning(network, network1)
     [y | _] = DP.forward(image1, network2, [])
     loss = CM.loss(y, train1, :cross)
     IO.puts(loss)
@@ -231,7 +231,7 @@ defmodule Test do
   def drop1(image, network, train, m, n) do
     {image1, train1} = DP.random_select(image, train, m, 2000)
     network1 = DP.gradient(image1, network, train1)
-    network2 = DP.learning(network, network1, :momentum)
+    network2 = DP.learning(network, network1)
     [y | _] = DP.forward(image1, network2, [])
     loss = CM.loss(y, train1, :cross)
     IO.puts(loss)
