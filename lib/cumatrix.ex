@@ -870,7 +870,7 @@ defmodule Cumatrix do
     if rate == 0.0 do 
       {r, c, dt}
     else 
-      result = dropout(r*c, dt, rate)
+      result = dropout1(r*c, dt, rate)
       if !is_integer(result) do 
         {r, c, result}
       else 
@@ -883,7 +883,7 @@ defmodule Cumatrix do
     if rate == 0.0 do 
       {c,h,w,dt}
     else 
-      result = dropout(c*h*w, dt, rate)
+      result = dropout1(c*h*w, dt, rate)
       if !is_integer(result) do 
         {c, h, w, result}
       else 
@@ -896,7 +896,7 @@ defmodule Cumatrix do
     if rate == 0.0 do 
       {n,c,h,w,dt}
     else 
-      result = dropout(n*c*h*w, dt, rate)
+      result = dropout1(n*c*h*w, dt, rate)
       if !is_integer(result) do 
         {n, c, h, w, result}
       else 
@@ -905,7 +905,7 @@ defmodule Cumatrix do
     end  
   end 
 
-  def dropout(_,_,_) do 
+  def dropout(_,_) do 
     raise "dropout illegal argument"
   end 
 

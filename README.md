@@ -147,9 +147,10 @@ argument must have under bar to avoid warning message
 
 ##### w(m,n)
 weight matrix size(m,n). elements are Gaussian distribution random float
-##### w(m,n,,ir,lr)
+##### w(m,n,,ir,lr,dr)
 ir is rate for random number. (default is 0.1)
 lr is learning rate (default is 0.1)
+dr is dropout rate (default is 0.0)
 
 ##### b(n)
 bias row_vector size(n). elements are all zero
