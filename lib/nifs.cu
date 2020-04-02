@@ -1116,6 +1116,63 @@ sub1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
+__global__ void nzsub1_kernel(float *a, float *b, float *c, int n)
+{
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	while (tid < n)
+	{
+        if(a[tid] != 0.0)
+            c[tid] = a[tid] - b[tid];
+        else 
+            c[tid] = 0.0;
+		tid += blockDim.x * gridDim.x;
+	}
+}
+/*
+when lefthand is not zero it is same as sub1
+for dropout
+*/
+static ERL_NIF_TERM
+nzsub1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin, b_bin;
+    ERL_NIF_TERM  c_bin;
+    int n;
+    float *a,*b,*c;
+    float *dev_a, *dev_b, *dev_c;
+
+    DISP("sub1")
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_int(env,3);
+
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
+
+    	// Allocate for GPU
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
+
+
+    // copy from host a,b to GPU dev_a, dev_b
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
+
+	nzsub1_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, n);
+
+	// copy to host c from GPU dev_c
+	CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+	cudaFree(dev_c);
+
+    return(c_bin);
+}
+
+
 __global__ void emult1_kernel(float *a, float *b, float *c, int n)
 {
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -2116,6 +2173,7 @@ static ErlNifFunc nif_funcs[] = {
   {"rand1", 1, rand1},
   {"add1", 3, add1},
   {"sub1", 3, sub1},
+  {"nzsub1", 3, nzsub1},
   {"emult1", 4, emult1},
   {"transpose1", 3, transpose1},
   {"ident1", 1, ident1},

@@ -42,6 +42,10 @@ defmodule Cumatrix do
     raise "NIF sub1/3 not implemented"
   end
 
+  def nzsub1(_a, _b, _c) do
+    raise "NIF nzsub1/3 not implemented"
+  end
+
   def emult1(_a, _b, _c, _d) do
     raise "NIF emult1/4 not implemented"
   end
@@ -451,10 +455,41 @@ defmodule Cumatrix do
     end 
   end
 
-
   def sub(_, _) do
     raise "sub illegal data type"
   end
+
+  def nzsub({r1, c1, dt1}, {r1, c1, dt2}) do
+    result = nzsub1(r1*c1, dt1, dt2)
+    if !is_integer(result) do
+      {r1, c1, result}
+    else 
+      error("nzsub1",result)
+    end 
+  end
+
+  def nzsub({c1,h1, w1, dt1}, {c1, h1, w1, dt2}) do
+    result = nzsub1(c1*h1*w1, dt1, dt2)
+    if !is_integer(result) do
+      {c1, h1, w1, result}
+    else
+      error("nzsub1",result)
+    end 
+  end
+
+  def nzsub({n1,c1,h1, w1, dt1}, {n1,c1, h1, w1, dt2}) do
+    result = nzsub1(n1*c1*h1*w1, dt1, dt2)
+    if !is_integer(result) do 
+      {n1,c1, h1, w1, result}
+    else 
+      error("nzsub1",result)
+    end 
+  end
+
+  def nzsub(_, _) do
+    raise "nzsub illegal data type"
+  end
+  
 
   def emult({r1, c1, dt1}, {r1, c1, dt2}) do
     result = emult1(r1, c1, dt1, dt2)
