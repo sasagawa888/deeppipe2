@@ -54,7 +54,7 @@ defmodule Test do
   # 
   defnetwork init_network7(_x) do
     _x
-    |> w(784, 300, 0.1, 0.1, 0.001) |> b(300) |> relu
+    |> w(784, 300, 0.1, 0.1, 50.0) |> b(300) |> relu
     |> w(300, 100) |> b(100) |> relu
     |> w(100, 10) |> b(10) |> softmax
   end

@@ -2178,7 +2178,7 @@ static ERL_NIF_TERM
 dropout1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin;
-    int i, c, r, n;
+    int r, n;
     float *a, *b;
     float *dev_a, *dev_b;
     double rate;
@@ -2206,8 +2206,7 @@ dropout1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     
     // dropout
-    c = (int)((double)n * rate);
-    for(i=0;i<c;i++){
+    if(rate < (double)(rand() % 100)){
         r = rand() % n;
         b[r] = 0.0;
     }
