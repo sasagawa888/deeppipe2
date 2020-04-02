@@ -867,30 +867,42 @@ defmodule Cumatrix do
   end
 
   def dropout({r,c,dt},rate) when is_float(rate) do
-    result = dropout(r*c, dt, rate)
-    if !is_integer(result) do 
-      {r, c, result}
+    if rate == 0.0 do 
+      {r, c, dt}
     else 
-      error("dropout1",result)
-    end 
+      result = dropout(r*c, dt, rate)
+      if !is_integer(result) do 
+        {r, c, result}
+      else 
+        error("dropout1",result)
+      end
+    end  
   end 
 
   def dropout({c,h,w,dt},rate) when is_float(rate) do
-    result = dropout(c*h*w, dt, rate)
-    if !is_integer(result) do 
-      {c, h, w, result}
+    if rate == 0.0 do 
+      {c,h,w,dt}
     else 
-      error("dropout1",result)
-    end 
+      result = dropout(c*h*w, dt, rate)
+      if !is_integer(result) do 
+        {c, h, w, result}
+      else 
+        error("dropout1",result)
+      end
+    end  
   end 
 
   def dropout({n,c,h,w,dt},rate) when is_float(rate) do
-    result = dropout(n*c*h*w, dt, rate)
-    if !is_integer(result) do 
-      {n, c, h, w, result}
+    if rate == 0.0 do 
+      {n,c,h,w,dt}
     else 
-      error("dropout1",result)
-    end 
+      result = dropout(n*c*h*w, dt, rate)
+      if !is_integer(result) do 
+        {n, c, h, w, result}
+      else 
+        error("dropout1",result)
+      end
+    end  
   end 
 
   def dropout(_,_,_) do 
