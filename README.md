@@ -362,7 +362,7 @@ transfer from matrix to 4 DIM tensor. tensor(N,C,H,W). N is row size of matrix. 
 - Cumatrix.nzsub(ts1,ts2)
 when element of ts1 is not zero ts1 - ts2
 
-- Cumatrix.droput(ts,rate)
+- Cumatrix.dropout(ts,rate)
 genarate tensor that element calculated probability with rate is zero.
 
 
