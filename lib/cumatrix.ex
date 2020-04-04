@@ -763,10 +763,10 @@ defmodule Cumatrix do
     else
       result = pooling1(n, c, h, w, dt, st)
       if !is_integer(result) do
-        [f,b] = result
+        {f,b} = result
         h1 = div(h, st)
         w1 = div(w, st)
-        [{n, c, h1, w1, f},{n, c, h1, w1, b}]
+        {{n, c, h1, w1, f},{n, c, h1, w1, b}}
       else 
         error("pooling1",result)
       end 

@@ -46,7 +46,7 @@ defmodule Deeppipe do
 
   def forward(x, [{:pooling, st} | rest], [_|res]) do
     #IO.puts("FD pooling")
-    [x1, x2] = CM.pooling(x, st)
+    {x1, x2} = CM.pooling(x, st)
     forward(x1, rest, [x1,x2 | res])
   end
 

@@ -96,7 +96,7 @@ __global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, i
 static ERL_NIF_TERM
 pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
-    ERL_NIF_TERM  b_bin,c_bin,list;
+    ERL_NIF_TERM  b_bin,c_bin,tuple;
     int in_n,in_c,in_h,in_w,st, n1, n2;
     float *a,*b, *c;
     float *dev_a, *dev_b, *dev_c;
@@ -133,17 +133,15 @@ pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(c, dev_c, n2 * sizeof(float), cudaMemcpyDeviceToHost));
       
 
-    // return forward data and backward data with list 
-    list = enif_make_list(env, 0);
-    list = enif_make_list_cell(env,c_bin,list);
-    list = enif_make_list_cell(env,b_bin,list);
-
+    // return forward data and backward data with tuple {b_bin,c_bin} 
+    tuple = enif_make_tuple2(env,b_bin,c_bin);
+    
     // free 
     cudaFree(dev_a);
 	cudaFree(dev_b);
 	cudaFree(dev_c);
 
-    return(list);
+    return(tuple);
 }
 
 

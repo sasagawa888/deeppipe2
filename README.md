@@ -339,7 +339,7 @@ ls is list that express 4-dimension or 3-dimension data
 tensor is 3-dimension or 4-dimension
 
 - Cumatrix.pooling(tensor,st)
-pooling with stride st. size of H and W must be less 1000. max 999*999
+pooling with stride st. size of H and W must be less 1000. max 999*999. return tuple {tensor-for-forward,tensor-for-backward}
 
 - Cumatrix.unpooing(ts1,ts2,st)
 unpooling with stride st.
