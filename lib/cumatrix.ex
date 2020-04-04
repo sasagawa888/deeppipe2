@@ -166,10 +166,6 @@ defmodule Cumatrix do
     raise "NIF unfull1/4 not implemented"
   end
 
-  def dropout1(_1, _2, _3) do
-    raise "NIF dropout1/3 not implemented"
-  end
-
   def sgd1(_1, _2, _3, _4, _5) do
     raise "NIF sgd1/5 not implemented"
   end
@@ -836,49 +832,7 @@ defmodule Cumatrix do
     end 
   end
 
-  def dropout({r,c,dt},rate) when is_float(rate) do
-    if rate == 0.0 do 
-      {r, c, dt}
-    else 
-      result = dropout1(r*c, dt, rate)
-      if !is_integer(result) do 
-        {r, c, result}
-      else 
-        error("dropout1",result)
-      end
-    end  
-  end 
-
-  def dropout({c,h,w,dt},rate) when is_float(rate) do
-    if rate == 0.0 do 
-      {c,h,w,dt}
-    else 
-      result = dropout1(c*h*w, dt, rate)
-      if !is_integer(result) do 
-        {c, h, w, result}
-      else 
-        error("dropout1",result)
-      end
-    end  
-  end 
-
-  def dropout({n,c,h,w,dt},rate) when is_float(rate) do
-    if rate == 0.0 do 
-      {n,c,h,w,dt}
-    else 
-      result = dropout1(n*c*h*w, dt, rate)
-      if !is_integer(result) do 
-        {n, c, h, w, result}
-      else 
-        error("dropout1",result)
-      end
-    end  
-  end 
-
-  def dropout(_,_) do 
-    raise "dropout illegal argument"
-  end 
-
+  
   def sgd({r1, c1, dt1}, {r1, c1, dt2}, lr, dr) do
     result = sgd1(r1*c1, dt1, dt2,lr,dr)
     if !is_integer(result) do
