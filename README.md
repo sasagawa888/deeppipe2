@@ -150,7 +150,7 @@ weight matrix size(m,n). elements are Gaussian distribution random float
 ##### w(m,n,,ir,lr,dr)
 ir is rate for random number. (default is 0.1)
 lr is learning rate (default is 0.1)
-dr is dropout rate (default is 0.0)
+dr is dropout rate %(0.0~100.0) (default is 0.0)
 
 ##### b(n)
 bias row_vector size(n). elements are all zero
@@ -360,13 +360,8 @@ transfer from 4 DIM tensor to matrix.
 - Cumatrix.unfull(mt,h,w)
 transfer from matrix to 4 DIM tensor. tensor(N,C,H,W). N is row size of matrix. C is 1.
 
-- Cumatrix.nzsub(ts1,ts2)
-when element of ts1 is not zero ts1 - ts2
-
-- Cumatrix.dropout(ts,rate)
-genarate tensor that element calculated probability with rate is zero.
-
-
+- Cumatrix.sgd(mt1,mt2,lr,dr)
+element of mt1 - element of mt2*lr. and dropout with rate dr.
 
 ## error code
 

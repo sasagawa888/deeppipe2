@@ -146,7 +146,7 @@ defmodule Deeppipe do
 
   def learning([{:weight, w, ir, lr, dr, v} | rest], [{:weight, w1, _, _, _, _} | rest1]) do
     #IO.puts("LN weight")
-    w2 = CM.nzsub(w, CM.mult(w1, lr)) |> CM.dropout(dr)
+    w2 = CM.sgd(w,w1,lr,dr)
     [{:weight, w2, ir, lr, dr, v} | learning(rest, rest1)]
   end
 
