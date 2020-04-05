@@ -197,13 +197,13 @@ defmodule Deeppipe do
   end
 
   def learning([{:weight, w, ir, lr, dr, h} | rest], [{:weight, w1, _, _, _, _} | rest1], :adagrad) do
-    h1 = CM.add(h, CM.emult(w1, w1))
-    [{:weight, CM.adagrad(w, w1, h1, lr), ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
+    {h1,w2} = CM.adagrad(w,h,w1,lr,dr)
+    [{:weight, w2, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
-  def learning([{:bias, w, ir, lr, h} | rest], [{:bias, w1, _, _, _} | rest1], :adagrad) do
-    h1 = CM.add(h, CM.emult(w1, w1))
-    [{:bias, CM.adagrad(w, w1, h1, lr), ir, lr, h1} | learning(rest, rest1, :adagrad)]
+  def learning([{:bias, w, ir, lr, dr, h} | rest], [{:bias, w1, _, _, _, _} | rest1], :adagrad) do
+    {h1,w2} = CM.adagrad(w,h,w1,lr,dr)
+    [{:bias, w2, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
   def learning([{:filter, w, st, pad, ir, lr, v} | rest], [{:filter, w1, _, _, _, _, _} | rest1], :adagrad) do

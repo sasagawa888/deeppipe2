@@ -2092,75 +2092,96 @@ momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
   /*
-  def adagrad(w, g, h, lr) do
-    CM.sub(w, Matrex.apply(g, h, fn g, h -> lr * (1 / adagrad_sqrt(h)) * g end))
-  end
-
-  def adagrad_sqrt(x) do
-    if x != 0 do
-      :math.sqrt(x)
-    else
-      1
-    end
-  end
+    h1 = h + grad*grad
+    w1 = w - lr * 1/sqrt(h1) * grad 
   */
   
-__global__ void adagrad_kernel(float *a, float *b, float *c, float h, float lr, int n)
+__global__ void adagrad_kernel(float *a, float *b, float *c, float *d, float *e, float lr, int n)
 {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     while (tid < n)
     {   
-        if(h != 0)
-            c[tid] = a[tid] - (lr * (1 / sqrt(h)) * b[tid]);
+        d[tid] = b[tid] + c[tid]*c[tid];
+
+        if(d[tid] != 0)
+            e[tid] = a[tid] - (lr * (1 / sqrt(d[tid])) * c[tid]);
         else 
-            c[tid] = a[tid] - (lr * b[tid]);
+            e[tid] = a[tid] - (lr * c[tid]);
         tid += blockDim.x * gridDim.x;
     }
 }
-  
+ 
+/*
+1st arg row-size of vectorized each-matrix
+2nd arg wight-matrix (a_bin)
+3rd arg h-matrix     (b_bin)
+4th arg grad-matrix  (c_bin)
+5th arg learning rate
+6th arg deropout rate
+return tuple {new-h,new-w}
+*/
 static ERL_NIF_TERM
 adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin,b_bin;
-    ERL_NIF_TERM  c_bin;
-    int r1, c1, n;
-    float *a,*b, *c;
-    float *dev_a, *dev_b, *dev_c;
-    double h,lr;
+    ErlNifBinary  a_bin,b_bin,c_bin;
+    ERL_NIF_TERM  d_bin,e_bin,tuple;
+    int n,r;
+    float *a,*b,*c,*d,*e;
+    float *dev_a, *dev_b, *dev_c, *dev_d, *dev_e;
+    float lr,dr,randfloat;
+    double learning_rate,dropout_rate;
     
     DISP("adagrad1")
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_int(env,2);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
-    if (!enif_inspect_binary(env, argv[3], &b_bin )) return enif_make_int(env,4);
-    if (!enif_get_double(env, argv[4], &h)) return enif_make_int(env,5);
-    if (!enif_get_double(env, argv[5], &lr)) return enif_make_int(env,6);
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin)) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_int(env,3);
+    if (!enif_inspect_binary(env, argv[3], &c_bin)) return enif_make_int(env,4);
+    if (!enif_get_double(env, argv[4], &learning_rate)) return enif_make_int(env,5);
+    if (!enif_get_double(env, argv[5], &dropout_rate)) return enif_make_int(env,6);
 
-    n = r1*c1;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
-    c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
+    c = (float *) c_bin.data;
+    d = (float *) enif_make_new_binary(env, n * sizeof(float), &d_bin);
+    e = (float *) enif_make_new_binary(env, n * sizeof(float), &e_bin);
+    lr = (float) learning_rate;
+    dr = (float) dropout_rate;
   
     // Allocate for GPU
     CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
     CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
     CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_d, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_e, n * sizeof(float)));
   
     // copy from host a,b to GPU dev_a, dev_b
     CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_d, d, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_e, e, n * sizeof(float), cudaMemcpyHostToDevice));
   
-    adagrad_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, float(h), float(lr), n);
+    adagrad_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, dev_d, dev_e, lr, n);
   
     // copy to host c from GPU dev_c
-    CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
+    CHECK(cudaMemcpy(c, dev_d, n * sizeof(float), cudaMemcpyDeviceToHost));
+    CHECK(cudaMemcpy(c, dev_e, n * sizeof(float), cudaMemcpyDeviceToHost));
+
+    // dropout
+    randfloat = (double)(rand() % 100) / 100.0;
+    if(dr != 0.0 && dr < randfloat){
+        r = rand() % n;
+        e[r] = 0.0;
+    }
 
     // free 
     cudaFree(dev_a);
 	cudaFree(dev_b);
-	cudaFree(dev_c);
-  
-    return(c_bin);
+    cudaFree(dev_c);
+    cudaFree(dev_d);
+	cudaFree(dev_e);
+    
+    tuple = enif_make_tuple2(env,d_bin,e_bin);
+    return(tuple);
 }
 
 /*

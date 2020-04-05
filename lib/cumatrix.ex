@@ -706,30 +706,75 @@ defmodule Cumatrix do
     end 
   end
 
+  def sgd({r1, c1, dt1}, {r1, c1, dt2}, lr, dr) do
+    result = sgd1(r1*c1, dt1, dt2,lr,dr)
+    if !is_integer(result) do
+      {r1, c1, result}
+    else 
+      error("sgd1",result)
+    end 
+  end
+
+  def sgd({c1,h1, w1, dt1}, {c1, h1, w1, dt2}, lr, dr) do
+    result = sgd1(c1*h1*w1, dt1, dt2, lr, dr)
+    if !is_integer(result) do
+      {c1, h1, w1, result}
+    else
+      error("sgd1",result)
+    end 
+  end
+
+  def sgd({n1,c1,h1, w1, dt1}, {n1,c1, h1, w1, dt2}, lr, dr) do
+    result = sgd1(n1*c1*h1*w1, dt1, dt2, lr, dr)
+    if !is_integer(result) do 
+      {n1,c1, h1, w1, result}
+    else 
+      error("sgd1",result)
+    end 
+  end
+
+  def sgd(_, _) do
+    raise "sgd illegal data type"
+  end
+  
+
+
   def momentum({r1, c1, dt1}, {r1, c1, dt2},{r1, c1, dt3}, lr, dr) do
     result = momentum1(r1*c1, dt1, dt2, dt3, lr, dr)
     if !is_integer(result) do 
-      {v, w} = result
-      {{r1, c1, v}, {r1, c1, w}}
+      {v1, w1} = result
+      {{r1, c1, v1}, {r1, c1, w1}}
     else 
       error("momentum1",result)
     end 
   end
 
+  def momentum({c, h, w, dt1}, {c, h, w, dt2},{c, h, w, dt3}, lr, dr) do
+    result = momentum1(c*h*w, dt1, dt2, dt3, lr, dr)
+    if !is_integer(result) do 
+      {v1, w1} = result
+      {{c, h, w, v1}, {c, h, w, w1}}
+    else 
+      error("momentum1",result)
+    end 
+  end
+
+
   def momentum(_, _, _, _, _) do
     raise "momentum illegal argument"
   end
 
-  def adagrad({r1, c1, dt1}, {r1, c1, dt2}, h, lr) do
-    result = adagrad1(r1, c1, dt1, dt2, h, lr)
+  def adagrad({r1, c1, dt1}, {r1, c1, dt2}, {r1, c1, dt3}, lr, dr) do
+    result = adagrad1(r1*c1, dt1, dt2, dt3, lr, dr)
     if !is_integer(result) do 
-      {r1, c1, result}
+      {h1,w1} = result
+      {{r1, c1, h1},{r1, c1, w1}}
     else 
       error("adagrad1",result)
     end 
   end
 
-  def adagrad(_, _, _, _) do
+  def adagrad(_, _, _, _, _) do
     raise "adagrad illegal argument"
   end
 
@@ -834,38 +879,7 @@ defmodule Cumatrix do
   end
 
   
-  def sgd({r1, c1, dt1}, {r1, c1, dt2}, lr, dr) do
-    result = sgd1(r1*c1, dt1, dt2,lr,dr)
-    if !is_integer(result) do
-      {r1, c1, result}
-    else 
-      error("sgd1",result)
-    end 
-  end
-
-  def sgd({c1,h1, w1, dt1}, {c1, h1, w1, dt2}, lr, dr) do
-    result = sgd1(c1*h1*w1, dt1, dt2, lr, dr)
-    if !is_integer(result) do
-      {c1, h1, w1, result}
-    else
-      error("sgd1",result)
-    end 
-  end
-
-  def sgd({n1,c1,h1, w1, dt1}, {n1,c1, h1, w1, dt2}, lr, dr) do
-    result = sgd1(n1*c1*h1*w1, dt1, dt2, lr, dr)
-    if !is_integer(result) do 
-      {n1,c1, h1, w1, result}
-    else 
-      error("sgd1",result)
-    end 
-  end
-
-  def sgd(_, _) do
-    raise "sgd illegal data type"
-  end
   
-
 
   def error(func,n) do
     cond do 
