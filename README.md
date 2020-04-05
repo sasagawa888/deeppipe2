@@ -282,7 +282,8 @@ for each element multiply differntial of mt2 and mt1. fun is :sigmoid :tanh, :re
 for each element
 v = 0.5 * mt2(x,y) - lr * mt3(x,y).
 w = mt1 + v.
-and dropout with dr.
+and dropout w with dr.
+return tuple {v,w}
 for learn/3 in DeepPipe
 
 - Cumatrix.adagrad(mt1,mt2,h,lr)
