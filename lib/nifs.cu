@@ -360,7 +360,7 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
   
-__global__ void deconvolute_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+__global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
     int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
@@ -427,136 +427,208 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[8], &st)) return enif_make_int(env,9);
     if (!enif_get_int(env, argv[9], &pad)) return enif_make_int(env,10);
 
-    if(st == 1){
+    
 
-        n1 = in_n * in_c * in_h * in_w;
-        n2 = in_c * filt_h * filt_w;
-        pad1 = filt_h - 1 + pad;
-        oh = (in_h+2*pad1-filt_h)/st + 1;
-        ow = (in_w+2*pad1-filt_w)/st + 1;
-        n3 = in_n * oh * ow;
-        a = (float *) a_bin.data;
-        b = (float *) b_bin.data;
-        b1 = (float *) enif_alloc(n2 * sizeof(float));
-        c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
+    n1 = in_n * in_c * in_h * in_w;
+    n2 = in_c * filt_h * filt_w;
+    pad1 = filt_h - 1 + pad;
+    oh = (in_h+2*pad1-filt_h)/st + 1;
+    ow = (in_w+2*pad1-filt_w)/st + 1;
+    n3 = in_n * oh * ow;
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    b1 = (float *) enif_alloc(n2 * sizeof(float));
+    c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
   
       
-        //rotate 180 degree  
-        for(i=0;i<in_c;i++){
-            for(j=0;j<filt_h;j++){
-                for(k=0;k<filt_w;k++){
-                    //if(IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w) >= n2) return enif_make_int(env,11001);
-                    b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
-                }
+    //rotate 180 degree  
+    for(i=0;i<in_c;i++){
+        for(j=0;j<filt_h;j++){
+            for(k=0;k<filt_w;k++){
+                //if(IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w) >= n2) return enif_make_int(env,11001);
+                b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
             }
         }
+    }
         
 
-        /*
-        for(i=0;i<in_c;i++){
-            for(j=0;j<filt_h;j++){
-                for(k=0;k<filt_w;k++){
-                    printf("%f",  b1[IDX3C(i,j,k,filt_h,filt_w)]);
-                }
+    /*
+    for(i=0;i<in_c;i++){
+        for(j=0;j<filt_h;j++){
+            for(k=0;k<filt_w;k++){
+                printf("%f",  b1[IDX3C(i,j,k,filt_h,filt_w)]);
             }
         }
-        */
-        // Allocate for GPU
-        CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
-        CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
-        CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
-
-  
-        // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
-        CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
-        CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
-        CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
-
-        deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, in_n);
-  
-        // copy to host c from GPU dev_c
-        CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
-
-        // free 
-        cudaFree(dev_a);
-        cudaFree(dev_b);
-        cudaFree(dev_c);
-        enif_free(b1);
     }
-    else{
-        // when st > 1 dilate loss tensor
-        int in_h1,in_w1,l,k1,l1;
-        float *a1;
-        float elt;
-        
-        // reset size for dilate
-        in_h1 = filt_h * st * (in_h - 1) + filt_h;
-        in_w1 = filt_w * st * (in_w - 1) + filt_w;
+    */
+    // Allocate for GPU
+    CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
 
-        n1 = in_n * in_c * in_h1 * in_w1;
-        n2 = in_c * filt_h * filt_w;
-        pad1 = filt_h - 1 + pad;
-        oh = (in_h1+2*pad1-filt_h)/st + 1;
-        ow = (in_w1+2*pad1-filt_w)/st + 1;
-        n3 = in_n * oh * ow;
-        a = (float *) a_bin.data;
-        b = (float *) b_bin.data;
-        a1 = (float *) enif_alloc(n1 * sizeof(float));
-        b1 = (float *) enif_alloc(n2 * sizeof(float));
-        c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
-
-        //rotate 180 degree  
-        for(i=0;i<in_c;i++){
-            for(j=0;j<filt_h;j++){
-                for(k=0;k<filt_w;k++){
-                    //if(IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w) >= n2) return enif_make_int(env,11001);
-                    b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
-                }
-            }
-        }
-
-        // dilate 
-        for(i=0;i<n1;i++){
-            a1[i] = 0.0;
-        }
-
-        for(i=0;i<in_n;i++){
-            for(j=0;j<in_c;j++){
-                for(k=0;k<in_h;k++){
-                    for(l=0;l<in_w;l++){
-                        elt = a[IDX4C(i,j,k,l,in_c,in_h,in_w)];
-                        k1 = k * filt_h * st;
-                        l1 = l * filt_w * st;
-                        a1[IDX4C(i,j,k1,l1,in_c,in_h1,in_w1)] = elt;
-                    }
-                }
-            }
-        }
-        CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
-        CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
-        CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
-
-        deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h1, in_w1, in_n);
-
-        CHECK(cudaMemcpy(dev_a, a1, n1 * sizeof(float), cudaMemcpyHostToDevice));
-        CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
-        CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
-
-        deconvolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h1, in_w1, in_n);
   
-        // copy to host c from GPU dev_c
-        CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
+    // copy from host a,b1,c to GPU dev_a, dev_b, dev_c
+    CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
-        // free 
-        cudaFree(dev_a);
-        cudaFree(dev_b);
-        cudaFree(dev_c);
-        enif_free(a1);
-        enif_free(b1);
+    deconvolute1_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, in_n);
   
-    }
+    // copy to host c from GPU dev_c
+    CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
+
+    // free 
+    cudaFree(dev_a);
+    cudaFree(dev_b);
+    cudaFree(dev_c);
+    enif_free(b1);
+    
+    
     return(c_bin);
 }
+
+
+__global__ void deconvolute2_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
+    float sum,elt1,elt2;
+    if(tid < n)
+    {   
+        n1 = tid;
+        oh = (in_h+2*pad-filt_h)/st + 1;
+        ow = (in_w+2*pad-filt_w)/st + 1;
+        for(w2=0;w2<ow;w2++){
+            for(h2=0;h2<oh;h2++){
+                sum = 0.0;
+                start_h1 = st*h2-pad;
+                end_h1 = start_h1 + filt_h;
+                start_w1 = st*w2-pad;
+                end_w1 = start_w1 + filt_w;
+                for(c1=0;c1<in_c;c1++){
+                    for(h1=start_h1;h1<end_h1;h1++){
+                        for(w1=start_w1;w1<end_w1;w1++){
+                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
+                                elt1 = a[IDX4C(n1,0,h1,w1,in_c,in_h,in_w)];
+                                elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
+                                sum = sum + elt1*elt2;
+                            }
+                        }
+                    }
+                    c[IDX4C(n1,c1,h2,w2,in_c,oh,ow)] = sum;  
+                }
+                 
+            }
+        }
+    }
+}
+  
+/*
+1st arg in_n of input tensor
+2nd arg in_c of input tensor
+3rd arg in_h of input tensor
+4th arg in_w of input tensor
+5th arg filt_h of filter tensor
+6th arg filt_w of filter tensor
+7th arg binary of input tensor
+8th arg binary of filter tensor
+9th arg stride
+10th arg padding   
+*/
+static ERL_NIF_TERM
+deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin;
+    int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k;
+    float *a,*b, *b1, *c;
+    float *dev_a, *dev_b, *dev_c;
+    // when st > 1 dilate loss tensor
+    int in_h1,in_w1,l,k1,l1;
+    float *a1;
+    float elt;
+  
+    DISP("deconvolute2")
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
+    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_int(env,6);
+    if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_int(env,7);
+    if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_int(env,8);
+    if (!enif_get_int(env, argv[8], &st)) return enif_make_int(env,9);
+    if (!enif_get_int(env, argv[9], &pad)) return enif_make_int(env,10);
+
+        
+    // reset size for dilate
+    in_h1 = filt_h * st * (in_h - 1) + filt_h;
+    in_w1 = filt_w * st * (in_w - 1) + filt_w;
+
+    n1 = in_n * in_c * in_h1 * in_w1;
+    n2 = in_c * filt_h * filt_w;
+    pad1 = filt_h - 1 + pad;
+    oh = (in_h1+2*pad1-filt_h)/st + 1;
+    ow = (in_w1+2*pad1-filt_w)/st + 1;
+    n3 = in_n * oh * ow;
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    a1 = (float *) enif_alloc(n1 * sizeof(float));
+    b1 = (float *) enif_alloc(n2 * sizeof(float));
+    c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
+
+    //rotate 180 degree  
+    for(i=0;i<in_c;i++){
+        for(j=0;j<filt_h;j++){
+            for(k=0;k<filt_w;k++){
+                //if(IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w) >= n2) return enif_make_int(env,11001);
+                b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
+            }
+        }
+    }
+
+    // dilate 
+    for(i=0;i<n1;i++){
+        a1[i] = 0.0;
+    }
+    /*
+    for(i=0;i<in_n;i++){
+        for(j=0;j<in_c;j++){
+            for(k=0;k<in_h;k++){
+                for(l=0;l<in_w;l++){
+                    elt = a[IDX4C(i,j,k,l,in_c,in_h,in_w)];
+                    k1 = k * filt_h * st;
+                    l1 = l * filt_w * st;
+                    a1[IDX4C(i,j,k1,l1,in_c,in_h1,in_w1)] = elt;
+                }
+            }
+        }
+    }
+    */    
+    CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
+
+    deconvolute2_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h1, in_w1, in_n);
+
+    CHECK(cudaMemcpy(dev_a, a1, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
+
+    deconvolute2_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h1, in_w1, in_n);
+  
+    // copy to host c from GPU dev_c
+    CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
+
+    // free 
+    cudaFree(dev_a);
+    cudaFree(dev_b);
+    cudaFree(dev_c);
+    enif_free(a1);
+    enif_free(b1);
+  
+    return(c_bin);
+}
+
 
 __global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int loss_h, int loss_w, int st, int pad, int in_c, int in_h, int in_w, int n)
 {
@@ -2349,6 +2421,7 @@ static ErlNifFunc nif_funcs[] = {
   {"unpooling1", 7, unpooling1},
   {"convolute1", 10, convolute1},
   {"deconvolute1", 10, deconvolute1},
+  {"deconvolute2", 10, deconvolute2},
   {"gradfilter1", 12, gradfilter1},
   {"full1", 4, full1},
   {"unfull1", 4, unfull1},

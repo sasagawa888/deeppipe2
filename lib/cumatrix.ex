@@ -158,6 +158,10 @@ defmodule Cumatrix do
     raise "NIF deconvolute1/10 not implemented"
   end
 
+  def deconvolute2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) do
+    raise "NIF deconvolute2/10 not implemented"
+  end
+
   def gradfilter1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) do
     raise "NIF gradfilter1/12 not implemented"
   end
@@ -878,12 +882,21 @@ defmodule Cumatrix do
   def deconvolute({n, c, oh, ow, dt1}, {c, h2, w2, dt2}, st, pad) do
     h1 = (oh-1)*st - 2*pad + h2
     w1 = (ow-1)*st - 2*pad + h2
-    result = deconvolute1(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)
-    if !is_integer(result) do 
-      {n, c, h1, w1, result}
-    else 
-      error("deconvolute1",result)
-    end 
+    if st == 1 do 
+      result = deconvolute1(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)
+      if !is_integer(result) do 
+        {n, c, h1, w1, result}
+      else 
+        error("deconvolute1",result)
+      end
+    else
+      result = deconvolute2(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)
+      if !is_integer(result) do 
+        {n, c, h1, w1, result}
+      else 
+        error("deconvolute2",result)
+      end
+    end  
   end
 
   def gradfilter({n1, c1, h1, w1, dt1}, {c1, h2, w2, _}, {n1, c1, h3, w3, dt3}, st, pad) do
