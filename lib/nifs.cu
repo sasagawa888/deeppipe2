@@ -498,6 +498,8 @@ __global__ void deconvolute2_kernel(float *a, float *b, float *c, int filt_h, in
         n1 = tid;
         oh = (in_h+2*pad-filt_h)/st + 1;
         ow = (in_w+2*pad-filt_w)/st + 1;
+
+        //convulute
         for(w2=0;w2<ow;w2++){
             for(h2=0;h2<oh;h2++){
                 sum = 0.0;
@@ -590,7 +592,7 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     for(i=0;i<n1;i++){
         a1[i] = 0.0;
     }
-    /*
+    
     for(i=0;i<in_n;i++){
         for(j=0;j<in_c;j++){
             for(k=0;k<in_h;k++){
@@ -603,7 +605,7 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
             }
         }
     }
-    */    
+    
     CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
     CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
     CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
