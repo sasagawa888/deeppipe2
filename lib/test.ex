@@ -104,8 +104,8 @@ defmodule Test do
 
   def momentum(m, n) do
     IO.puts("preparing data")
-    image = MNIST.train_image(3000, :flatten)
-    label = MNIST.train_label_onehot(3000)
+    image = MNIST.train_image(3000, :flatten) |> CM.new()
+    label = MNIST.train_label_onehot(3000) |> CM.new()
     network = init_network2(0)
     IO.puts("ready")
     network1 = sgd1(image, network, label, m, n)
@@ -133,8 +133,8 @@ defmodule Test do
 
   def adagrad(m, n) do
     IO.puts("preparing data")
-    image = MNIST.train_image(3000, :flatten)
-    label = MNIST.train_label_onehot(3000)
+    image = MNIST.train_image(3000, :flatten) |> CM.new()
+    label = MNIST.train_label_onehot(3000) |> CM.new()
     network = init_network3(0)
     IO.puts("ready")
     network1 = sgd1(image, network, label, m, n)
