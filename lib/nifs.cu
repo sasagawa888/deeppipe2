@@ -1917,7 +1917,85 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(list);
 }
 
+__global__ void sgd1_kernel(float *a, float *b, float *c, float lr, int n)
+{
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	while (tid < n)
+	{
+        if(a[tid] != 0.0)
+            c[tid] = a[tid] - b[tid]*lr;
+        else 
+            c[tid] = 0.0;
+		tid += blockDim.x * gridDim.x;
+	}
+}
+/*
+w - g*lr |> dropout()
+for sgd
+w is weight matrix.
+g is gradient matrix.
+when element of w is zero result is zero. This means dropout.
+return updated weight matrix.
 
+1st arg is size of vectorized matrix
+2nd arg is weight matrix or tensor
+3rd arg is gradient matrix or tensor
+4th arg is learning rate
+5th arg is dropout rate
+*/
+static ERL_NIF_TERM
+sgd1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin, b_bin;
+    ERL_NIF_TERM  c_bin;
+    int n,r;
+    float *a,*b,*c,*dev_a, *dev_b, *dev_c;
+    float lr,dr,randfloat;
+    double learning_rate,dropout_rate;
+
+    DISP("sgd1")
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_int(env,3);
+    if (!enif_get_double(env, argv[3], &learning_rate)) return enif_make_int(env,4);
+    if (!enif_get_double(env, argv[4], &dropout_rate)) return enif_make_int(env,5);
+
+
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
+    lr = (float) learning_rate;
+    dr = (float) dropout_rate;
+
+    	// Allocate for GPU
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
+	CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
+
+
+    // copy from host a,b to GPU dev_a, dev_b
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
+
+	sgd1_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, lr, n);
+
+	// copy to host c from GPU dev_c
+	CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
+
+
+    // dropout
+    randfloat = (double)(rand() % 100) / 100.0;
+    if(dr != 0.0 && dr < randfloat){
+        r = rand() % n;
+        c[r] = 0.0;
+    }
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+	cudaFree(dev_c);
+
+    return(c_bin);
+}
 
 
 /*
@@ -1925,65 +2003,92 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     Matrex.apply(v, g, fn v, g -> 0.5 * v - lr * g end)
   end
 */
-__global__ void momentum_kernel(float *a, float *b, float *c, float lr, int n)
+__global__ void momentum_kernel(float *a, float *b, float *c, float *d, float *e, float lr, int n)
 {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     while (tid < n)
     {   
-        c[tid] = (0.5 * a[tid]) - (lr * b[tid]);
+        d[tid] = (0.5 * b[tid]) - (lr * c[tid]);
+        if(a[tid] != 0.0)
+            e[tid] = a[tid] + d[tid];
+        else 
+            e[tid] = 0.0;
         tid += blockDim.x * gridDim.x;
     }
 }
 
 /*
-1st arg row-size of v-matrix
-2nd arg col-size of v-matrix
+1st arg row-size of vectorized each-matrix
+2nd arg wight-matrix
 3rd arg v-matrix
 4th arg g-matrix
 5th arg learning rate
+6th arg deropout rate
+return tuple
 */
 static ERL_NIF_TERM
 momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin,b_bin;
-    ERL_NIF_TERM  c_bin;
-    int r1, c1, n;
-    float *a,*b, *c;
-    float *dev_a, *dev_b, *dev_c;
-    double lr;
+    ErlNifBinary  a_bin,b_bin,c_bin;
+    ERL_NIF_TERM  d_bin,e_bin,tuple;
+    int n,r;
+    float *a,*b,*c,*d,*e;
+    float *dev_a, *dev_b, *dev_c ,*dev_d, *dev_e;
+    float lr,dr,randfloat;
+    double learning_rate,dropout_rate;
   
     DISP("momentum1")
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_int(env,2);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
-    if (!enif_inspect_binary(env, argv[3], &b_bin )) return enif_make_int(env,4);
-    if (!enif_get_double(env, argv[4], &lr)) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin)) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &b_bin )) return enif_make_int(env,3);
+    if (!enif_inspect_binary(env, argv[3], &c_bin )) return enif_make_int(env,4);
+    if (!enif_get_double(env, argv[4], &learning_rate)) return enif_make_int(env,5);
+    if (!enif_get_double(env, argv[5], &dropout_rate)) return enif_make_int(env,6);
 
-    n = r1*c1;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
-    c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
+    c = (float *) c_bin.data;
+    d = (float *) enif_make_new_binary(env, n * sizeof(float), &d_bin);
+    e = (float *) enif_make_new_binary(env, n * sizeof(float), &e_bin);
+    lr = (float) learning_rate;
+    dr = (float) dropout_rate;
+    
   
     // Allocate for GPU
     CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
     CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
     CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_d, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_e, n * sizeof(float)));
   
     // copy from host a,b to GPU dev_a, dev_b
     CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_d, d, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_e, e, n * sizeof(float), cudaMemcpyHostToDevice));
   
-    momentum_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, float(lr), n);
+    momentum_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, dev_d, dev_e, lr, n);
   
-    // copy to host c from GPU dev_c
-    CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
+    // copy to host d from GPU dev_d
+    CHECK(cudaMemcpy(d, dev_d, n * sizeof(float), cudaMemcpyDeviceToHost));
+    CHECK(cudaMemcpy(e, dev_e, n * sizeof(float), cudaMemcpyDeviceToHost));
+
+    // dropout
+    randfloat = (double)(rand() % 100) / 100.0;
+    if(dr != 0.0 && dr < randfloat){
+        r = rand() % n;
+        e[r] = 0.0;
+    }
 
     // free 
     cudaFree(dev_a);
 	cudaFree(dev_b);
-	cudaFree(dev_c);
-  
-    return(c_bin);
+    cudaFree(dev_c);
+    cudaFree(dev_d);
+	cudaFree(dev_e);
+    
+    tuple = enif_make_tuple2(env,d_bin,e_bin);
+    return(tuple);
 }
 
   /*
@@ -2103,87 +2208,6 @@ accuracy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-__global__ void sgd1_kernel(float *a, float *b, float *c, float lr, int n)
-{
-	int tid = threadIdx.x + blockIdx.x * blockDim.x;
-	while (tid < n)
-	{
-        if(a[tid] != 0.0)
-            c[tid] = a[tid] - b[tid]*lr;
-        else 
-            c[tid] = 0.0;
-		tid += blockDim.x * gridDim.x;
-	}
-}
-/*
-w - g*lr |> dropout()
-for sgd
-w is weight matrix.
-g is gradient matrix.
-when element of w is zero result is zero. This means dropout.
-return updated weight matrix.
-
-1st arg is size of vectorized matrix
-2nd arg is weight matrix or tensor
-3rd arg is gradient matrix or tensor
-4th arg is learning rate
-5th arg is dropout rate
-*/
-static ERL_NIF_TERM
-sgd1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin, b_bin;
-    ERL_NIF_TERM  c_bin;
-    int n,r;
-    float *a,*b,*c,*dev_a, *dev_b, *dev_c;
-    float lr,dr,randfloat;
-    double learning_rate,dropout_rate;
-
-    DISP("sgd1")
-    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
-    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
-    if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_int(env,3);
-    if (!enif_get_double(env, argv[3], &learning_rate)) return enif_make_int(env,4);
-    if (!enif_get_double(env, argv[4], &dropout_rate)) return enif_make_int(env,5);
-
-
-    a = (float *) a_bin.data;
-    b = (float *) b_bin.data;
-    c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
-    lr = (float) learning_rate;
-    dr = (float) dropout_rate;
-
-    	// Allocate for GPU
-	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
-	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
-	CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
-
-
-    // copy from host a,b to GPU dev_a, dev_b
-	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
-
-	sgd1_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, lr, n);
-
-	// copy to host c from GPU dev_c
-	CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
-
-
-    // dropout
-    randfloat = (double)(rand() % 100) / 100.0;
-    if(dr != 0.0 && dr < randfloat){
-        r = rand() % n;
-        c[r] = 0.0;
-    }
-
-    // free 
-    cudaFree(dev_a);
-	cudaFree(dev_b);
-	cudaFree(dev_c);
-
-    return(c_bin);
-}
-
-
 
 // define the array of ErlNifFunc
 static ErlNifFunc nif_funcs[] = {
@@ -2218,7 +2242,7 @@ static ErlNifFunc nif_funcs[] = {
   {"to_list1", 3, to_list1},
   {"to_list2", 4, to_list2},
   {"to_list3", 5, to_list3},
-  {"momentum1", 5, momentum1},
+  {"momentum1", 6, momentum1},
   {"adagrad1", 6, adagrad1},
   {"accuracy1", 4, accuracy1},
   {"pooling1", 6, pooling1},

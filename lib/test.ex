@@ -56,11 +56,12 @@ defmodule Test do
     _x
     |> w(784, 300, 0.1, 0.1, 0.5) |> b(300) |> relu
     |> w(300, 100) |> b(100) |> relu
-    |> w(100, 10) |> b(10) |> softmax
+    |> w(100, 10)  |> b(10) |> softmax
   end
 
   # long network test
   # 
+  # check bad argument error in cross_entropy
   defnetwork init_network8(_x) do
     _x
     |> w(784, 600) |> b(600) |> relu
@@ -76,8 +77,8 @@ defmodule Test do
 
   def sgd(m, n) do
     IO.puts("preparing data")
-    image = MNIST.train_image(3000, :flatten)
-    label = MNIST.train_label_onehot(3000)
+    image = MNIST.train_image(6000, :flatten)
+    label = MNIST.train_label_onehot(6000)
     network = init_network1(0)
     IO.puts("ready")
     network1 = sgd1(image, network, label, m, n)

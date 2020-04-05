@@ -126,8 +126,8 @@ defmodule Cumatrix do
     raise "NIF to_list3/5 not implemented"
   end
 
-  def momentum1(_a, _b, _c, _d, _e) do
-    raise "NIF momentum1/5 not implemented"
+  def momentum1(_a, _b, _c, _d, _e, _f) do
+    raise "NIF momentum1/6 not implemented"
   end
 
   def adagrad1(_a, _b, _c, _d, _e, _f) do
@@ -706,16 +706,17 @@ defmodule Cumatrix do
     end 
   end
 
-  def momentum({r1, c1, dt1}, {r1, c1, dt2}, lr) do
-    result = momentum1(r1, c1, dt1, dt2, lr)
+  def momentum({r1, c1, dt1}, {r1, c1, dt2},{r1, c1, dt3}, lr, dr) do
+    result = momentum1(r1*c1, dt1, dt2, dt3, lr, dr)
     if !is_integer(result) do 
-      {r1, c1, result}
+      {v, w} = result
+      {{r1, c1, v}, {r1, c1, w}}
     else 
       error("momentum1",result)
     end 
   end
 
-  def momentum(_, _, _) do
+  def momentum(_, _, _, _, _) do
     raise "momentum illegal argument"
   end
 
