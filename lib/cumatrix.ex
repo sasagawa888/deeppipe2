@@ -126,6 +126,10 @@ defmodule Cumatrix do
     raise "NIF to_list3/5 not implemented"
   end
 
+  def sgd1(_1, _2, _3, _4, _5) do
+    raise "NIF sgd1/5 not implemented"
+  end
+
   def momentum1(_a, _b, _c, _d, _e, _f) do
     raise "NIF momentum1/6 not implemented"
   end
@@ -166,9 +170,13 @@ defmodule Cumatrix do
     raise "NIF unfull1/4 not implemented"
   end
 
-  def sgd1(_1, _2, _3, _4, _5) do
-    raise "NIF sgd1/5 not implemented"
-  end
+  def random_select1(_1, _2, _3, _4, _5, _6, _7) do
+    raise "NIF random_select1/7 not implemented"
+  end 
+
+  def random_select2(_1, _2, _3, _4, _5, _6, _7, _8, _9) do
+    raise "NIF random_select1/9 not implemented"
+  end 
 
 
   # ----------------------------------------------------------------
@@ -804,6 +812,26 @@ defmodule Cumatrix do
   def accurace(_, _) do
     raise "accuracy illegal argument"
   end
+
+  def random_select({r1,c1,dt1},{r2,c2,dt2},n) do
+    result = random_select1(r1,c1,dt1,r2,c2,dt2,n)
+    if !is_integer(result) do
+      {dt3,dt4} = result
+      {{n,c1,dt3},{n,c2,dt4}}
+    else
+      error("random_select",result)
+    end 
+  end 
+
+  def random_select({n1,c1,h1,w1,dt1},{r2,c2,dt2},n) do
+    result = random_select2(n1,c1,h1,w1,dt1,r2,c2,dt2,n)
+    if !is_integer(result) do
+      {dt3,dt4} = result
+      {{n,c1,h1,w1,dt3},{n,c2,dt4}}
+    else
+      error("random_select",result)
+    end 
+  end 
 
   def print({r, c, dt}) do
     print1(r, c, dt)

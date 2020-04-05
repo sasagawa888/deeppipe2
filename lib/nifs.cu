@@ -2229,6 +2229,85 @@ accuracy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
+static ERL_NIF_TERM
+random_select1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin,d_bin,tuple;
+    int r1, c1, r2, c2, i, j, n, r;
+    float *a, *b, *c, *d;
+  
+    DISP("random_select1")
+    if (!enif_get_int(env, argv[0], &r1)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &c1)) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[3], &r2)) return enif_make_int(env,4);
+    if (!enif_get_int(env, argv[4], &c2)) return enif_make_int(env,5);
+    if (!enif_inspect_binary(env, argv[5], &b_bin )) return enif_make_int(env,6);
+    if (!enif_get_int(env, argv[6], &n)) return enif_make_int(env,7);
+
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env, n*c1 * sizeof(float), &c_bin);
+    d = (float *) enif_make_new_binary(env, n*c2 * sizeof(float), &d_bin);
+
+
+    // random-select
+    for(i=0;i<n;i++){
+        r = rand() % r1;
+        for(j=0;j<c1;j++){
+            c[IDX2C(i,j,n)] = a[IDX2C(r,j,r1)];
+        }
+        for(j=0;j<c2;j++){
+            d[IDX2C(i,j,n)] = b[IDX2C(r,j,r2)];
+        }    
+    }
+
+    tuple = enif_make_tuple2(env,c_bin,d_bin);
+    return(tuple);
+}
+
+static ERL_NIF_TERM
+random_select2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin,d_bin,tuple;
+    int n1,c1,h1,w1,r2,c2, i, j, k, l, n, r;
+    float *a, *b, *c, *d;
+  
+    DISP("random_select2")
+    if (!enif_get_int(env, argv[0], &n1)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &c1)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &h1)) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[3], &w1)) return enif_make_int(env,4);
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[5], &r2)) return enif_make_int(env,6);
+    if (!enif_get_int(env, argv[6], &c2)) return enif_make_int(env,7);
+    if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_int(env,8);
+    if (!enif_get_int(env, argv[8], &n)) return enif_make_int(env,9);
+
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env, n*c1*h1*w1 * sizeof(float), &c_bin);
+    d = (float *) enif_make_new_binary(env, n*r2*c2 * sizeof(float), &d_bin);
+
+    // random-select
+    for(i=0;i<n;i++){
+        r = rand() % n1;
+        for(j=0;j<c1;j++){
+            for(k=0;k<h1;k++){
+                for(l=0;l<w1;l++){
+                    c[IDX4C(i,j,k,l,c1,h1,w1)] = a[IDX4C(r,j,k,l,c1,h1,w1)];
+                }
+            }
+        }
+        for(j=0;j<c2;j++){
+            d[IDX2C(i,j,n)] = b[IDX2C(r,j,r2)];
+        }    
+    }
+
+    tuple = enif_make_tuple2(env,c_bin,d_bin);
+    return(tuple);
+}
+
 
 // define the array of ErlNifFunc
 static ErlNifFunc nif_funcs[] = {
@@ -2274,6 +2353,8 @@ static ErlNifFunc nif_funcs[] = {
   {"full1", 4, full1},
   {"unfull1", 4, unfull1},
   {"sgd1", 5, sgd1},
+  {"random_select1", 7, random_select1},
+  {"random_select2", 9, random_select2}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)
