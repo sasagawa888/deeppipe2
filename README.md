@@ -278,8 +278,12 @@ each data is row vector.
 - Cumatrix.diff(mt1,mt2,fun)
 for each element multiply differntial of mt2 and mt1. fun is :sigmoid :tanh, :relu.
 
-- Cumatrix.momentum(mt1,mt2,lr)
-for each element 0.5 * mt1(x,y) - lr * mt2(x,y). for learn/3 in DeepPipe
+- Cumatrix.momentum(mt1,mt2,mt3,lr,dr)
+for each element
+v = 0.5 * mt2(x,y) - lr * mt3(x,y).
+w = mt1 + v.
+and dropout with dr.
+for learn/3 in DeepPipe
 
 - Cumatrix.adagrad(mt1,mt2,h,lr)
 for each element mt1(x,y) - lr * (1 / adagrad_sqrt(h)) * mt2(x,y). 
