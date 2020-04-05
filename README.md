@@ -284,12 +284,15 @@ v = 0.5 * mt2(x,y) - lr * mt3(x,y).
 w = mt1 + v.
 and dropout w with dr.
 return tuple {v,w}
-for learn/3 in DeepPipe
+for learn/3 in DeepPipe2
 
-- Cumatrix.adagrad(mt1,mt2,h,lr)
-for each element mt1(x,y) - lr * (1 / adagrad_sqrt(h)) * mt2(x,y). 
-when h != 0 adagrad_sqrt(x) = sqrt(x).
-when h == 0 adagrad_sqrt(x) = 1.
+- Cumatrix.adagrad(mt1,mt2,mt3,lr,dr)
+for each element
+h = mt2 + mt3*mt3.  
+w = mt1 - lr * (1 / sqrt(h)) * mt2. 
+and dropout w with dr.
+return tuple(h,w)
+for learn/3 in DeepPipe2
 
 - Cumatrix.accuracy(mt1,ls) 
 return accuracy rate as float number.
