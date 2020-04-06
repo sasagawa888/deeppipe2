@@ -36,8 +36,8 @@ defmodule Test do
 
   # convolution filter (4,4) 1ch, stride=2
   defnetwork init_network5(_x) do
-    _x |> f(4,4,1,2) |> full
-    |> w(169,300) |> b(300) |> relu
+    _x |> f(2,2,1,2) |> f(2,2,1,2) |> full
+    |> w(49,300) |> b(300) |> relu
     |> w(300, 100) |> b(100) |> relu
     |> w(100, 10) |> b(10) |> softmax
   end
