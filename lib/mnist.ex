@@ -25,7 +25,7 @@ defmodule MNIST do
 
   # transfer from train-label to onehot list
   def train_label_onehot(n) do
-    Enum.take(train_label(), n) |> Enum.map(fn y -> DP.to_onehot(y,9) end)
+    Enum.take(train_label(), n) |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
 
   # get n datas from train-image with normalization
@@ -49,7 +49,7 @@ defmodule MNIST do
 
   # transfer from test-label to onehot list
   def test_label_onehot(n) do
-    Enum.take(test_label(), n) |> Enum.map(fn y -> DP.to_onehot(y,9) end)
+    Enum.take(test_label(), n) |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
 
   # get n datas from test-image with normalization as structured list
@@ -111,6 +111,4 @@ defmodule MNIST do
   def byte_to_list1(<<b, bs::binary>>, n, ls, res) do
     byte_to_list1(bs, n - 1, [b | ls], res)
   end
-
-  
 end

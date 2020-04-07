@@ -63,7 +63,7 @@ defmodule CumatrixTest do
 
     t1 = Cumatrix.new([[[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]]])
     f1 = Cumatrix.new([[[1.0, 2.0], [3.0, 4.0]]])
-    t2 = Cumatrix.new([[[[2.0, 3.0],[4.0,5.0]]]])
+    t2 = Cumatrix.new([[[[2.0, 3.0], [4.0, 5.0]]]])
 
     assert Cumatrix.convolute(t1, f1, 1, 0) == Cumatrix.new([[[[37.0, 47.0], [67.0, 77.0]]]])
 
@@ -71,25 +71,43 @@ defmodule CumatrixTest do
              [[[37.0, 47.0], [67.0, 77.0]]]
            ]
 
-    assert Cumatrix.deconvolute(t2,f1,1,0) |> Cumatrix.to_list() == Cumatrix.new([[[[2.0, 7.0, 10.0], [8.0, 11.0, 27.0], [24.0, 16.0, 15.0]]]]) |> Cumatrix.to_list()
+    assert Cumatrix.deconvolute(t2, f1, 1, 0) |> Cumatrix.to_list() ==
+             Cumatrix.new([[[[2.0, 7.0, 10.0], [8.0, 11.0, 27.0], [24.0, 16.0, 15.0]]]])
+             |> Cumatrix.to_list()
 
-    assert Cumatrix.gradfilter(t1,f1,t2,1,0) |> Cumatrix.to_list() ==
-     Cumatrix.new([[[49.0, 63.0], [91.0, 105.0]]]) |> Cumatrix.to_list()
-    
-    t3 = Cumatrix.new([[[[1.0, 2.0, 3.0,3.3], [7.0,4.0, 5.0, 6.0], [1.1,7.0, 8.0, 9.0], [1.2,1.3,1.4,1.0]]]])
-    t4 = Cumatrix.new([[[[0.1,0.2],[0.3,0.4]]]])
-    {f,b} = Cumatrix.pooling(t3,2)
+    assert Cumatrix.gradfilter(t1, f1, t2, 1, 0) |> Cumatrix.to_list() ==
+             Cumatrix.new([[[49.0, 63.0], [91.0, 105.0]]]) |> Cumatrix.to_list()
+
+    t3 =
+      Cumatrix.new([
+        [[[1.0, 2.0, 3.0, 3.3], [7.0, 4.0, 5.0, 6.0], [1.1, 7.0, 8.0, 9.0], [1.2, 1.3, 1.4, 1.0]]]
+      ])
+
+    t4 = Cumatrix.new([[[[0.1, 0.2], [0.3, 0.4]]]])
+    {f, b} = Cumatrix.pooling(t3, 2)
     assert f |> Cumatrix.to_list() == [[[[7.0, 6.0], [7.0, 9.0]]]]
     assert b |> Cumatrix.to_list() == [[[[1.0e3, 1003.0], [2001.0, 2003.0]]]]
 
-    assert Cumatrix.unpooling(b,t4,2) |> Cumatrix.to_list() == 
-     Cumatrix.new([[[[0.0, 0.0, 0.0, 0.0], [0.1, 0.0, 0.0, 0.2], [0.0, 0.3, 0.0, 0.4], [0.0, 0.0, 0.0, 0.0]]]]) |> Cumatrix.to_list()
+    assert Cumatrix.unpooling(b, t4, 2) |> Cumatrix.to_list() ==
+             Cumatrix.new([
+               [
+                 [
+                   [0.0, 0.0, 0.0, 0.0],
+                   [0.1, 0.0, 0.0, 0.2],
+                   [0.0, 0.3, 0.0, 0.4],
+                   [0.0, 0.0, 0.0, 0.0]
+                 ]
+               ]
+             ])
+             |> Cumatrix.to_list()
 
+    t4 =
+      Cumatrix.new([
+        [1.0, 2.0, 3.0, 3.3, 7.0, 4.0, 5.0, 6.0, 1.1, 7.0, 8.0, 9.0, 1.2, 1.3, 1.4, 1.0]
+      ])
 
-    t4 = Cumatrix.new([[1.0, 2.0, 3.0, 3.3, 7.0, 4.0, 5.0, 6.0, 1.1, 7.0, 8.0, 9.0, 1.2,1.3,1.4,1.0]]) 
-    assert Cumatrix.full(t3) == t4 
+    assert Cumatrix.full(t3) == t4
 
-    assert Cumatrix.unfull(t4,4,4) == t3
-    
+    assert Cumatrix.unfull(t4, 4, 4) == t3
   end
 end

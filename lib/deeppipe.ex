@@ -9,7 +9,7 @@ defmodule Deeppipe do
   # garbage collection
   def gbc() do
     :erlang.garbage_collect()
-  end 
+  end
 
   # forward
   # return all middle data
@@ -21,37 +21,37 @@ defmodule Deeppipe do
   end
 
   def forward(x, [{:weight, w, _, _, _, _} | rest], res) do
-    #IO.puts("FD weight")
+    # IO.puts("FD weight")
     x1 = CM.mult(x, w)
     forward(x1, rest, [x1 | res])
   end
 
   def forward(x, [{:bias, b, _, _, _, _} | rest], res) do
-    #IO.puts("FD bias")
+    # IO.puts("FD bias")
     x1 = CM.add(x, b)
     forward(x1, rest, [x1 | res])
   end
 
   def forward(x, [{:function, name} | rest], res) do
-    #IO.puts("FD function")
+    # IO.puts("FD function")
     x1 = CM.activate(x, name)
     forward(x1, rest, [x1 | res])
   end
 
   def forward(x, [{:filter, w, st, pad, _, _, _} | rest], res) do
-    #IO.puts("FD filter")
+    # IO.puts("FD filter")
     x1 = CM.convolute(x, w, st, pad)
     forward(x1, rest, [x1 | res])
   end
 
-  def forward(x, [{:pooling, st} | rest], [_|res]) do
-    #IO.puts("FD pooling")
+  def forward(x, [{:pooling, st} | rest], [_ | res]) do
+    # IO.puts("FD pooling")
     {x1, x2} = CM.pooling(x, st)
-    forward(x1, rest, [x1,x2 | res])
+    forward(x1, rest, [x1, x2 | res])
   end
 
   def forward(x, [{:full} | rest], res) do
-    #IO.puts("FD full")
+    # IO.puts("FD full")
     x1 = CM.full(x)
     forward(x1, rest, [x1 | res])
   end
@@ -82,24 +82,24 @@ defmodule Deeppipe do
   end
 
   defp backward(l, [{:function, :softmax} | rest], [_ | us], res) do
-    #IO.puts("BK softmax")
+    # IO.puts("BK softmax")
     backward(l, rest, us, [{:function, :softmax} | res])
   end
 
   defp backward(l, [{:function, name} | rest], [u | us], res) do
-    #IO.puts("BK function")
+    # IO.puts("BK function")
     l1 = CM.diff(l, u, name)
     backward(l1, rest, us, [{:function, name} | res])
   end
 
   defp backward(l, [{:bias, _, ir, lr, dr, v} | rest], [_ | us], res) do
-    #IO.puts("BK bias")
+    # IO.puts("BK bias")
     b1 = CM.average(l)
     backward(l, rest, us, [{:bias, b1, ir, lr, dr, v} | res])
   end
 
   defp backward(l, [{:weight, w, ir, lr, dr, v} | rest], [u | us], res) do
-    #IO.puts("BK weight")
+    # IO.puts("BK weight")
     {n, _} = CM.size(l)
     w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n)
     l1 = CM.mult(l, CM.transpose(w))
@@ -107,8 +107,8 @@ defmodule Deeppipe do
   end
 
   defp backward(l, [{:filter, w, st, pad, ir, lr, v} | rest], [u | us], res) do
-    #IO.puts("BK filter")
-    {n,_,_,_} = CM.size(u)
+    # IO.puts("BK filter")
+    {n, _, _, _} = CM.size(u)
     rate = 1 / n
     w1 = CM.gradfilter(u, w, l, st, pad) |> CM.mult(rate)
     l1 = CM.deconvolute(l, w, st, pad)
@@ -116,13 +116,13 @@ defmodule Deeppipe do
   end
 
   defp backward(l, [{:pooling, st} | rest], [u | us], res) do
-    #IO.puts("BK pooling")
+    # IO.puts("BK pooling")
     l1 = CM.unpooling(u, l, st)
     backward(l1, rest, us, [{:pooling, st} | res])
   end
 
   defp backward(l, [{:full} | rest], [u | us], res) do
-    #IO.puts("BK full")
+    # IO.puts("BK full")
     {_, _, h, w} = CM.size(u)
     l1 = CM.unfull(l, h, w)
     backward(l1, rest, us, [{:full} | res])
@@ -145,14 +145,14 @@ defmodule Deeppipe do
   end
 
   def learning([{:weight, w, ir, lr, dr, v} | rest], [{:weight, w1, _, _, _, _} | rest1]) do
-    #IO.puts("LN weight")
-    w2 = CM.sgd(w,w1,lr,dr)
+    # IO.puts("LN weight")
+    w2 = CM.sgd(w, w1, lr, dr)
     [{:weight, w2, ir, lr, dr, v} | learning(rest, rest1)]
   end
 
   def learning([{:bias, w, ir, lr, dr, v} | rest], [{:bias, w1, _, _, _, _} | rest1]) do
-    #IO.puts("LN bias")
-    w2 = CM.sgd(w,w1,lr,dr)
+    # IO.puts("LN bias")
+    w2 = CM.sgd(w, w1, lr, dr)
     [{:bias, w2, ir, lr, dr, v} | learning(rest, rest1)]
   end
 
@@ -161,9 +161,8 @@ defmodule Deeppipe do
     [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1)]
   end
 
-
   def learning([network | rest], [_ | rest1]) do
-    #IO.puts("LN else")
+    # IO.puts("LN else")
     [network | learning(rest, rest1)]
   end
 
@@ -172,7 +171,11 @@ defmodule Deeppipe do
     []
   end
 
-  def learning([{:weight, w, ir, lr, dr, v} | rest], [{:weight, w1, _, _, _, _} | rest1], :momentum) do
+  def learning(
+        [{:weight, w, ir, lr, dr, v} | rest],
+        [{:weight, w1, _, _, _, _} | rest1],
+        :momentum
+      ) do
     {v1, w2} = CM.momentum(w, v, w1, lr, dr)
     [{:weight, w2, ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
   end
@@ -182,7 +185,11 @@ defmodule Deeppipe do
     [{:bias, w2, ir, lr, v1} | learning(rest, rest1, :momentum)]
   end
 
-  def learning([{:filter, w, st, pad, ir, lr, v} | rest], [{:filter, w1, _, _, _, _, _} | rest1], :momentum) do
+  def learning(
+        [{:filter, w, st, pad, ir, lr, v} | rest],
+        [{:filter, w1, _, _, _, _, _} | rest1],
+        :momentum
+      ) do
     w2 = CM.sub(w, CM.mult(w1, lr))
     [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1, :momentum)]
   end
@@ -196,22 +203,28 @@ defmodule Deeppipe do
     []
   end
 
-  def learning([{:weight, w, ir, lr, dr, h} | rest], [{:weight, w1, _, _, _, _} | rest1], :adagrad) do
-    {h1,w2} = CM.adagrad(w,h,w1,lr,dr)
+  def learning(
+        [{:weight, w, ir, lr, dr, h} | rest],
+        [{:weight, w1, _, _, _, _} | rest1],
+        :adagrad
+      ) do
+    {h1, w2} = CM.adagrad(w, h, w1, lr, dr)
     [{:weight, w2, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
   def learning([{:bias, w, ir, lr, dr, h} | rest], [{:bias, w1, _, _, _, _} | rest1], :adagrad) do
-    {h1,w2} = CM.adagrad(w,h,w1,lr,dr)
+    {h1, w2} = CM.adagrad(w, h, w1, lr, dr)
     [{:bias, w2, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
-  def learning([{:filter, w, st, pad, ir, lr, v} | rest], [{:filter, w1, _, _, _, _, _} | rest1], :adagrad) do
+  def learning(
+        [{:filter, w, st, pad, ir, lr, v} | rest],
+        [{:filter, w1, _, _, _, _, _} | rest1],
+        :adagrad
+      ) do
     w2 = CM.sub(w, CM.mult(w1, lr))
     [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1, :adagrad)]
   end
-
-
 
   def learning([network | rest], [_ | rest1], :adagrad) do
     [network | learning(rest, rest1, :adagrad)]
@@ -279,7 +292,6 @@ defmodule Deeppipe do
   def normalize(x, y) do
     Enum.map(x, fn z -> z / y end)
   end
-
 
   # save/load to file
   def save(file, network) do
@@ -378,6 +390,4 @@ defmodule Deeppipe do
   def newline() do
     IO.puts("")
   end
-
-  
 end

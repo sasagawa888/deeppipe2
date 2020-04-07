@@ -3,60 +3,110 @@ defmodule Test do
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
 
-  
   # for DNN test
   defnetwork init_network1(_x) do
     _x
-    |> w(784, 300) |> b(300) |> relu
-    |> w(300, 100) |> b(100) |> relu
-    |> w(100, 10) |> b(10) |> softmax
+    |> w(784, 300)
+    |> b(300)
+    |> relu
+    |> w(300, 100)
+    |> b(100)
+    |> relu
+    |> w(100, 10)
+    |> b(10)
+    |> softmax
   end
 
   defnetwork init_network2(_x) do
     _x
-    |> w(784, 300) |> b(300) |> relu
-    |> w(300, 100) |> b(100) |> sigmoid
-    |> w(100, 10) |> b(10) |> softmax
+    |> w(784, 300)
+    |> b(300)
+    |> relu
+    |> w(300, 100)
+    |> b(100)
+    |> sigmoid
+    |> w(100, 10)
+    |> b(10)
+    |> softmax
   end
 
   defnetwork init_network3(_x) do
     _x
-    |> w(784, 300, 1.0, 0.2) |> b(300, 1.0, 0.2) |> sigmoid
-    |> w(300, 100, 1.0, 0.1) |> b(100, 1.0, 0.1) |> tanh
-    |> w(100, 10) |> b(10) |> softmax
+    |> w(784, 300, 1.0, 0.2)
+    |> b(300, 1.0, 0.2)
+    |> sigmoid
+    |> w(300, 100, 1.0, 0.1)
+    |> b(100, 1.0, 0.1)
+    |> tanh
+    |> w(100, 10)
+    |> b(10)
+    |> softmax
   end
 
   # for CNN test
   defnetwork init_network4(_x) do
-    _x |> f(3,3) |> f(3,3) |> pooling(2) |> full
-    |> w(144,300) |> b(300) |> relu
-    |> w(300, 100) |> b(100) |> relu
-    |> w(100, 10) |> b(10) |> softmax
+    _x
+    |> f(3, 3)
+    |> f(3, 3)
+    |> pooling(2)
+    |> full
+    |> w(144, 300)
+    |> b(300)
+    |> relu
+    |> w(300, 100)
+    |> b(100)
+    |> relu
+    |> w(100, 10)
+    |> b(10)
+    |> softmax
   end
 
   # convolution filter (4,4) 1ch, stride=2
   defnetwork init_network5(_x) do
-    _x |> f(2,2,1,2) |> f(2,2,1,2) |> full
-    |> w(49,300) |> b(300) |> relu
-    |> w(300, 100) |> b(100) |> relu
-    |> w(100, 10) |> b(10) |> softmax
+    _x
+    |> f(2, 2, 1, 2)
+    |> f(2, 2, 1, 2)
+    |> full
+    |> w(49, 300)
+    |> b(300)
+    |> relu
+    |> w(300, 100)
+    |> b(100)
+    |> relu
+    |> w(100, 10)
+    |> b(10)
+    |> softmax
   end
 
   # convolution filter (4,4) 1ch, stride=1, padding=1
   defnetwork init_network6(_x) do
-    _x |> f(4,4,1,1,1) |> full
-    |> w(729,300) |> b(300) |> relu
-    |> w(300, 100) |> b(100) |> relu
-    |> w(100, 10) |> b(10) |> softmax
+    _x
+    |> f(4, 4, 1, 1, 1)
+    |> full
+    |> w(729, 300)
+    |> b(300)
+    |> relu
+    |> w(300, 100)
+    |> b(100)
+    |> relu
+    |> w(100, 10)
+    |> b(10)
+    |> softmax
   end
 
   # dropout test
   # dropout rate 50% initial-rate =0.1 learning-rate=0.1
   defnetwork init_network7(_x) do
     _x
-    |> w(784, 300, 0.1, 0.1, 0.5) |> b(300) |> relu
-    |> w(300, 100) |> b(100) |> relu
-    |> w(100, 10)  |> b(10) |> softmax
+    |> w(784, 300, 0.1, 0.1, 0.5)
+    |> b(300)
+    |> relu
+    |> w(300, 100)
+    |> b(100)
+    |> relu
+    |> w(100, 10)
+    |> b(10)
+    |> softmax
   end
 
   # long network test
@@ -64,14 +114,25 @@ defmodule Test do
   # check bad argument error in cross_entropy
   defnetwork init_network8(_x) do
     _x
-    |> w(784, 600) |> b(600) |> relu
-    |> w(600, 500) |> b(500) |> relu
-    |> w(500, 400) |> b(400) |> relu
-    |> w(400, 300) |> b(300) |> relu
-    |> w(300, 100) |> b(100) |> relu
-    |> w(100, 10) |> b(10) |> softmax
+    |> w(784, 600)
+    |> b(600)
+    |> relu
+    |> w(600, 500)
+    |> b(500)
+    |> relu
+    |> w(500, 400)
+    |> b(400)
+    |> relu
+    |> w(400, 300)
+    |> b(300)
+    |> relu
+    |> w(300, 100)
+    |> b(100)
+    |> relu
+    |> w(100, 10)
+    |> b(10)
+    |> softmax
   end
-
 
   def sgd(m, n) do
     IO.puts("preparing data")
@@ -159,7 +220,6 @@ defmodule Test do
     IO.puts(loss)
     sgd1(image, network2, train, m, n - 1)
   end
-
 
   def cnn(m, n) do
     IO.puts("preparing data")
@@ -278,7 +338,4 @@ defmodule Test do
     IO.puts(loss)
     drop1(image, network2, train, m, n - 1)
   end
-
-  
-
 end
