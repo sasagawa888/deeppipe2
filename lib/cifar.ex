@@ -8,7 +8,9 @@ defmodule CIFAR do
   defnetwork init_network1(_x) do
     _x
     |> f(3, 3, 3, 1, 0, 0.1, 0.1)
+    |> relu
     |> f(3, 3, 1, 1, 0, 0.1, 0.1)
+    |> relu
     |> full
     |> w(784, 300)
     |> b(300)

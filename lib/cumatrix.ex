@@ -62,8 +62,8 @@ defmodule Cumatrix do
     raise "NIF activate_tanh/3 not implemented"
   end
 
-  def activate_relu(_a, _b, _c) do
-    raise "NIF activate_relu/3 not implemented"
+  def activate_relu(_a, _b) do
+    raise "NIF activate_relu/2 not implemented"
   end
 
   def activate_softmax(_a, _b, _c) do
@@ -78,8 +78,8 @@ defmodule Cumatrix do
     raise "NIF differ_tanh/4 not implemented"
   end
 
-  def differ_relu(_a, _b, _c, _d) do
-    raise "NIF differ_relu/4 not implemented"
+  def differ_relu(_a, _b, _c) do
+    raise "NIF differ_relu/3 not implemented"
   end
 
   def smult1(_a, _b, _c) do
@@ -612,12 +612,22 @@ defmodule Cumatrix do
   end
 
   def activate({r, c, dt}, :relu) do
-    result = activate_relu(r, c, dt)
+    result = activate_relu(r*c, dt)
 
     if !is_integer(result) do
-      {r, c, activate_relu(r, c, dt)}
+      {r, c, result}
     else
-      error("activate_rerlu", result)
+      error("activate_relu", result)
+    end
+  end
+
+  def activate({n, c, h, w, dt}, :relu) do
+    result = activate_relu(n*c*h*w, dt)
+
+    if !is_integer(result) do
+      {n, c, h, w, result}
+    else
+      error("activate_relu", result)
     end
   end
 
@@ -656,10 +666,20 @@ defmodule Cumatrix do
   end
 
   def diff({r, c, dt1}, {r, c, dt2}, :relu) do
-    result = differ_relu(r, c, dt1, dt2)
+    result = differ_relu(r*c, dt1, dt2)
 
     if !is_integer(result) do
       {r, c, result}
+    else
+      error("differ_relu", result)
+    end
+  end
+
+  def diff({n,c,h,w, dt1}, {n,c,h,w, dt2}, :relu) do
+    result = differ_relu(n*c*h*w, dt1, dt2)
+
+    if !is_integer(result) do
+      {n,c,h,w, result}
     else
       error("differ_relu", result)
     end
