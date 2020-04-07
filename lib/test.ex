@@ -51,7 +51,7 @@ defmodule Test do
   end
 
   # dropout test
-  # 
+  # dropout rate 50% initial-rate =0.1 learning-rate=0.1
   defnetwork init_network7(_x) do
     _x
     |> w(784, 300, 0.1, 0.1, 0.5) |> b(300) |> relu
