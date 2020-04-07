@@ -929,7 +929,7 @@ defmodule Cumatrix do
     end
   end
 
-  def deconvolute({n, c, oh, ow, dt1}, {c, h2, w2, dt2}, st, pad) do
+  def deconvolute({n, c, oh, ow, dt1}, {_, h2, w2, dt2}, st, pad) do
     h1 = (oh - 1) * st - 2 * pad + h2
     w1 = (ow - 1) * st - 2 * pad + h2
 
@@ -952,7 +952,7 @@ defmodule Cumatrix do
     end
   end
 
-  def gradfilter({n1, c1, h1, w1, dt1}, {c1, h2, w2, _}, {n1, c1, h3, w3, dt3}, st, pad) do
+  def gradfilter({n1, c1, h1, w1, dt1}, {c1, h2, w2, _}, {n1, _, h3, w3, dt3}, st, pad) do
     result = gradfilter1(n1, c1, h1, w1, h2, w2, h3, w3, dt1, dt3, st, pad)
 
     if !is_integer(result) do
