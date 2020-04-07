@@ -7,17 +7,19 @@ defmodule CIFAR do
   # for CNN test
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 1, 0, 0.1, 0.1)
+    |> f(3, 3, 3, 1, 0, 0.1, 0.01)
     |> relu
-    |> f(3, 3, 1, 1, 0, 0.1, 0.1)
+    |> f(3, 3, 1, 1, 0, 0.1, 0.01)
+    |> relu
+    |> f(3, 3, 1, 1, 0, 0.1, 0.01)
     |> relu
     |> full
-    |> w(784, 300)
+    |> w(676, 300)
     |> b(300)
-    |> sigmoid
+    |> relu
     |> w(300, 100)
     |> b(100)
-    |> sigmoid
+    |> relu
     |> w(100, 10)
     |> b(10)
     |> softmax
@@ -47,8 +49,8 @@ defmodule CIFAR do
     network1 = DP.gradient(image1, network, train1)
     network2 = DP.learning(network, network1)
     [y | _] = DP.forward(image1, network2, [])
-    loss = CM.loss(y, train1, :cross)
-    IO.puts(loss)
+    #loss = CM.loss(y, train1, :square)
+    IO.puts(n)
     sgd1(image, network2, train, m, n - 1)
   end
 

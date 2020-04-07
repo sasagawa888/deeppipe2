@@ -637,13 +637,13 @@ __global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_h, int 
         n1 = tid;
         for(h2=0;h2<loss_h;h2++){
             for(w2=0;w2<loss_w;w2++){
-                sum = 0.0;
                 start_h1 = st*h2-pad;
                 end_h1 = start_h1 + filt_h;
                 start_w1 = st*w2-pad;
                 end_w1 = start_w1 + filt_w;
 
                 for(c1=0;c1<in_c;c1++){
+                    sum = 0.0;
                     for(h1=start_h1;h1<end_h1;h1=h1+st){
                         for(w1=start_w1;w1<end_w1;w1=w1+st){
                             if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
