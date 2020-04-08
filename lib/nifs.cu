@@ -630,33 +630,34 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 __global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int loss_h, int loss_w, int st, int pad, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
-    int n1,c1,h1,w1,h2,w2,start_h1,end_h1,start_w1,end_w1;
+    int n1,c1,h1,w1,h2,w2,h3,w3;
     float sum,elt1,elt2;
     if(tid < n)
     {   
         n1 = tid;
-        for(h2=0;h2<loss_h;h2++){
-            for(w2=0;w2<loss_w;w2++){
-                start_h1 = st*h2-pad;
-                end_h1 = start_h1 + filt_h;
-                start_w1 = st*w2-pad;
-                end_w1 = start_w1 + filt_w;
-
-                for(c1=0;c1<in_c;c1++){
+        for(c1=0;c1<in_c;c1++){
+            //h1,w1 is index of filter
+            for(h1=0;h1<filt_h;h1++){
+                for(w1=0;w1<filt_w;w1++){
+                    //h2,w2 is index of loss tensor
                     sum = 0.0;
-                    for(h1=start_h1;h1<end_h1;h1=h1+st){
-                        for(w1=start_w1;w1<end_w1;w1=w1+st){
-                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
-                                elt1 = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
-                                elt2 = b[IDX4C(n1,0,h1-start_h1,w1-start_w1,in_c,loss_h,loss_w)];
+                    for(h2=0;h2<loss_h;h2++){
+                        for(w2=0;w2<loss_w;w2++){
+                            //h3,w3 is index of input tensor
+                            h3 = h1*st-pad + h2;
+                            w3 = w1*st-pad + w2;
+                            if(h3>=0 && h3<in_h && w3>=0 && w3<in_w){
+                                elt1 = a[IDX4C(n1,c1,h3,w3,in_c,in_h,in_w)];    //input tensor
+                                elt2 = b[IDX4C(n1,0,h2,w2,in_c,loss_h,loss_w)]; //loss tensor
                                 sum = sum + elt1*elt2;
                             }
                         }
                     }
-                    c[IDX3C(c1,h2,w2,filt_h,filt_w)] = sum;
+                    //set filter tensor
+                    c[IDX3C(c1,h1,w1,filt_h,filt_w)] = sum;
                 }
             }
-        }
+        }       
     }
 }
   

@@ -7,21 +7,20 @@ defmodule CIFAR do
   # for CNN test
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 1, 0, 0.1, 0.01)
-    |> relu
-    |> f(3, 3, 1, 1, 0, 0.1, 0.01)
-    |> relu
-    |> f(3, 3, 1, 1, 0, 0.1, 0.01)
+    |> f(5, 5, 3, 1, 0, 0.1, 0.1)
+    |> f(4, 4, 1, 1, 0, 0.1, 0.1)
+    |> f(4, 4, 1, 1, 0, 0.1, 0.1)
+    |> f(4, 4, 1, 1, 0, 0.1, 0.1)
+    |> f(4, 4, 1, 1, 0, 0.1, 0.1)
+    |> f(4, 4, 1, 1, 0, 0.1, 0.1)
+    |> f(4, 4, 1, 1, 0, 0.1, 0.1)
+    |> f(4, 4, 1, 1, 0, 0.1, 0.1)
     |> relu
     |> full
-    |> w(676, 300)
-    |> b(300)
-    |> relu
-    |> w(300, 100)
-    |> b(100)
-    |> relu
-    |> w(100, 10)
-    |> b(10)
+    |> w(49, 30)
+    |> b(30)
+    |> sigmoid
+    |> w(30, 10)
     |> softmax
   end
 
@@ -32,8 +31,8 @@ defmodule CIFAR do
     network = init_network1(0)
     IO.puts("ready")
     network1 = sgd1(image, network, label, m, n)
-    test_image = test_image(20) |> CM.new()
-    test_label = test_label(20)
+    test_image = test_image(30) |> CM.new()
+    test_label = test_label(30)
     correct = DP.accuracy(test_image, network1, test_label)
     IO.write("accuracy rate = ")
     IO.puts(correct)
@@ -49,8 +48,8 @@ defmodule CIFAR do
     network1 = DP.gradient(image1, network, train1)
     network2 = DP.learning(network, network1)
     [y | _] = DP.forward(image1, network2, [])
-    #loss = CM.loss(y, train1, :square)
-    IO.puts(n)
+    loss = CM.loss(y, train1, :square)
+    IO.puts(loss)
     sgd1(image, network2, train, m, n - 1)
   end
 
