@@ -287,7 +287,7 @@ __global__ void convolute_kernel(float *a, float *b, float *c, int filt_h, int f
                         }
                     }
                 }
-                c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] = sum;   
+                c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] = c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] + sum;   
               }
           }
     }
@@ -309,7 +309,7 @@ static ERL_NIF_TERM
 convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
     ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, n1, n2, n3, oh, ow;
+    int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, n1, n2, n3, oh, ow, i;
     float *a,*b, *c;
     float *dev_a, *dev_b, *dev_c;
   
@@ -334,6 +334,10 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
+
+    for(i=0;i<n3;i++){
+        c[i] = 0.0;
+    }
   
     // Allocate for GPU
     CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
