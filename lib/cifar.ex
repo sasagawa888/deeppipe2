@@ -7,26 +7,24 @@ defmodule CIFAR do
   # for CNN test
   defnetwork init_network1(_x) do
     _x
-    |> f(5, 5, 3, 1, 0, 0.01, 0.01)
-    |> f(4, 4, 1, 1, 0, 0.1, 0.01)
-    |> f(4, 4, 1, 1, 0, 0.1, 0.01)
-    |> f(4, 4, 1, 1, 0, 0.1, 0.01)
-    |> f(4, 4, 1, 1, 0, 0.1, 0.01)
-    |> f(4, 4, 1, 1, 0, 0.1, 0.01)
-    |> f(4, 4, 1, 1, 0, 0.1, 0.01)
-    |> f(4, 4, 1, 1, 0, 0.1, 0.01)
+    |> f(4, 4, 3, 1, 0, 0.1, 0.1)
+    |> f(3, 3, 1, 1, 0, 0.1, 0.1)
     |> full
-    |> w(49, 30)
-    |> b(30)
+    |> w(729, 300, 0.001)
+    |> b(300, 0.001)
     |> relu
-    |> w(30, 10)
+    |> w(300, 50, 0.001)
+    |> b(50, 0.001)
+    |> relu
+    |> w(50,10, 0.001)
+    |> b(10, 0.001)
     |> softmax
   end
 
   def sgd(m, n) do
     IO.puts("preparing data")
-    image = train_image(3000) |> CM.new()
-    label = train_label_onehot(3000) |> CM.new()
+    image = train_image(1000) |> CM.new()
+    label = train_label_onehot(1000) |> CM.new()
     network = init_network1(0)
     IO.puts("ready")
     network1 = sgd1(image, network, label, m, n)
@@ -44,11 +42,16 @@ defmodule CIFAR do
 
   def sgd1(image, network, train, m, n) do
     {image1, train1} = CM.random_select(image, train, m)
+    #[x | _] = DP.forward(image1, network, [])
+    #CM.print(x)
     network1 = DP.gradient(image1, network, train1)
     network2 = DP.learning(network, network1)
+    #DP.print(network2)
     [y | _] = DP.forward(image1, network2, [])
-    loss = CM.loss(y, train1, :square)
+    #CM.print(z)
+    loss = CM.loss(y, train1, :cross)
     IO.puts(loss)
+    #IO.puts(n)
     sgd1(image, network2, train, m, n - 1)
   end
 

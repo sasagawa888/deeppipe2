@@ -112,7 +112,7 @@ defmodule Deeppipe do
     rate = 1 / n
     w1 = CM.gradfilter(u, w, l, st, pad) |> CM.mult(rate)
     l1 = CM.deconvolute(l, w, st, pad)
-    backward(l1, rest, us, [{:filter, w1, st, ir, lr, v} | res])
+    backward(l1, rest, us, [{:filter, w1, st, pad, ir, lr, v} | res])
   end
 
   defp backward(l, [{:pooling, st} | rest], [u | us], res) do
@@ -157,12 +157,15 @@ defmodule Deeppipe do
   end
 
   def learning([{:filter, w, st, pad, ir, lr, v} | rest], [{:filter, w1, _, _, _, _, _} | rest1]) do
+    #IO.puts("LN filter")
     w2 = CM.sub(w, CM.mult(w1, lr))
+    #w2 |> CM.to_list() |> IO.inspect()
     [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1)]
   end
 
   def learning([network | rest], [_ | rest1]) do
-    # IO.puts("LN else")
+    #IO.puts("LN else")
+    #IO.inspect(network)
     [network | learning(rest, rest1)]
   end
 
@@ -352,6 +355,9 @@ defmodule Deeppipe do
       CM.is_matrix(x) ->
         CM.print(x)
 
+      CM.is_tensor(x) ->
+        x |> CM.to_list() |> IO.inspect()
+
       true ->
         print1(x)
         IO.puts("")
@@ -378,6 +384,10 @@ defmodule Deeppipe do
   def print2({:function, name}) do
     :io.write(name)
   end
+
+  def print2({:filter, w, _, _, _, _}) do
+    w |> CM.to_list() |> IO.inspect()
+  end 
 
   def print2(x) do
     if CM.is_matrix(x) do

@@ -937,7 +937,7 @@ defmodule Cumatrix do
     end
   end
 
-  def convolute({n, c, h1, w1, dt1}, {c, h2, w2, dt2}, st, pad) do
+  def convolute({n, c, h1, w1, dt1}, {_, h2, w2, dt2}, st, pad) do
     oh = div(h1 + 2 * pad - h2, st) + 1
     ow = div(w1 + 2 * pad - w2, st) + 1
     result = convolute1(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)
@@ -972,7 +972,7 @@ defmodule Cumatrix do
     end
   end
 
-  def gradfilter({n1, c1, h1, w1, dt1}, {c1, h2, w2, _}, {n1, _, h3, w3, dt3}, st, pad) do
+  def gradfilter({n1, _, h1, w1, dt1}, {c1, h2, w2, _}, {n1, _, h3, w3, dt3}, st, pad) do
     result = gradfilter1(n1, c1, h1, w1, h2, w2, h3, w3, dt1, dt3, st, pad)
 
     if !is_integer(result) do

@@ -141,7 +141,7 @@ defmodule Network do
 
   def parse({:f, _, [x, y, c, st, pad, ir, lr]}, _) do
     quote do
-      {:filter, CM.rand(unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), unquote(st),
+      {:filter, CM.rand(unquote(c), unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(st),
        unquote(pad), unquote(ir), unquote(lr), CM.new(unquote(c), unquote(x), unquote(y))}
     end
   end

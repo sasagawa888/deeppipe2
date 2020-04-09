@@ -373,12 +373,12 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_h, in
         ow = (in_w+2*pad-filt_w)/st + 1;
         for(w2=0;w2<ow;w2++){
             for(h2=0;h2<oh;h2++){
-                sum = 0.0;
                 start_h1 = st*h2-pad;
                 end_h1 = start_h1 + filt_h;
                 start_w1 = st*w2-pad;
                 end_w1 = start_w1 + filt_w;
                 for(c1=0;c1<in_c;c1++){
+                    sum = 0.0;
                     for(h1=start_h1;h1<end_h1;h1++){
                         for(w1=start_w1;w1<end_w1;w1++){
                             if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
@@ -514,12 +514,12 @@ __global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int
         //convulute
         for(w2=0;w2<ow;w2++){
             for(h2=0;h2<oh;h2++){
-                sum = 0.0;
                 start_h1 = st*h2-pad;
                 end_h1 = start_h1 + filt_h;
                 start_w1 = st*w2-pad;
                 end_w1 = start_w1 + filt_w;
                 for(c1=0;c1<in_c;c1++){
+                    sum = 0.0;
                     for(h1=start_h1;h1<end_h1;h1++){
                         for(w1=start_w1;w1<end_w1;w1++){
                             if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
@@ -683,6 +683,7 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     int in_n,in_c,in_h,in_w,filt_h,filt_w,loss_h,loss_w,st,pad,n1,n2,n3,i;
     float *a,*b,*c;
     float *dev_a, *dev_b, *dev_c;
+    float count;
   
     DISP("gradfilter1")
     if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
@@ -727,10 +728,13 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
 
     //average
-    for(i=0;i<n3;i++){
-        c[i] = c[i] / (float)in_n;
-    }
-
+    count = (float) in_n;
+    if(in_n != 0){
+        for(i=0;i<n3;i++){
+            c[i] = c[i] / count;
+        }
+    } 
+    
     // free 
     cudaFree(dev_a);
     cudaFree(dev_b);
@@ -1468,7 +1472,7 @@ activate_softmax(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     //calculate softmax
     for(i=0;i<r1;i++){
         for(j=0;j<c1;j++){
-            max = 0.0;
+            max = -3.402823e38;
             for(k=0;k<c1;k++){
                 if(a[IDX2C(i,k,r1)] > max)
                     max = a[IDX2C(i,k,r1)];
@@ -1478,6 +1482,7 @@ activate_softmax(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
                 sum = sum + exp(a[IDX2C(i,k,r1)] - max);
             }
             b[IDX2C(i,j,r1)] = exp(a[IDX2C(i,j,r1)] - max) / sum;
+            
         }
     }
 
@@ -1775,8 +1780,8 @@ cross_entropy(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     s = 0.0;
     for(i=0;i<r1;i++){
         for (j=0;j<c1;j++){
-            d = fabsf(a[IDX2C(i,j,r1)])+delta;
-            s = s + b[IDX2C(i,j,r1)] * log(d); 
+            d = fabsf(a[IDX2C(i,j,r1)]) + delta;
+            s = s + b[IDX2C(i,j,r1)] * log(d);
         }
     }
     s = s / (float)r1;
