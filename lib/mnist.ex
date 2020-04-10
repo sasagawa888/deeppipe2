@@ -32,14 +32,14 @@ defmodule MNIST do
   def train_image(n, :structure) do
     train_image()
     |> Enum.take(n)
-    |> Enum.map(fn x -> structure(DP.normalize(x, 255), 28, 28) end)
+    |> Enum.map(fn x -> structure(DP.normalize(x, 0, 255), 28, 28) end)
   end
 
   # get n datas from train-image as flatten list
   def train_image(n, :flatten) do
     train_image()
     |> Enum.take(n)
-    |> Enum.map(fn x -> DP.normalize(x, 255) end)
+    |> Enum.map(fn x -> DP.normalize(x, 0, 255) end)
   end
 
   # get n datas from test-label 
@@ -56,20 +56,20 @@ defmodule MNIST do
   def test_image(n) do
     test_image()
     |> Enum.take(n)
-    |> Enum.map(fn x -> structure(DP.normalize(x, 255), 28, 28) end)
+    |> Enum.map(fn x -> structure(DP.normalize(x, 0, 255), 28, 28) end)
   end
 
   def test_image(n, :structure) do
     test_image()
     |> Enum.take(n)
-    |> Enum.map(fn x -> structure(DP.normalize(x, 255), 28, 28) end)
+    |> Enum.map(fn x -> structure(DP.normalize(x, 0, 255), 28, 28) end)
   end
 
   # get n datas from train-image as flatten list
   def test_image(n, :flatten) do
     test_image()
     |> Enum.take(n)
-    |> Enum.map(fn x -> DP.normalize(x, 255) end)
+    |> Enum.map(fn x -> DP.normalize(x, 0, 255) end)
   end
 
   def train_label() do

@@ -157,15 +157,15 @@ defmodule Deeppipe do
   end
 
   def learning([{:filter, w, st, pad, ir, lr, v} | rest], [{:filter, w1, _, _, _, _, _} | rest1]) do
-    #IO.puts("LN filter")
+    # IO.puts("LN filter")
     w2 = CM.sub(w, CM.mult(w1, lr))
-    #w2 |> CM.to_list() |> IO.inspect()
+    # w2 |> CM.to_list() |> IO.inspect()
     [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1)]
   end
 
   def learning([network | rest], [_ | rest1]) do
-    #IO.puts("LN else")
-    #IO.inspect(network)
+    # IO.puts("LN else")
+    # IO.inspect(network)
     [network | learning(rest, rest1)]
   end
 
@@ -292,8 +292,8 @@ defmodule Deeppipe do
     end
   end
 
-  def normalize(x, y) do
-    Enum.map(x, fn z -> z / y end)
+  def normalize(x, bias, div) do
+    Enum.map(x, fn z -> (z + bias) / div end)
   end
 
   # save/load to file
@@ -387,7 +387,7 @@ defmodule Deeppipe do
 
   def print2({:filter, w, _, _, _, _}) do
     w |> CM.to_list() |> IO.inspect()
-  end 
+  end
 
   def print2(x) do
     if CM.is_matrix(x) do

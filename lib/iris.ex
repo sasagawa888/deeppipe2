@@ -59,7 +59,7 @@ defmodule Iris do
 
     x1
     |> Enum.map(fn y -> String.to_float(y) end)
-    |> DP.normalize(1)
+    |> DP.normalize(0, 1)
   end
 
   def train_label() do

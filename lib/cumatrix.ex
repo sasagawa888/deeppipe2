@@ -612,7 +612,7 @@ defmodule Cumatrix do
   end
 
   def activate({r, c, dt}, :relu) do
-    result = activate_relu(r*c, dt)
+    result = activate_relu(r * c, dt)
 
     if !is_integer(result) do
       {r, c, result}
@@ -622,7 +622,7 @@ defmodule Cumatrix do
   end
 
   def activate({n, c, h, w, dt}, :relu) do
-    result = activate_relu(n*c*h*w, dt)
+    result = activate_relu(n * c * h * w, dt)
 
     if !is_integer(result) do
       {n, c, h, w, result}
@@ -666,7 +666,7 @@ defmodule Cumatrix do
   end
 
   def diff({r, c, dt1}, {r, c, dt2}, :relu) do
-    result = differ_relu(r*c, dt1, dt2)
+    result = differ_relu(r * c, dt1, dt2)
 
     if !is_integer(result) do
       {r, c, result}
@@ -675,11 +675,11 @@ defmodule Cumatrix do
     end
   end
 
-  def diff({n,c,h,w, dt1}, {n,c,h,w, dt2}, :relu) do
-    result = differ_relu(n*c*h*w, dt1, dt2)
+  def diff({n, c, h, w, dt1}, {n, c, h, w, dt2}, :relu) do
+    result = differ_relu(n * c * h * w, dt1, dt2)
 
     if !is_integer(result) do
-      {n,c,h,w, result}
+      {n, c, h, w, result}
     else
       error("differ_relu", result)
     end
