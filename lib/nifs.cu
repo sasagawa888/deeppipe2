@@ -1318,15 +1318,14 @@ static ERL_NIF_TERM
 activate_sigmoid(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin;
-    int r1, c1, n;
+    int n;
     float *a,*b;
     float *dev_a, *dev_b;
 
     DISP("activate_sigmoid")
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_int(env,2);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
-    n = r1*c1;
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
+
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
 
@@ -1368,15 +1367,14 @@ static ERL_NIF_TERM
 activate_tanh(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin;
-    int r1, c1, n;
+    int n;
     float *a,*b;
     float *dev_a, *dev_b;
 
     DISP("activate_tanh")
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_int(env,2);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
-    n = r1*c1;
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
+
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
 
@@ -2407,8 +2405,8 @@ static ErlNifFunc nif_funcs[] = {
   {"emult1", 4, emult1},
   {"transpose1", 3, transpose1},
   {"ident1", 1, ident1},
-  {"activate_sigmoid", 3 ,activate_sigmoid},
-  {"activate_tanh", 3 , activate_tanh},
+  {"activate_sigmoid", 2 ,activate_sigmoid},
+  {"activate_tanh", 2 , activate_tanh},
   {"activate_relu", 2, activate_relu},
   {"activate_softmax", 3, activate_softmax},
   {"differ_sigmoid", 4, differ_sigmoid},

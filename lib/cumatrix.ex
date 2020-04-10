@@ -54,12 +54,12 @@ defmodule Cumatrix do
     raise "NIF ident1/3 not implemented"
   end
 
-  def activate_sigmoid(_a, _b, _c) do
-    raise "NIF activate_sigmoid/3 not implemented"
+  def activate_sigmoid(_a, _b) do
+    raise "NIF activate_sigmoid/2 not implemented"
   end
 
-  def activate_tanh(_a, _b, _c) do
-    raise "NIF activate_tanh/3 not implemented"
+  def activate_tanh(_a, _b) do
+    raise "NIF activate_tanh/2 not implemented"
   end
 
   def activate_relu(_a, _b) do
@@ -592,7 +592,7 @@ defmodule Cumatrix do
   end
 
   def activate({r, c, dt}, :sigmoid) do
-    result = activate_sigmoid(r, c, dt)
+    result = activate_sigmoid(r*c, dt)
 
     if !is_integer(result) do
       {r, c, result}
@@ -601,11 +601,31 @@ defmodule Cumatrix do
     end
   end
 
+  def activate({n, c, h, w, dt}, :sigmoid) do
+    result = activate_sigmoid(n * c * h * w, dt)
+
+    if !is_integer(result) do
+      {n, c, h, w, result}
+    else
+      error("activate_sigmoid", result)
+    end
+  end
+
   def activate({r, c, dt}, :tanh) do
-    result = activate_tanh(r, c, dt)
+    result = activate_tanh(r*c, dt)
 
     if !is_integer(result) do
       {r, c, result}
+    else
+      error("activate_tanh", result)
+    end
+  end
+
+  def activate({n, c, h, w, dt}, :tanh) do
+    result = activate_tanh(n * c * h * w, dt)
+
+    if !is_integer(result) do
+      {n, c, h, w, result}
     else
       error("activate_tanh", result)
     end
