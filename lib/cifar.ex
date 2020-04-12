@@ -4,22 +4,21 @@ defmodule CIFAR do
   alias Cumatrix, as: CM
 
   # for CNN test
-  # CIFAR.sgd(30,10000)
+  # CIFAR.sgd(30,100000)
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 1, 1, 1.0, 0.01)
+    |> f(3, 3, 3, 1, 1, 0.5, 0.01)
     |> pooling(2)
     |> sigmoid
-    |> f(5, 5, 1, 1, 2, 1.0, 0.01)
+    |> f(5, 5, 1, 1, 2, 0.5, 0.01)
     |> pooling(2)
-    |> sigmoid
-    |> f(3, 3, 1, 1, 1, 1.0, 0.01)
-    |> f(3, 3, 1, 1, 1, 1.0, 0.01)
+    |> f(3, 3, 1, 1, 1, 0.5, 0.01)
+    |> f(3, 3, 1, 1, 1, 0.5, 0.01)
     |> pooling(2)
     |> full
     |> relu
-    |> w(16, 10 ,0.1, 0.01)
-    |> b(10, 0.1, 0.01)
+    |> w(16, 10 ,0.1, 0.1)
+    |> b(10, 0.1, 0.1)
     |> softmax
   end
 

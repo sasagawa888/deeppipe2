@@ -46,11 +46,12 @@ defmodule Test do
   # for CNN test
   defnetwork init_network4(_x) do
     _x
-    |> f(4, 4, 1, 1, 0, 0.1, 0.07)
     |> f(3, 3, 1, 1, 0, 0.1, 0.07)
-    |> sigmoid
+    |> pooling(2)
+    |> f(3, 3, 1, 1, 0, 0.1, 0.07)
+    |> relu
     |> full
-    |> w(529, 10, 0.1, 0.1)
+    |> w(121, 10, 0.1, 0.1)
     |> b(10, 0.1)
     |> softmax
   end
