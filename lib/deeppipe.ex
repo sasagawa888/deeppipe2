@@ -400,4 +400,9 @@ defmodule Deeppipe do
   def newline() do
     IO.puts("")
   end
+
+  def heatmap(x) do
+    x |> Matrex.new() |> Matrex.heatmap(:color256,[])
+  end 
+
 end

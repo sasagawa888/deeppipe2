@@ -1505,16 +1505,15 @@ static ERL_NIF_TERM
 differ_sigmoid(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin, b_bin;
     ERL_NIF_TERM  c_bin;
-    int r1, c1, n;
+    int n;
     float *a,*b,*c;
     float *dev_a, *dev_b, *dev_c;
 
     DISP("differ_sigmoid")
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_int(env,2);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
-    if (!enif_inspect_binary(env, argv[3], &b_bin)) return enif_make_int(env,4);
-    n = r1*c1;
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_int(env,3);
+
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
@@ -1557,16 +1556,15 @@ static ERL_NIF_TERM
 differ_tanh(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin, b_bin;
     ERL_NIF_TERM  c_bin;
-    int r1, c1, n;
+    int n;
     float *a,*b,*c;
     float *dev_a, *dev_b, *dev_c;
 
     DISP("differ_tanh")
-    if (!enif_get_int(env, argv[0], &r1)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &c1)) return enif_make_int(env,2);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
-    if (!enif_inspect_binary(env, argv[3], &b_bin)) return enif_make_int(env,4);
-    n = r1*c1;
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_int(env,3);
+    
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
@@ -2409,8 +2407,8 @@ static ErlNifFunc nif_funcs[] = {
   {"activate_tanh", 2 , activate_tanh},
   {"activate_relu", 2, activate_relu},
   {"activate_softmax", 3, activate_softmax},
-  {"differ_sigmoid", 4, differ_sigmoid},
-  {"differ_tanh", 4, differ_tanh},
+  {"differ_sigmoid", 3, differ_sigmoid},
+  {"differ_tanh", 3, differ_tanh},
   {"differ_relu", 3, differ_relu},
   {"smult1", 3, smult1},
   {"trace1", 3, trace1},

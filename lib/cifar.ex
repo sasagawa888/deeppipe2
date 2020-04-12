@@ -2,22 +2,24 @@ defmodule CIFAR do
   import Network
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
-  
 
   # for CNN test
+  # CIFAR.sgd(30,10000)
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 1, 1)
+    |> f(3, 3, 3, 1, 1, 1.0, 0.01)
     |> pooling(2)
-    |> f(5, 5, 1, 1, 2)
+    |> sigmoid
+    |> f(5, 5, 1, 1, 2, 1.0, 0.01)
     |> pooling(2)
-    |> f(3, 3, 1, 1, 1)
-    |> f(3, 3, 1, 1, 1)
+    |> sigmoid
+    |> f(3, 3, 1, 1, 1, 1.0, 0.01)
+    |> f(3, 3, 1, 1, 1, 1.0, 0.01)
     |> pooling(2)
     |> full
-    |> sigmoid
-    |> w(16, 10)
-    |> b(10)
+    |> relu
+    |> w(16, 10 ,0.1, 0.01)
+    |> b(10, 0.1, 0.01)
     |> softmax
   end
 
@@ -161,4 +163,11 @@ defmodule CIFAR do
   def train_image4(<<x, xs::binary>>, n, res) do
     train_image4(xs, n - 1, [x | res])
   end
+
+
+  def heatmap(x) do
+    a = CM.to_list(x)
+    [[a1]|_] = a
+    DP.heatmap(a1)
+  end 
 end

@@ -70,12 +70,12 @@ defmodule Cumatrix do
     raise "NIF activate_softmax/3 not implemented"
   end
 
-  def differ_sigmoid(_a, _b, _c, _d) do
-    raise "NIF differ_sigmoid/4 not implemented"
+  def differ_sigmoid(_a, _b, _c) do
+    raise "NIF differ_sigmoid/3 not implemented"
   end
 
-  def differ_tanh(_a, _b, _c, _d) do
-    raise "NIF differ_tanh/4 not implemented"
+  def differ_tanh(_a, _b, _c) do
+    raise "NIF differ_tanh/3 not implemented"
   end
 
   def differ_relu(_a, _b, _c) do
@@ -592,7 +592,7 @@ defmodule Cumatrix do
   end
 
   def activate({r, c, dt}, :sigmoid) do
-    result = activate_sigmoid(r*c, dt)
+    result = activate_sigmoid(r * c, dt)
 
     if !is_integer(result) do
       {r, c, result}
@@ -612,7 +612,7 @@ defmodule Cumatrix do
   end
 
   def activate({r, c, dt}, :tanh) do
-    result = activate_tanh(r*c, dt)
+    result = activate_tanh(r * c, dt)
 
     if !is_integer(result) do
       {r, c, result}
@@ -666,7 +666,7 @@ defmodule Cumatrix do
   end
 
   def diff({r, c, dt1}, {r, c, dt2}, :sigmoid) do
-    result = differ_sigmoid(r, c, dt1, dt2)
+    result = differ_sigmoid(r*c, dt1, dt2)
 
     if !is_integer(result) do
       {r, c, result}
@@ -675,11 +675,32 @@ defmodule Cumatrix do
     end
   end
 
+  def diff({n, c, h, w, dt1}, {n, c, h, w, dt2}, :sigmoid) do
+    result = differ_sigmoid(n * c * h * w, dt1, dt2)
+
+    if !is_integer(result) do
+      {n, c, h, w, result}
+    else
+      error("differ_sigmoid", result)
+    end
+  end
+  
+
   def diff({r, c, dt1}, {r, c, dt2}, :tanh) do
-    result = differ_tanh(r, c, dt1, dt2)
+    result = differ_tanh(r*c, dt1, dt2)
 
     if !is_integer(result) do
       {r, c, result}
+    else
+      error("differ_tanh", result)
+    end
+  end
+
+  def diff({n, c, h, w, dt1}, {n, c, h, w, dt2}, :tanh) do
+    result = differ_tanh(n * c * h * w, dt1, dt2)
+
+    if !is_integer(result) do
+      {n, c, h, w, result}
     else
       error("differ_tanh", result)
     end
@@ -930,7 +951,7 @@ defmodule Cumatrix do
 
   def pooling({n, c, h, w, dt}, st) do
     if rem(h, st) != 0 || rem(w, st) != 0 do
-      raise "pooling illegal argument " <> Integer.to_string(h) <> "," <> Integer.to_string(w) 
+      raise "pooling illegal argument " <> Integer.to_string(h) <> "," <> Integer.to_string(w)
     else
       result = pooling1(n, c, h, w, dt, st)
 
