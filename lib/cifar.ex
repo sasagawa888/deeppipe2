@@ -2,24 +2,22 @@ defmodule CIFAR do
   import Network
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
-  alias Deeppipe, as: DP
+  
 
   # for CNN test
   defnetwork init_network1(_x) do
     _x
-    |> f(5, 5, 3, 1, 0, 0.01, 0.05)
-    |> f(3, 3, 1, 1, 0, 0.05, 0.05)
-    |> f(2, 2, 1, 1, 0, 0.05, 0.05)
-    |> f(2, 2, 1, 1, 0, 0.05, 0.05)
+    |> f(3, 3, 3, 1, 1)
+    |> pooling(2)
+    |> f(5, 5, 1, 1, 2)
+    |> pooling(2)
+    |> f(3, 3, 1, 1, 1)
+    |> f(3, 3, 1, 1, 1)
+    |> pooling(2)
     |> full
-    |> w(576, 300, 0.05)
-    |> b(300, 0.05)
     |> sigmoid
-    |> w(300, 50, 0.1)
-    |> b(50, 0.1)
-    |> relu
-    |> w(50, 10, 0.1)
-    |> b(10, 0.1)
+    |> w(16, 10)
+    |> b(10)
     |> softmax
   end
 

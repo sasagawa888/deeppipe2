@@ -930,7 +930,7 @@ defmodule Cumatrix do
 
   def pooling({n, c, h, w, dt}, st) do
     if rem(h, st) != 0 || rem(w, st) != 0 do
-      raise "pooling illegal argument"
+      raise "pooling illegal argument " <> Integer.to_string(h) <> "," <> Integer.to_string(w) 
     else
       result = pooling1(n, c, h, w, dt, st)
 
