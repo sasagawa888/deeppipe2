@@ -4,20 +4,19 @@ defmodule CIFAR do
   alias Cumatrix, as: CM
 
   # for CNN test
-  # CIFAR.sgd(30,100000)
+  # CIFAR.sgd(30,10000)
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 1, 1, 0.5, 0.01)
+    |> f(3, 3, 3, 1, 1, 0.5, 0.1)
+    |> pooling(2)
+    |> f(5, 5, 1, 1, 2, 0.5, 0.1)
+    |> pooling(2)
+    |> f(3, 3, 1, 1, 1, 0.5, 0.1)
+    |> f(3, 3, 1, 1, 1, 0.5, 0.1)
     |> pooling(2)
     |> sigmoid
-    |> f(5, 5, 1, 1, 2, 0.5, 0.01)
-    |> pooling(2)
-    |> f(3, 3, 1, 1, 1, 0.5, 0.01)
-    |> f(3, 3, 1, 1, 1, 0.5, 0.01)
-    |> pooling(2)
     |> full
-    |> relu
-    |> w(16, 10 ,0.1, 0.1)
+    |> w(16, 10, 0.1, 0.1)
     |> b(10, 0.1, 0.1)
     |> softmax
   end
@@ -163,10 +162,9 @@ defmodule CIFAR do
     train_image4(xs, n - 1, [x | res])
   end
 
-
   def heatmap(x) do
     a = CM.to_list(x)
-    [[a1]|_] = a
+    [[a1] | _] = a
     DP.heatmap(a1)
-  end 
+  end
 end

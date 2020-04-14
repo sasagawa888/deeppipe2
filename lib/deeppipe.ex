@@ -385,7 +385,7 @@ defmodule Deeppipe do
     :io.write(name)
   end
 
-  def print2({:filter, w, _, _, _, _}) do
+  def print2({:filter, w, _, _, _, _, _}) do
     w |> CM.to_list() |> IO.inspect()
   end
 
@@ -402,7 +402,6 @@ defmodule Deeppipe do
   end
 
   def heatmap(x) do
-    x |> Matrex.new() |> Matrex.heatmap(:color256,[])
-  end 
-
+    x |> Matrex.new() |> Matrex.heatmap(:color256, [])
+  end
 end

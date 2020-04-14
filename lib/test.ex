@@ -3,6 +3,33 @@ defmodule Test do
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
 
+  # for grad confarmation
+  defnetwork init_network0(_x) do
+    _x
+    |> cf([[[0.1,0.1],[0.1,0.1]]])
+    |> cf([[[0.1,0.1],[0.1,0.1]]])
+    |> full
+    |> softmax
+  end 
+
+  def grad() do
+    data = [[[[0.1,0.2,0.3,0.4],[0.2,0.3,0.4,0.5],[0.3,0.4,0.5,0.6],[0.4,0.5,0.6,0.7]]]] |> CM.new()
+    train = [[0.0,1.0,0.0,0.0]] |> CM.new()
+    [y|_] = DP.forward(data,init_network0(0),[])
+    y |> CM.print()
+    loss = CM.loss(y, train, :cross)
+    IO.puts(loss)
+  end
+
+  def back() do 
+    data = [[[[0.1,0.2,0.3,0.4],[0.2,0.3,0.4,0.5],[0.3,0.4,0.5,0.6],[0.4,0.5,0.6,0.7]]]] |> CM.new()
+    train = [[0.0,1.0,0.0,0.0]] |> CM.new()
+    network1 = DP.gradient(data,init_network0(0),train)
+    network1 |> DP.print()
+  end
+
+
+
   # for DNN test
   defnetwork init_network1(_x) do
     _x
@@ -46,12 +73,11 @@ defmodule Test do
   # for CNN test
   defnetwork init_network4(_x) do
     _x
-    |> f(3, 3, 1, 1, 0, 0.1, 0.07)
-    |> pooling(2)
-    |> f(3, 3, 1, 1, 0, 0.1, 0.07)
-    |> relu
+    |> f(3, 3, 1, 1, 0, 0.1, 0.01)
+    |> f(5, 5, 1, 1, 0, 0.1, 0.01)
+    |> sigmoid
     |> full
-    |> w(121, 10, 0.1, 0.1)
+    |> w(484, 10, 0.1, 0.1)
     |> b(10, 0.1)
     |> softmax
   end

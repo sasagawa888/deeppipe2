@@ -1457,7 +1457,7 @@ activate_softmax(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ERL_NIF_TERM  b_bin;
     int r1, c1, n, i, j, k;
     float *a,*b;
-    float max,sum;
+    float max,sum,delta;
 
     DISP("activate_softmax")
     if (!enif_get_int(env, argv[0], &r1)) return enif_make_int(env,1);
@@ -1468,6 +1468,7 @@ activate_softmax(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
 
     //calculate softmax
+    delta = 0.01;
     for(i=0;i<r1;i++){
         for(j=0;j<c1;j++){
             max = -3.402823e38;
@@ -1479,7 +1480,7 @@ activate_softmax(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
             for(k=0;k<c1;k++){
                 sum = sum + exp(a[IDX2C(i,k,r1)] - max);
             }
-            b[IDX2C(i,j,r1)] = exp(a[IDX2C(i,j,r1)] - max) / sum;
+            b[IDX2C(i,j,r1)] = exp(a[IDX2C(i,j,r1)] - max) / (sum+delta);
             
         }
     }

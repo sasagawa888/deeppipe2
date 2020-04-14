@@ -666,7 +666,7 @@ defmodule Cumatrix do
   end
 
   def diff({r, c, dt1}, {r, c, dt2}, :sigmoid) do
-    result = differ_sigmoid(r*c, dt1, dt2)
+    result = differ_sigmoid(r * c, dt1, dt2)
 
     if !is_integer(result) do
       {r, c, result}
@@ -684,10 +684,9 @@ defmodule Cumatrix do
       error("differ_sigmoid", result)
     end
   end
-  
 
   def diff({r, c, dt1}, {r, c, dt2}, :tanh) do
-    result = differ_tanh(r*c, dt1, dt2)
+    result = differ_tanh(r * c, dt1, dt2)
 
     if !is_integer(result) do
       {r, c, result}
