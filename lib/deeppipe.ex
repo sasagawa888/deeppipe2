@@ -108,9 +108,7 @@ defmodule Deeppipe do
 
   defp backward(l, [{:filter, w, st, pad, ir, lr, v} | rest], [u | us], res) do
     # IO.puts("BK filter")
-    {n, _, _, _} = CM.size(u)
-    rate = 1 / n
-    w1 = CM.gradfilter(u, w, l, st, pad) |> CM.mult(rate)
+    w1 = CM.gradfilter(u, w, l, st, pad)
     l1 = CM.deconvolute(l, w, st, pad)
     backward(l1, rest, us, [{:filter, w1, st, pad, ir, lr, v} | res])
   end

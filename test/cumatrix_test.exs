@@ -22,11 +22,19 @@ defmodule CumatrixTest do
     assert Cumatrix.transpose(m1) == Cumatrix.new([[1.0, 4.0], [-2.0, 5.0], [3.0, -6.0]])
     m2 = Cumatrix.new([[1010.0, 1000.0, 990.0], [1010.0, 1000.0, 990.0]])
 
-    assert Cumatrix.activate(m2, :softmax) ==
-             Cumatrix.new([
-               [0.9999545812606812, 4.539786823443137e-5, 2.0610599893444714e-9],
-               [0.9999545812606812, 4.539786823443137e-5, 2.0610599893444714e-9]
-             ])
+    assert Cumatrix.activate(m2, :softmax) |> Cumatrix.to_list() == 
+             [
+              [
+                0.9900544881820679,
+                4.494840686675161e-5,
+                2.040654534241071e-9
+              ],
+              [
+                0.9900544881820679,
+                4.494840686675161e-5,
+                2.040654534241071e-9
+              ]
+            ]
 
     assert Cumatrix.mult(2.0, m1) == Cumatrix.new([[2.0, -4.0, 6.0], [8.0, 10.0, -12.0]])
     assert Cumatrix.mult(m1, 2.0) == Cumatrix.new([[2.0, -4.0, 6.0], [8.0, 10.0, -12.0]])
@@ -72,8 +80,8 @@ defmodule CumatrixTest do
            ]
 
     assert Cumatrix.deconvolute(t2, f1, 1, 0) |> Cumatrix.to_list() ==
-             Cumatrix.new([[[[2.0, 7.0, 10.0], [8.0, 11.0, 27.0], [24.0, 16.0, 15.0]]]])
-             |> Cumatrix.to_list()
+          [[[[2.0, 7.0, 6.0], [10.0, 30.0, 22.0], [12.0, 31.0, 20.0]]]]
+             
 
     assert Cumatrix.gradfilter(t1, f1, t2, 1, 0) |> Cumatrix.to_list() ==
              Cumatrix.new([[[49.0, 63.0], [91.0, 105.0]]]) |> Cumatrix.to_list()

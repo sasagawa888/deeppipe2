@@ -989,12 +989,14 @@ defmodule Cumatrix do
     end
   end
 
-  def deconvolute({n, c, oh, ow, dt1}, {_, h2, w2, dt2}, st, pad) do
+  # 1st arg filter-tensor
+  # 2nd arg loss-tesnor
+  def deconvolute({n, _, oh, ow, dt1}, {c, h2, w2, dt2}, st, pad) do
     h1 = (oh - 1) * st - 2 * pad + h2
     w1 = (ow - 1) * st - 2 * pad + h2
 
     if st == 1 do
-      result = deconvolute1(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)
+      result = deconvolute1(n, c, oh, ow, h2, w2, dt1, dt2, st, pad)
 
       if !is_integer(result) do
         {n, c, h1, w1, result}

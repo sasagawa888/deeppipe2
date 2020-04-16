@@ -385,6 +385,7 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_h, in
                                 elt1 = a[IDX4C(n1,0,h1,w1,in_c,in_h,in_w)];
                                 elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
                                 sum = sum + elt1*elt2;
+                                //printf("%f %f \n\r", elt1, elt2);
                             }
                         }
                     }
@@ -402,7 +403,7 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_h, in
 4th arg in_w of input tensor
 5th arg filt_h of filter tensor
 6th arg filt_w of filter tensor
-7th arg binary of input tensor
+7th arg binary of input loss tensor
 8th arg binary of filter tensor
 9th arg stride
 10th arg padding   
