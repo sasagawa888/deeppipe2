@@ -377,8 +377,8 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_h, in
                 end_h1 = start_h1 + filt_h;
                 start_w1 = st*w2-pad;
                 end_w1 = start_w1 + filt_w;
+                sum = 0.0;
                 for(c1=0;c1<in_c;c1++){
-                    sum = 0.0;
                     for(h1=start_h1;h1<end_h1;h1++){
                         for(w1=start_w1;w1<end_w1;w1++){
                             if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
@@ -389,8 +389,8 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_h, in
                             }
                         }
                     }
-                    c[IDX4C(n1,c1,h2,w2,in_c,oh,ow)] = sum;  
-                }               
+                }
+                c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] = sum;               
             }
         }
     }
@@ -435,7 +435,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     pad1 = filt_h - 1 + pad;
     oh = (in_h+2*pad1-filt_h)/st + 1;
     ow = (in_w+2*pad1-filt_w)/st + 1;
-    n3 = in_n * in_c * oh * ow;
+    n3 = in_n * 1 * oh * ow;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     b1 = (float *) enif_alloc(n2 * sizeof(float));
@@ -519,8 +519,8 @@ __global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int
                 end_h1 = start_h1 + filt_h;
                 start_w1 = st*w2-pad;
                 end_w1 = start_w1 + filt_w;
+                sum = 0.0;
                 for(c1=0;c1<in_c;c1++){
-                    sum = 0.0;
                     for(h1=start_h1;h1<end_h1;h1++){
                         for(w1=start_w1;w1<end_w1;w1++){
                             if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
@@ -529,10 +529,9 @@ __global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int
                                 sum = sum + elt1*elt2;
                             }
                         }
-                    }
-                    c[IDX4C(n1,c1,h2,w2,in_c,oh,ow)] = sum;  
+                    } 
                 }
-                 
+                c[IDX4C(n1,c1,h2,w2,in_c,oh,ow)] = sum;  
             }
         }
     }
