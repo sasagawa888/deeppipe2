@@ -6,7 +6,7 @@ defmodule Test do
   # for grad confarmation
   defnetwork test_network0(_x) do
     _x
-    |> cf([[[0.1, 0.1], [0.1, 0.1]], [[0.1, 0.1], [0.1, 0.1]]])
+    |> cf([[[0.1, 0.1], [0.1, 0.1]], [[0.1, 0.1], [0.1001, 0.1]]])
     |> cf([[[0.2, 0.2], [0.2, 0.2]]])
     |> full
     |> softmax
@@ -14,7 +14,7 @@ defmodule Test do
 
   defnetwork test_network1(_x) do
     _x
-    |> cf([[[0.1, 0.1], [0.1, 0.1001]], [[0.1, 0.1], [0.1, 0.1]]])
+    |> cf([[[0.1, 0.1], [0.1, 0.1]], [[0.1, 0.1], [0.1, 0.1]]])
     |> cf([[[0.2, 0.2], [0.2, 0.2]]])
     |> full
     |> softmax
@@ -140,12 +140,11 @@ defmodule Test do
   # for CNN test
   defnetwork init_network4(_x) do
     _x
-    |> f(3, 3, 1, 1, 0, 0.1, 0.1)
-    |> pooling(2)
-    |> f(5, 5, 1, 1, 0, 0.1, 0.1)
+    |> f(3, 3, 1, 1, 0, 0.1, 0.01)
+    |> f(5, 5, 1, 1, 0, 0.1, 0.01)
     |> full
     |> sigmoid
-    |> w(81, 10, 0.1, 0.1)
+    |> w(484, 10, 0.1, 0.1)
     |> b(10, 0.1)
     |> softmax
   end
