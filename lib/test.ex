@@ -6,44 +6,90 @@ defmodule Test do
   # for grad confarmation
   defnetwork test_network0(_x) do
     _x
-    |> cf([[[0.1,0.1],[0.1,0.1]]])
-    |> cf([[[0.2,0.2],[0.2,0.2]]])
+    |> cf([[[0.1, 0.1], [0.1, 0.1]], [[0.1, 0.1], [0.1, 0.1]]])
+    |> cf([[[0.2, 0.2], [0.2, 0.2]]])
     |> full
     |> softmax
-  end 
+  end
 
   defnetwork test_network1(_x) do
     _x
-    |> cf([[[0.1001,0.1],[0.1,0.1]]])
-    |> cf([[[0.2,0.2],[0.2,0.2]]])
+    |> cf([[[0.1, 0.1], [0.1, 0.1]], [[0.1, 0.1], [0.1, 0.1]]])
+    |> cf([[[0.2, 0.2], [0.2001, 0.2]]])
     |> full
     |> softmax
-  end 
+  end
 
   def fd() do
-    data = [[[[0.1,0.2,0.3,0.4],[0.5,0.6,0.7,0.8],[0.9,0.10,0.11,0.12],[0.13,0.14,0.15,0.16]]]] |> CM.new()
-    [y1|_] = DP.forward(data,test_network0(0),[])
+    data =
+      [
+        [
+          [
+            [0.1, 0.2, 0.3, 0.4],
+            [0.5, 0.6, 0.7, 0.8],
+            [0.9, 0.10, 0.11, 0.12],
+            [0.13, 0.14, 0.15, 0.16]
+          ],
+          [
+            [0.17, 0.18, 0.19, 0.20],
+            [0.21, 0.22, 0.23, 0.24],
+            [0.25, 0.26, 0.27, 0.28],
+            [0.29, 0.30, 0.31, 0.32]
+          ]
+        ]
+      ]
+      |> CM.new()
+
+    [y1 | _] = DP.forward(data, test_network0(0), [])
     y1 |> CM.to_list() |> IO.inspect()
-  end 
+  end
 
   def grad() do
-    data = [[[[0.1,0.2,0.3,0.4],[0.5,0.6,0.7,0.8],[0.9,0.10,0.11,0.12],[0.13,0.14,0.15,0.16]]]] |> CM.new()
-    train = [[0.0,1.0,0.0,0.0]] |> CM.new()
-    [y1|_] = DP.forward(data,test_network0(0),[])
-    [y2|_] = DP.forward(data,test_network1(0),[])
+    data =
+      [
+        [
+          [
+            [0.1, 0.2, 0.3, 0.4],
+            [0.5, 0.6, 0.7, 0.8],
+            [0.9, 0.10, 0.11, 0.12],
+            [0.13, 0.14, 0.15, 0.16]
+          ],
+          [
+            [0.17, 0.18, 0.19, 0.20],
+            [0.21, 0.22, 0.23, 0.24],
+            [0.25, 0.26, 0.27, 0.28],
+            [0.29, 0.30, 0.31, 0.32]
+          ]
+        ]
+      ]
+      |> CM.new()
+
+    train = [[0.0, 1.0, 0.0, 0.0]] |> CM.new()
+    [y1 | _] = DP.forward(data, test_network0(0), [])
+    [y2 | _] = DP.forward(data, test_network1(0), [])
     loss1 = CM.loss(y1, train, :cross)
     loss2 = CM.loss(y2, train, :cross)
-    IO.puts((loss1-loss2)/0.0001)
+    IO.puts((loss1 - loss2) / 0.0001)
   end
 
-  def back() do 
-    data = [[[[0.1,0.2,0.3,0.4],[0.5,0.6,0.7,0.8],[0.9,0.10,0.11,0.12],[0.13,0.14,0.15,0.16]]]] |> CM.new()
-    train = [[0.0,1.0,0.0,0.0]] |> CM.new()
-    network1 = DP.gradient(data,test_network0(0),train)
+  def back() do
+    data =
+      [
+        [
+          [
+            [0.1, 0.2, 0.3, 0.4],
+            [0.5, 0.6, 0.7, 0.8],
+            [0.9, 0.10, 0.11, 0.12],
+            [0.13, 0.14, 0.15, 0.16]
+          ]
+        ]
+      ]
+      |> CM.new()
+
+    train = [[0.0, 1.0, 0.0, 0.0]] |> CM.new()
+    network1 = DP.gradient(data, test_network0(0), train)
     network1 |> DP.print()
   end
-
-
 
   # for DNN test
   defnetwork init_network1(_x) do
@@ -92,7 +138,7 @@ defmodule Test do
     |> pooling(2)
     |> f(5, 5, 1, 1, 0, 0.1, 0.1)
     |> full
-    |> sigmoid 
+    |> sigmoid
     |> w(81, 10, 0.1, 0.1)
     |> b(10, 0.1)
     |> softmax
