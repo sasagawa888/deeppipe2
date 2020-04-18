@@ -4,27 +4,42 @@ defmodule Test do
   alias Cumatrix, as: CM
 
   # for grad confarmation
-  defnetwork init_network0(_x) do
+  defnetwork test_network0(_x) do
     _x
     |> cf([[[0.1,0.1],[0.1,0.1]]])
-    |> cf([[[0.1,0.1],[0.1,0.1]]])
+    |> cf([[[0.2,0.2],[0.2,0.2]]])
     |> full
     |> softmax
   end 
 
+  defnetwork test_network1(_x) do
+    _x
+    |> cf([[[0.1001,0.1],[0.1,0.1]]])
+    |> cf([[[0.2,0.2],[0.2,0.2]]])
+    |> full
+    |> softmax
+  end 
+
+  def fd() do
+    data = [[[[0.1,0.2,0.3,0.4],[0.5,0.6,0.7,0.8],[0.9,0.10,0.11,0.12],[0.13,0.14,0.15,0.16]]]] |> CM.new()
+    [y1|_] = DP.forward(data,test_network0(0),[])
+    y1 |> CM.to_list() |> IO.inspect()
+  end 
+
   def grad() do
-    data = [[[[0.1,0.2,0.3,0.4],[0.2,0.3,0.4,0.5],[0.3,0.4,0.5,0.6],[0.4,0.5,0.6,0.7]]]] |> CM.new()
+    data = [[[[0.1,0.2,0.3,0.4],[0.5,0.6,0.7,0.8],[0.9,0.10,0.11,0.12],[0.13,0.14,0.15,0.16]]]] |> CM.new()
     train = [[0.0,1.0,0.0,0.0]] |> CM.new()
-    [y|_] = DP.forward(data,init_network0(0),[])
-    y |> CM.print()
-    loss = CM.loss(y, train, :cross)
-    IO.puts(loss)
+    [y1|_] = DP.forward(data,test_network0(0),[])
+    [y2|_] = DP.forward(data,test_network1(0),[])
+    loss1 = CM.loss(y1, train, :cross)
+    loss2 = CM.loss(y2, train, :cross)
+    IO.puts((loss1-loss2)/0.0001)
   end
 
   def back() do 
-    data = [[[[0.1,0.2,0.3,0.4],[0.2,0.3,0.4,0.5],[0.3,0.4,0.5,0.6],[0.4,0.5,0.6,0.7]]]] |> CM.new()
+    data = [[[[0.1,0.2,0.3,0.4],[0.5,0.6,0.7,0.8],[0.9,0.10,0.11,0.12],[0.13,0.14,0.15,0.16]]]] |> CM.new()
     train = [[0.0,1.0,0.0,0.0]] |> CM.new()
-    network1 = DP.gradient(data,init_network0(0),train)
+    network1 = DP.gradient(data,test_network0(0),train)
     network1 |> DP.print()
   end
 
@@ -73,11 +88,12 @@ defmodule Test do
   # for CNN test
   defnetwork init_network4(_x) do
     _x
-    |> f(3, 3, 1, 1, 0, 0.1, 0.01)
-    |> f(5, 5, 1, 1, 0, 0.1, 0.01)
-    |> sigmoid
+    |> f(3, 3, 1, 1, 0, 0.1, 0.1)
+    |> pooling(2)
+    |> f(5, 5, 1, 1, 0, 0.1, 0.1)
     |> full
-    |> w(484, 10, 0.1, 0.1)
+    |> sigmoid 
+    |> w(81, 10, 0.1, 0.1)
     |> b(10, 0.1)
     |> softmax
   end
