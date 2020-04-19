@@ -25,6 +25,13 @@ defmodule Network do
   end
 
   # weight
+  # cw mean constant weight for gradient check
+  def parse({:cw, _, [m]}, _) do
+    quote do
+      {:weight, CM.new(unquote(m)), 0.1, 0.1, 0.0, CM.new(1,1)}
+    end
+  end
+
   def parse({:w, _, [x, y]}, _) do
     quote do
       {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1), 0.1, 0.1, 0.0,
@@ -54,6 +61,13 @@ defmodule Network do
   end
 
   # bias
+  # cb means constant bias for gradient check
+  def parse({:cb, _, [m]}, _) do
+    quote do
+      {:bias, CM.new(unquote(m)), 0.1, 0.1, 0.0, CM.new(1, 1)}
+    end
+  end
+
   def parse({:b, _, [x]}, _) do
     quote do
       {:bias, CM.rand(1, unquote(x)) |> CM.mult(0.1), 0.1, 0.1, 0.0, CM.new(1, unquote(x))}
@@ -110,6 +124,7 @@ defmodule Network do
   end
 
   # filter
+  # cf means constant filter for gradient check
   def parse({:cf, _, [m]}, _) do
     quote do
       {:filter, CM.new(unquote(m)), 1, 0, 0.1, 0.1, CM.new(1, 3, 3)}
