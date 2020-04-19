@@ -424,8 +424,8 @@ defmodule Deeppipe do
   end
 
   def numerical_gradient1(x, [{:weight, w, ir, lr, dr, v} | rest], t, before, res) do
-    w1 = numerical_gradient_matrix(x, w, t, before, {:weight, w, lr, v}, rest)
-    numerical_gradient1(x, rest, t, [{:weight, w1, ir, lr, v} | before], [
+    w1 = numerical_gradient_matrix(x, w, t, before, {:weight, w, ir, lr, dr, v}, rest)
+    numerical_gradient1(x, rest, t, [{:weight, w1, ir, lr,dr, v} | before], [
       {:weight, w1, ir, lr, dr, v} | res         
     ])
   end

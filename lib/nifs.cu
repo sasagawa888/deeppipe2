@@ -1797,7 +1797,7 @@ cross_entropy(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
             s = s + b[IDX2C(i,j,r1)] * log(d);
         }
     }
-    s = s / (float)r1;
+    s = -1.0 * s / (float)r1;
     result = enif_make_double(env,s);
     return(result);
 }
