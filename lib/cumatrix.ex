@@ -106,6 +106,14 @@ defmodule Cumatrix do
     raise "NIF set1/6 not implemented"
   end
 
+  def add_diff1(_a, _b, _c, _d, _e, _f) do
+    raise "NIF add_diff1/6 not implemented"
+  end
+
+  def add_diff2(_a, _b, _c, _d, _e, _f, _g, _h) do
+    raise "NIF add_diff2/8 not implemented"
+  end
+
   def average1(_a, _b, _c) do
     raise "NIF average1/3 not implemented"
   end
@@ -526,6 +534,26 @@ defmodule Cumatrix do
       {r, c, result}
     else
       error("set1", result)
+    end
+  end
+
+  def add_diff({r, c, dt}, x, y, val) do
+    result = add_diff1(r, c, dt, x - 1, y - 1, val)
+
+    if !is_integer(result) do
+      {r, c, result}
+    else
+      error("add_diff1", result)
+    end
+  end
+
+  def add_diff({c, h, w, dt}, x, y, z, val) do
+    result = add_diff2(c, h, w, dt, x - 1, y - 1, z - 1, val)
+
+    if !is_integer(result) do
+      {c, h, w, result}
+    else
+      error("add_diff2", result)
     end
   end
 

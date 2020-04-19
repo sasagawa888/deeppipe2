@@ -1861,6 +1861,81 @@ set1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 static ERL_NIF_TERM
+add_diff1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin;
+    int r1, c1, n, i, j, x, y;
+    float *a,*b;
+    double val;
+
+    DISP("add_diff1")
+    if (!enif_get_int(env, argv[0], &r1)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &c1)) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[3], &x)) return enif_make_int(env,4);
+    if (!enif_get_int(env, argv[4], &y)) return enif_make_int(env,5);
+    if (!enif_get_double(env, argv[5], &val)) return enif_make_int(env,6);
+
+
+    n = r1*c1;
+    a = (float *) a_bin.data;
+    b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
+
+    for(i=0;i<r1;i++){
+        for(j=0;j<c1;j++){
+            if(i==x && j==y)
+                b[IDX2C(i,j,r1)] = a[IDX2C(i,j,r1)] + (float)val;
+            else 
+                b[IDX2C(i,j,r1)] = a[IDX2C(i,j,r1)];
+        }
+    }
+
+
+    return(b_bin);
+}
+
+static ERL_NIF_TERM
+add_diff2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin;
+    int c1, h1, w1, n, i, j, k, x, y, z;
+    float *a,*b;
+    double val;
+
+    DISP("add_diff2")
+    if (!enif_get_int(env, argv[0], &c1)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &h1)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &w1)) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[4], &x)) return enif_make_int(env,4);
+    if (!enif_get_int(env, argv[5], &y)) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[6], &z)) return enif_make_int(env,6);
+    if (!enif_get_double(env, argv[7], &val)) return enif_make_int(env,7);
+
+
+    n = c1*h1*w1;
+    a = (float *) a_bin.data;
+    b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
+
+    
+    for(i=0;i<c1;i++){
+        for(j=0;j<h1;j++){
+            for(k=0;k<w1;k++){
+                if(i==x && j==y && k==z)
+                    b[IDX3C(i,j,k,h1,w1)] = a[IDX3C(i,j,k,h1,w1)] + (float)val;
+                else 
+                    b[IDX3C(i,j,k,h1,w1)] = a[IDX3C(i,j,k,h1,w1)];
+            }
+        }
+    }
+
+
+    return(b_bin);
+}
+
+
+
+static ERL_NIF_TERM
 average1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin;
@@ -2433,6 +2508,8 @@ static ErlNifFunc nif_funcs[] = {
   {"cross_entropy", 4, cross_entropy},
   {"elt1", 5, elt1},
   {"set1", 6, set1},
+  {"add_diff1", 6, add_diff1},
+  {"add_diff2", 8, add_diff2},
   {"average1", 3, average1},
   {"sum1", 3, sum1},
   {"to_list1", 3, to_list1},

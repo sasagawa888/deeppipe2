@@ -28,7 +28,7 @@ defmodule Network do
   # cw mean constant weight for gradient check
   def parse({:cw, _, [m]}, _) do
     quote do
-      {:weight, CM.new(unquote(m)), 0.1, 0.1, 0.0, CM.new(1,1)}
+      {:weight, CM.new(unquote(m)), 0.1, 0.1, 0.0, CM.new(1, 1)}
     end
   end
 

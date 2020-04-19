@@ -216,5 +216,11 @@ defmodule CumatrixTest do
                  ]
                ]
              ]
+
+    assert Cumatrix.add_diff(f6, 1, 1, 1, 0.001) |> Cumatrix.to_list() ==
+             [[[1.0010000467300415, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]
+
+    assert Cumatrix.add_diff(m1, 1, 1, 0.001) |> Cumatrix.to_list() ==
+             [[1.0010000467300415, -2.0, 3.0], [4.0, 5.0, -6.0]]
   end
 end
