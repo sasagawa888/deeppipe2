@@ -45,7 +45,7 @@ defmodule CumatrixTest do
     m4 = Cumatrix.new([[1.0, 2.0, 3.0], [2.0, 3.0, 1.2]])
     m5 = Cumatrix.new([[1.1, 2.9, 2.0], [2.2, 3.1, 1.2]])
     assert Cumatrix.loss(m4, m5, :square) == 0.4675000309944153
-    assert Cumatrix.loss(m4, m5, :cross) == 4.678380012512207
+    assert Cumatrix.loss(m4, m5, :cross) == -4.678380012512207
     m6 = Cumatrix.new([[0.1, 0.9, 0.1], [0.2, 0.1, 1.2]])
 
     assert Cumatrix.activate(m6, :sigmoid) ==
