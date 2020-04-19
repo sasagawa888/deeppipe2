@@ -371,11 +371,12 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_h, in
         n1 = tid;
         oh = (in_h+2*pad-filt_h)/st + 1;
         ow = (in_w+2*pad-filt_w)/st + 1;
+        //full convolute. stride=1 always
         for(w2=0;w2<ow;w2++){
             for(h2=0;h2<oh;h2++){
-                start_h1 = st*h2-pad;
+                start_h1 = h2-pad;
                 end_h1 = start_h1 + filt_h;
-                start_w1 = st*w2-pad;
+                start_w1 = w2-pad;
                 end_w1 = start_w1 + filt_w;
                 sum = 0.0;
                 for(c1=0;c1<in_c;c1++){
@@ -385,7 +386,6 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_h, in
                                 elt1 = a[IDX4C(n1,0,h1,w1,in_c,in_h,in_w)];
                                 elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
                                 sum = sum + elt1*elt2;
-                                //printf("%f %f \n\r", elt1, elt2);
                             }
                         }
                     }
@@ -493,58 +493,73 @@ __global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int
 {
     int tid = threadIdx.x;
     int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
-    int j,k,l,k1,l1;
+    int k,l,k1,l1;
     float sum,elt1,elt2;
     if(tid < n)
     {   
         n1 = tid;
-        oh = (in_h+2*pad-filt_h)/st + 1;
-        ow = (in_w+2*pad-filt_w)/st + 1;
-
-        //dilate
-        for(j=0;j<in_c;j++){
-            for(k=0;k<loss_h;k++){
-                for(l=0;l<loss_w;l++){
-                    elt1 = a[IDX4C(n1,j,k,l,in_c,loss_h,loss_w)];
-                    k1 = k * filt_h * st;
-                    l1 = l * filt_w * st;
-                    a1[IDX4C(n1,j,k1,l1,in_c,in_h,in_w)] = elt1;
-                }
+        // caution! stride=1 
+        oh = (in_h+2*pad-filt_h) + 1;
+        ow = (in_w+2*pad-filt_w) + 1;
+    
+        //dilate loss tensor. loss tensor is 1 channel
+        for(k=0;k<loss_h;k++){
+            for(l=0;l<loss_w;l++){
+                elt1 = a[IDX4C(n1,0,k,l,1,loss_h,loss_w)];
+                k1 = st*k;
+                l1 = st*l;
+                a1[IDX4C(n1,0,k1,l1,1,in_h,in_w)] = elt1;
             }
         }
-        //convulute
+        //full convulute. stride=1
         for(w2=0;w2<ow;w2++){
             for(h2=0;h2<oh;h2++){
-                start_h1 = st*h2-pad;
+                start_h1 = h2-pad;
                 end_h1 = start_h1 + filt_h;
-                start_w1 = st*w2-pad;
+                start_w1 = w2-pad;
                 end_w1 = start_w1 + filt_w;
                 sum = 0.0;
                 for(c1=0;c1<in_c;c1++){
                     for(h1=start_h1;h1<end_h1;h1++){
                         for(w1=start_w1;w1<end_w1;w1++){
                             if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
-                                elt1 = a1[IDX4C(n1,0,h1,w1,in_c,in_h,in_w)];
+                                elt1 = a1[IDX4C(n1,0,h1,w1,1,in_h,in_w)];
                                 elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
                                 sum = sum + elt1*elt2;
                             }
                         }
-                    } 
+                    }
                 }
-                c[IDX4C(n1,c1,h2,w2,in_c,oh,ow)] = sum;  
+                c[IDX4C(n1,0,h2,w2,1,oh,ow)] = sum;           
             }
         }
+        
     }
 }
-  
 /*
-1st arg in_n of input tensor
-2nd arg in_c of input tensor
-3rd arg in_h of input tensor
-4th arg in_w of input tensor
+dilate loss tensor 
+e.g.
+
+|1.0,2.0|
+|3.0,4.0|
+
+dilated stride=2
+|1.0,0.0,2.0|
+|0.0,0.0,0.0|
+|3.0,0.0,4.0|
+
+
+*/
+
+
+/*
+1st arg in_n of input loss tensor
+2nd arg in_c of input loss tensor
+3rd arg in_h of input loss  tensor
+4th arg in_w of input loss tensor
 5th arg filt_h of filter tensor
 6th arg filt_w of filter tensor
-7th arg binary of input tensor
+7th arg binary of input loss tensor
 8th arg binary of filter tensor
 9th arg stride
 10th arg padding   
@@ -572,15 +587,15 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
         
     // size for dilate
-    in_h = filt_h * st * (loss_h - 1) + filt_h;
-    in_w = filt_w * st * (loss_w - 1) + filt_w;
+    in_h = loss_h + (loss_h - 1)*(st - 1);
+    in_w = loss_w + (loss_w - 1)*(st - 1);
 
-    n1 = in_n * in_c * in_h * in_w;
-    n2 = in_c * filt_h * filt_w;
-    pad1 = filt_h - 1 + pad;
-    oh = (in_h+2*pad1-filt_h)/st + 1;
-    ow = (in_w+2*pad1-filt_w)/st + 1;
-    n3 = in_n * in_c * oh * ow;
+    n1 = in_n * 1 * in_h * in_w;  //loss tensor size 
+    n2 = in_c * filt_h * filt_w;  //filter tensor size
+    pad1 = (filt_h - 1) + pad;    //padding size with dilate
+    oh = (in_h+2*pad1-filt_h) + 1; //output deconvolute tensor size. caution stride=1.
+    ow = (in_w+2*pad1-filt_w) + 1; // 
+    n3 = in_n * 1 * oh * ow;       // 
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     a1 = (float *) enif_alloc(n1 * sizeof(float));
@@ -601,13 +616,14 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     for(i=0;i<n1;i++){
         a1[i] = 0.0;
     }
+
     CHECK(cudaMalloc((void**)&dev_a1, n1 * sizeof(float)));
-    CHECK(cudaMalloc((void**)&dev_a, in_n*in_c*oh*ow * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_a, in_n*1*loss_h*loss_w * sizeof(float)));
     CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
     CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
 
     CHECK(cudaMemcpy(dev_a1, a1, n1 * sizeof(float), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(dev_a, a, in_n*in_c*loss_h*loss_w  * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_a, a, in_n*1*loss_h*loss_w  * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
@@ -615,7 +631,7 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
-
+    
     // free 
     cudaFree(dev_a);
     cudaFree(dev_a1);

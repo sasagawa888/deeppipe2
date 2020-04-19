@@ -1004,7 +1004,7 @@ defmodule Cumatrix do
         error("deconvolute1", result)
       end
     else
-      result = deconvolute2(n, c, h1, w1, h2, w2, dt1, dt2, st, pad)
+      result = deconvolute2(n, c, oh, ow, h2, w2, dt1, dt2, st, pad)
 
       if !is_integer(result) do
         {n, 1, h1, w1, result}
