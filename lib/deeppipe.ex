@@ -403,162 +403,106 @@ defmodule Deeppipe do
     x |> Matrex.new() |> Matrex.heatmap(:color256, [])
   end
 
+  #-----------------------------
   # numerical gradient
-  def numerical_gradient(x, network, t, :square) do
-    numerical_gradient(x, network, t)
-  end
-
-  def numerical_gradient(x, network, t, :cross) do
-    numerical_gradient1(x, network, t, [], [], :cross)
-  end
-
+  # 1st arg input tensor
+  # 2nd arg network
+  # 3rd arg train tensor
   def numerical_gradient(x, network, t) do
     numerical_gradient1(x, network, t, [], [])
   end
-
 
   def numerical_gradient1(_, [], _, _, res) do
     Enum.reverse(res)
   end
 
-
-  def numerical_gradient1(x, [{:bias, w, lr, v} | rest], t, before, res) do
-    w1 = numerical_gradient_matrix(x, w, t, before, {:bias, w, lr, v}, rest)
-    numerical_gradient1(x, rest, t, [{:bias, w, lr, v} | before], [{:bias, w1, lr, v} | res])
-  end
-
-  
-  def numerical_gradient1(x, [{:weight, w, lr, v} | rest], t, before, res) do
-    w1 = numerical_gradient_matrix(x, w, t, before, {:weight, w, lr, v}, rest)
-    numerical_gradient1(x, rest, t, [{:weight, w1, lr, v} | before], [{:weight, w1, lr, v} | res])
-  end
-
-  def numerical_gradient1(x, [{:filter, w, st, lr, v} | rest], t, before, res) do
-    w1 = numerical_gradient_matrix(x, w, t, before, {:filter, w, st, lr, v}, rest)
-
-    numerical_gradient1(x, rest, t, [{:filter, w, st, lr, v} | before], [
-      {:filter, w1, st, lr, v} | res
+  def numerical_gradient1(x, [{:bias, w, ir, lr, dr, v} | rest], t, before, res) do
+    w1 = numerical_gradient_bias(x, w, t, before, {:bias, w, ir, lr, dr, v}, rest)
+    numerical_gradient1(x, rest, t, [{:bias, w, ir, lr, dr, v} | before], [
+      {:bias, w1, ir, lr, dr, v} | res
     ])
   end
 
+  def numerical_gradient1(x, [{:weight, w, ir, lr, dr, v} | rest], t, before, res) do
+    w1 = numerical_gradient_matrix(x, w, t, before, {:weight, w, lr, v}, rest)
+    numerical_gradient1(x, rest, t, [{:weight, w1, ir, lr, v} | before], [
+      {:weight, w1, ir, lr, dr, v} | res         
+    ])
+  end
 
-  
-  
-  # calc numerical gradient of filter,weigth,bias matrix
+  def numerical_gradient1(x, [{:filter, w, st, pad, ir, lr, v} | rest], t, before, res) do
+    w1 = numerical_gradient_filter(x, w, t, before, {:filter, w, st, pad, ir, lr, v}, rest)
+    numerical_gradient1(x, rest, t, [{:filter, w, st, pad, ir, lr, v} | before], [
+      {:filter, w1, st, pad, ir, lr, v} | res
+    ])
+  end
+
+  def numerical_gradient1(x, [y | rest], t, before, res) do
+    numerical_gradient1(x, rest, t, [y | before], [y | res])
+  end
+
+  # calc numerical gradient of bias
+  def numerical_gradient_bias(x, w, t, before, now, rest) do
+    {_, c} = Cumatrix.size(w)
+    for r1 <- 1..1 do 
+      for c1 <- 1..c do 
+        numerical_gradient_bias1(x, t, r1, c1, before, now, rest) 
+      end
+    end 
+    |> CM.new()
+  end
+
+  def numerical_gradient_bias1(x, t, r, c, before, {:bias,w,ir,lr,dr,v}, rest) do
+    delta = 0.0001
+    w1 = CM.add_diff(w, r, c, delta)
+    network0 = Enum.reverse(before) ++ [{:bias,w,ir,lr,dr,v}] ++ rest
+    network1 = Enum.reverse(before) ++ [{:bias,w1,ir,lr,dr,v}] ++ rest
+    [y0|_] = forward(x, network0, [])
+    [y1|_] = forward(x, network1, [])
+    (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / delta
+  end
+
+  # calc numerical gradient of matrix
   def numerical_gradient_matrix(x, w, t, before, now, rest) do
-    {r, c} = w[:size]
+    {r, c} = Cumatrix.size(w)
+    for r1 <- 1..r do
+      for c1 <- 1..c do
+        numerical_gradient_matrix1(x, t, r1, c1, before, now, rest) 
+      end 
+    end 
+    |> CM.new()
+  end
 
-    Enum.map(
-      1..r,
-      fn x1 ->
-        Enum.map(
-          1..c,
-          fn y1 -> numerical_gradient_matrix1(x, t, x1, y1, before, now, rest) end
-        )
+  def numerical_gradient_matrix1(x, t, r, c, before, {:weight,w,ir,lr,dr,v}, rest) do
+    delta = 0.0001
+    w1 = CM.add_diff(w, r, c, delta)
+    network0 = Enum.reverse(before) ++ [{:weight,w,ir,lr,dr,v}] ++ rest
+    network1 = Enum.reverse(before) ++ [{:weight,w1,ir,lr,dr,v}] ++ rest
+    [y0|_] = forward(x, network0, [])
+    [y1|_] = forward(x, network1, [])
+    (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / delta
+  end
+
+  # calc numerical gradient of filter
+  def numerical_gradient_filter(x, w, t, before, now, rest) do
+    {c, h, w} = Cumatrix.size(w)
+    for c1 <- 1..c do
+      for h1 <- 1..h do
+        for w1 <- 1..w do
+          numerical_gradient_filter1(x, t, c1, h1, w1, before, now, rest)
+        end
       end
-    )
-    |> Matrex.new()
+    end
+    |> CM.new()
   end
 
-  def numerical_gradient_matrix1(x, t, r, c, before, {type, w, lr, v}, rest) do
-    h = 0.0001
-    w1 = CM.add_diff(w, r, c, h)
-    network0 = Enum.reverse(before) ++ [{type, w, lr, v}] ++ rest
-    network1 = Enum.reverse(before) ++ [{type, w1, lr, v}] ++ rest
-    y0 = forward(x, network0, [])
-    y1 = forward(x, network1, [])
-    (CM.loss(y1, t, :square) - CM.loss(y0, t, :square)) / h
+  def numerical_gradient_filter1(x, t, c, h, w, before, {:filter, m, st, pad, ir, lr, v}, rest) do
+    delta = 0.0001
+    m1 = CM.add_diff(m, c, h, w, delta)
+    network0 = Enum.reverse(before) ++ [{:filter, m, st, pad, ir, lr, v}] ++ rest
+    network1 = Enum.reverse(before) ++ [{:filter, m1, st, pad, ir, lr, v}] ++ rest
+    [y0|_] = forward(x, network0, [])
+    [y1|_] = forward(x, network1, [])
+    (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / delta
   end
-
-  def numerical_gradient_matrix1(x, t, r, c, before, {type, w, st, lr, v}, rest) do
-    h = 0.0001
-    w1 = CM.add_diff(w, r, c, h)
-    network0 = Enum.reverse(before) ++ [{type, w, st, lr, v}] ++ rest
-    network1 = Enum.reverse(before) ++ [{type, w1, st, lr, v}] ++ rest
-    y0 = forward(x, network0, [])
-    y1 = forward(x, network1, [])
-    (CM.loss(y1, t, :square) - CM.loss(y0, t, :square)) / h
-  end
-
-
-  def numerical_gradient1(x, [{:filter, w, st, lr, v} | rest], t, before, res, :cross) do
-    w1 = numerical_gradient_matrix(x, w, t, before, {:filter, w, st, lr, v}, rest)
-
-    numerical_gradient1(
-      x,
-      rest,
-      t,
-      [{:filter, w, st, lr, v} | before],
-      [{:filter, w1, st, lr, v} | res],
-      :cross
-    )
-  end
-
-  def numerical_gradient1(x, [{:weight, w, lr, v} | rest], t, before, res, :cross) do
-    w1 = numerical_gradient_matrix(x, w, t, before, {:weight, w, lr, v}, rest, :cross)
-
-    numerical_gradient1(
-      x,
-      rest,
-      t,
-      [{:weight, w, lr, v} | before],
-      [{:weight, w1, lr, v} | res],
-      :cross
-    )
-  end
-
-  def numerical_gradient1(x, [{:bias, w, lr, v} | rest], t, before, res, :cross) do
-    w1 = numerical_gradient_matrix(x, w, t, before, {:bias, w, lr, v}, rest, :cross)
-
-    numerical_gradient1(
-      x,
-      rest,
-      t,
-      [{:bias, w, lr, v} | before],
-      [{:bias, w1, lr, v} | res],
-      :cross
-    )
-  end
-
-  def numerical_gradient1(x, [y | rest], t, before, res, :cross) do
-    numerical_gradient1(x, rest, t, [y | before], [y | res], :cross)
-  end
-
-  # calc numerical gradient of filter,weigth,bias matrix
-  def numerical_gradient_matrix(x, w, t, before, now, rest, :cross) do
-    {r, c} = w[:size]
-
-    Enum.map(
-      1..r,
-      fn x1 ->
-        Enum.map(
-          1..c,
-          fn y1 -> numerical_gradient_matrix1(x, t, x1, y1, before, now, rest, :cross) end
-        )
-      end
-    )
-    |> Matrex.new()
-  end
-
-  def numerical_gradient_matrix1(x, t, r, c, before, {type, w, lr, v}, rest, :cross) do
-    h = 0.0001
-    w1 = CM.add_diff(w, r, c, h)
-    network0 = Enum.reverse(before) ++ [{type, w, lr, v}] ++ rest
-    network1 = Enum.reverse(before) ++ [{type, w1, lr, v}] ++ rest
-    y0 = forward(x, network0,[])
-    y1 = forward(x, network1,[])
-    (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / h
-  end
-
-  def numerical_gradient_matrix1(x, t, r, c, before, {type, w, st, lr, v}, rest, :cross) do
-    h = 0.0001
-    w1 = CM.add_diff(w, r, c, h)
-    network0 = Enum.reverse(before) ++ [{type, w, st, lr, v}] ++ rest
-    network1 = Enum.reverse(before) ++ [{type, w1, st, lr, v}] ++ rest
-    y0 = forward(x, network0,[])
-    y1 = forward(x, network1,[])
-    (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / h
-  end
-
-  
 end
