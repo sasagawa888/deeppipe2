@@ -21,21 +21,51 @@ defmodule Check do
   end 
 
   def test1([],[],_) do true end 
-  def test1([x | xs],[y | ys],n) do
-    cond do
-      (CM.is_matrix(x) && CM.is_matrix(y)) || (CM.is_matrix(x) && CM.is_tensor(y)) -> 
+  def test1([{:filter,x,_,_,_,_,_} | xs],[{:filter,y,_,_,_,_,_} | ys],n) do
         if CM.is_near(x,y) do 
+          IO.write(n)
+          IO.puts(" filter layer ok")
           test1(xs,ys,n+1)
         else
-          IO.puts(n)
+          IO.write(n)
+          IO.puts(" filter layer error")
           x |> CM.to_list() |> IO.inspect()
           y |> CM.to_list() |> IO.inspect()
           test1(xs,ys,n+1)
-      end 
-      true -> test1(xs,ys,n+1)
-    end
-  end  
+        end 
+  end 
+   def test1([{:weight,x,_,_,_,_} | xs],[{:weight,y,_,_,_,_} | ys],n) do
+        if CM.is_near(x,y) do 
+          IO.write(n)
+          IO.puts(" weight layer ok")
+          test1(xs,ys,n+1)
+        else
+          IO.write(n)
+          IO.puts(" weight layer error")
+          x |> CM.to_list() |> IO.inspect()
+          y |> CM.to_list() |> IO.inspect()
+          test1(xs,ys,n+1)
+        end 
+  end 
+  def test1([{:bias,x,_,_,_,_} | xs],[{:bias,y,_,_,_,_} | ys],n) do
+        if CM.is_near(x,y) do 
+          IO.write(n)
+          IO.puts(" bias layer ok")
+          test1(xs,ys,n+1)
+        else
+          IO.write(n)
+          IO.puts(" bias layer error")
+          x |> CM.to_list() |> IO.inspect()
+          y |> CM.to_list() |> IO.inspect()
+          test1(xs,ys,n+1)
+        end 
+  end 
 
+  def test1([x|xs],[_|ys],n) do
+    IO.write(n)
+    IO.inspect(x)
+    test1(xs,ys,n+1)
+  end 
 
   
 end 

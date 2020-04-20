@@ -2496,8 +2496,10 @@ is_near1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     // near check
     for(i=0;i<n;i++){
-       if(a[i] > b[i]*1.03 || a[i] < b[i]*0.97)
+       if(fabsf(a[i]) > fabsf(b[i])*1.10 || fabsf(a[i]) < fabsf(b[i])*0.90){
+            printf("%f %f \r\n", a[i], b[i]);
             return enif_make_int(env,0);
+        }
     }
 
     return enif_make_int(env,1);
