@@ -190,6 +190,10 @@ defmodule Cumatrix do
     raise "NIF random_select1/9 not implemented"
   end
 
+  def is_near1(_1, _2, _3) do
+    raise "NIF is_near1/3 not implemented"
+  end
+
   # ----------------------------------------------------------------
   # c1 == r2 
   def mult({r1, c1, dt1}, {c1, c2, dt2}) do
@@ -1083,6 +1087,26 @@ defmodule Cumatrix do
       true -> raise func <> "cuBLAS error" <> Integer.to_string(n - 11000)
     end
   end
+
+  def is_near({r,c,dt1},{r,c,dt2}) do
+    if is_near1(r*c,dt1,dt2) == 1 do
+      true
+    else 
+      false
+    end 
+  end 
+
+  def is_near({c,h,w,dt1},{c,h,w,dt2}) do
+    if is_near1(c*h*w,dt1,dt2) == 1 do
+      true
+    else 
+      false
+    end 
+  end 
+
+  def is_near(_,_) do
+    false
+  end 
 
   def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do
