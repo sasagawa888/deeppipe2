@@ -6,14 +6,16 @@ defmodule Check do
   # for grad confirmation
   defnetwork test_network0(_x) do
     _x
-    |> cf([[[0.1, 0.1], [0.1, 0.1]], [[0.1, 0.1], [0.1, 0.1]]])
-    |> cf([[[0.2, 0.2], [0.2, 0.2]]])
+    |> f(2,2,2)
+    |> f(2,2,1)
     |> full
+    |> w(4,4)
+    |> b(4)
     |> softmax
   end
 
   def test() do
-    data = CM.rand(1,2,4,4)
+    data = CM.rand(1,2,4,4) |> CM.mult(0.1)
     train = [[0.0,1.0,0.0,0.0]] |> CM.new()
     network1 = DP.numerical_gradient(data, test_network0(0), train)
     network2 = DP.gradient(data, test_network0(0), train)
