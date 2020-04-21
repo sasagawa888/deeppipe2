@@ -1088,25 +1088,25 @@ defmodule Cumatrix do
     end
   end
 
-  def is_near({r,c,dt1},{r,c,dt2}) do
-    if is_near1(r*c,dt1,dt2) == 1 do
+  def is_near({r, c, dt1}, {r, c, dt2}) do
+    if is_near1(r * c, dt1, dt2) == 1 do
       true
-    else 
+    else
       false
-    end 
-  end 
+    end
+  end
 
-  def is_near({c,h,w,dt1},{c,h,w,dt2}) do
-    if is_near1(c*h*w,dt1,dt2) == 1 do
+  def is_near({c, h, w, dt1}, {c, h, w, dt2}) do
+    if is_near1(c * h * w, dt1, dt2) == 1 do
       true
-    else 
+    else
       false
-    end 
-  end 
+    end
+  end
 
-  def is_near(_,_) do
+  def is_near(_, _) do
     false
-  end 
+  end
 
   def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do

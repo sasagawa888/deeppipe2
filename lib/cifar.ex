@@ -8,11 +8,12 @@ defmodule CIFAR do
   defnetwork init_network1(_x) do
     _x
     |> f(3, 3, 3, 1, 1, 0.01, 0.001)
+    |> pooling(2)
     |> f(5, 5, 1, 1, 1, 0.01, 0.01)
     |> f(5, 5, 1, 1, 1, 0.01, 0.01)
     |> sigmoid
     |> full
-    |> w(784, 10, 0.1, 0.01)
+    |> w(144, 10, 0.1, 0.01)
     |> b(10, 0.1, 0.01)
     |> softmax
   end

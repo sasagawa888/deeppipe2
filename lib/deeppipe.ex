@@ -403,7 +403,7 @@ defmodule Deeppipe do
     x |> Matrex.new() |> Matrex.heatmap(:color256, [])
   end
 
-  #-----------------------------
+  # -----------------------------
   # numerical gradient
   # 1st arg input tensor
   # 2nd arg network
@@ -417,75 +417,85 @@ defmodule Deeppipe do
   end
 
   def numerical_gradient1(x, [{:bias, w, ir, lr, dr, v} | rest], t, before, res) do
+    # IO.puts("ngrad bias")
     w1 = numerical_gradient_bias(x, w, t, before, {:bias, w, ir, lr, dr, v}, rest)
+
     numerical_gradient1(x, rest, t, [{:bias, w, ir, lr, dr, v} | before], [
       {:bias, w1, ir, lr, dr, v} | res
     ])
   end
 
   def numerical_gradient1(x, [{:weight, w, ir, lr, dr, v} | rest], t, before, res) do
+    # IO.puts("ngrad wight")
     w1 = numerical_gradient_matrix(x, w, t, before, {:weight, w, ir, lr, dr, v}, rest)
-    numerical_gradient1(x, rest, t, [{:weight, w1, ir, lr,dr, v} | before], [
-      {:weight, w1, ir, lr, dr, v} | res         
+
+    numerical_gradient1(x, rest, t, [{:weight, w1, ir, lr, dr, v} | before], [
+      {:weight, w1, ir, lr, dr, v} | res
     ])
   end
 
   def numerical_gradient1(x, [{:filter, w, st, pad, ir, lr, v} | rest], t, before, res) do
+    # IO.puts("ngrad filter")
     w1 = numerical_gradient_filter(x, w, t, before, {:filter, w, st, pad, ir, lr, v}, rest)
+
     numerical_gradient1(x, rest, t, [{:filter, w, st, pad, ir, lr, v} | before], [
       {:filter, w1, st, pad, ir, lr, v} | res
     ])
   end
 
   def numerical_gradient1(x, [y | rest], t, before, res) do
+    # IO.puts("ngrad else")
     numerical_gradient1(x, rest, t, [y | before], [y | res])
   end
 
   # calc numerical gradient of bias
   def numerical_gradient_bias(x, w, t, before, now, rest) do
     {_, c} = Cumatrix.size(w)
-    for r1 <- 1..1 do 
-      for c1 <- 1..c do 
-        numerical_gradient_bias1(x, t, r1, c1, before, now, rest) 
+
+    for r1 <- 1..1 do
+      for c1 <- 1..c do
+        numerical_gradient_bias1(x, t, r1, c1, before, now, rest)
       end
-    end 
+    end
     |> CM.new()
   end
 
-  def numerical_gradient_bias1(x, t, r, c, before, {:bias,w,ir,lr,dr,v}, rest) do
+  def numerical_gradient_bias1(x, t, r, c, before, {:bias, w, ir, lr, dr, v}, rest) do
     delta = 0.0001
     w1 = CM.add_diff(w, r, c, delta)
-    network0 = Enum.reverse(before) ++ [{:bias,w,ir,lr,dr,v}] ++ rest
-    network1 = Enum.reverse(before) ++ [{:bias,w1,ir,lr,dr,v}] ++ rest
-    [y0|_] = forward(x, network0, [])
-    [y1|_] = forward(x, network1, [])
+    network0 = Enum.reverse(before) ++ [{:bias, w, ir, lr, dr, v}] ++ rest
+    network1 = Enum.reverse(before) ++ [{:bias, w1, ir, lr, dr, v}] ++ rest
+    [y0 | _] = forward(x, network0, [])
+    [y1 | _] = forward(x, network1, [])
     (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / delta
   end
 
   # calc numerical gradient of matrix
   def numerical_gradient_matrix(x, w, t, before, now, rest) do
     {r, c} = Cumatrix.size(w)
+
     for r1 <- 1..r do
       for c1 <- 1..c do
-        numerical_gradient_matrix1(x, t, r1, c1, before, now, rest) 
-      end 
-    end 
+        numerical_gradient_matrix1(x, t, r1, c1, before, now, rest)
+      end
+    end
     |> CM.new()
   end
 
-  def numerical_gradient_matrix1(x, t, r, c, before, {:weight,w,ir,lr,dr,v}, rest) do
+  def numerical_gradient_matrix1(x, t, r, c, before, {:weight, w, ir, lr, dr, v}, rest) do
     delta = 0.0001
     w1 = CM.add_diff(w, r, c, delta)
-    network0 = Enum.reverse(before) ++ [{:weight,w,ir,lr,dr,v}] ++ rest
-    network1 = Enum.reverse(before) ++ [{:weight,w1,ir,lr,dr,v}] ++ rest
-    [y0|_] = forward(x, network0, [])
-    [y1|_] = forward(x, network1, [])
+    network0 = Enum.reverse(before) ++ [{:weight, w, ir, lr, dr, v}] ++ rest
+    network1 = Enum.reverse(before) ++ [{:weight, w1, ir, lr, dr, v}] ++ rest
+    [y0 | _] = forward(x, network0, [])
+    [y1 | _] = forward(x, network1, [])
     (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / delta
   end
 
   # calc numerical gradient of filter
   def numerical_gradient_filter(x, w, t, before, now, rest) do
     {c, h, w} = Cumatrix.size(w)
+
     for c1 <- 1..c do
       for h1 <- 1..h do
         for w1 <- 1..w do
@@ -501,8 +511,8 @@ defmodule Deeppipe do
     m1 = CM.add_diff(m, c, h, w, delta)
     network0 = Enum.reverse(before) ++ [{:filter, m, st, pad, ir, lr, v}] ++ rest
     network1 = Enum.reverse(before) ++ [{:filter, m1, st, pad, ir, lr, v}] ++ rest
-    [y0|_] = forward(x, network0, [])
-    [y1|_] = forward(x, network1, [])
+    [y0 | _] = forward(x, network0, [])
+    [y1 | _] = forward(x, network1, [])
     (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / delta
   end
 end
