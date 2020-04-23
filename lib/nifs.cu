@@ -2505,78 +2505,37 @@ is_near1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return enif_make_int(env,1);
 }
 
-__global__ void composit_kernel(float *a, float *b, float *c, float *d, int in_c, int in_h, int in_w, int n)
-{
-    int tid = threadIdx.x;
-    int n1,c1,h1,w1;
-    if(tid < n)
-    {   
-        n1 = tid;
-        for(c1=0;c1<in_c;c1++){
-            for(h1=0;h1<in_h;h1++){
-                for(w1=0;w1<in_w;w1++){
-                    d[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] = 
-                        a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)]*255*255 + 
-                        b[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)]*255 +
-                        c[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
-                }
-            }
-        }
-    }
-}
-	
+
 /*
-a_bin is RED
-b_bin is GREEN
-c_bin is BLUE
-d_bin is RED*255*255 + GREEN*255 + BLUE
+a_bin is 3 channel data RGB
 */
 static ERL_NIF_TERM
 composit1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin,b_bin,c_bin;
-    ERL_NIF_TERM  d_bin;
-    int n,in_n,in_c,in_h,in_w;
-    float *a, *b, *c, *d;
-    float *dev_a, *dev_b, *dev_c, *dev_d;
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin;
+    int n,in_c,in_h,in_w,h1,w1;
+    float *a, *b;
   
     DISP("composit1")
-    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
-    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
-    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
-    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_int(env,5);
-    if (!enif_inspect_binary(env, argv[5], &b_bin )) return enif_make_int(env,6);
-    if (!enif_inspect_binary(env, argv[6], &c_bin )) return enif_make_int(env,7);
+    if (!enif_get_int(env, argv[0], &in_c)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &in_h)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &in_w)) return enif_make_int(env,3);
+    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,4);
 
-    n = in_n * in_c * in_h * in_w;
+    n = in_c * in_h * in_w;
     a = (float *) a_bin.data;
-    b = (float *) b_bin.data;
-    c = (float *) c_bin.data;
-    d = (float *) enif_make_new_binary(env, n * sizeof(float), &d_bin);
+    b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
 
-    // Allocate for GPU
-	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
-	CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
-    CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
-    CHECK(cudaMalloc((void**)&dev_d, n * sizeof(float)));
-
-    // copy from host a,b to GPU dev_a, dev_b
-	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(dev_d, d, n * sizeof(float), cudaMemcpyHostToDevice));
-
-	composit_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, dev_d, in_c, in_h, in_w, in_n);
-  
-	// copy to host c from GPU dev_c
-	CHECK(cudaMemcpy(d, dev_d, n * sizeof(float), cudaMemcpyDeviceToHost));
-
-    // free 
-    cudaFree(dev_a);
-	cudaFree(dev_b);
-    cudaFree(dev_c);
-
-    return(d_bin);
+    for(h1=0;h1<in_h;h1++){
+        for(w1=0;w1<in_w;w1++){
+            b[IDX3C(0,h1,w1,in_h,in_w)] = 
+                a[IDX3C(0,h1,w1,in_h,in_w)]*256*256 +
+                a[IDX3C(1,h1,w1,in_h,in_w)]*256+
+                a[IDX3C(2,h1,w1,in_h,in_w)];
+        }
+    }
+    
+    return(b_bin);
 }
 
 

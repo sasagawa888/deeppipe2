@@ -194,8 +194,8 @@ defmodule Cumatrix do
     raise "NIF is_near1/3 not implemented"
   end
 
-  def composit1(_1, _2, _3, _4, _5, _6, _7) do
-    raise "NIF composit1/7 not implemented"
+  def composit1(_1, _2, _3, _4) do
+    raise "NIF composit1/4 not implemented"
   end 
 
   # ----------------------------------------------------------------
@@ -1112,9 +1112,9 @@ defmodule Cumatrix do
     false
   end
 
-  def composit({n1,c1,h1,w1,dt1},{n1,c1,h1,w1,dt2},{n1,c1,h1,w1,dt3}) do
-    result = composit1(n1,c1,h1,w1,dt1,dt2,dt3)
-    {n1,c1,h1,w1,result}
+  def composit({c1,h1,w1,dt1}) do
+    result = composit1(c1,h1,w1,dt1)
+    {1,h1,w1,result}
   end 
 
   def is_matrix({r, c, dt}) do

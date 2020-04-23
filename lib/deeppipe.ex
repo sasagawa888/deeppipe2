@@ -399,9 +399,17 @@ defmodule Deeppipe do
     IO.puts("")
   end
 
-  def heatmap(x) do
-    x |> Matrex.new() |> Matrex.heatmap(:color256, [])
+  def heatmap(x,n) do
+    x |> nth(n) |> CM.new() |> CM.composit() |> CM.to_list() |> nth(1) |> Matrex.new() |> Matrex.heatmap(:color24bit, [])
   end
+
+  def nth([x|_],1) do x end 
+  def nth([_|xs],n) do
+    nth(xs,n-1)
+  end 
+  def nth([],_) do 
+    raise "nth error"
+  end 
 
   # -----------------------------
   # numerical gradient

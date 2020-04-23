@@ -159,9 +159,53 @@ defmodule CIFAR do
     train_image4(xs, n - 1, [x | res])
   end
 
-  def heatmap(x) do
-    a = CM.to_list(x)
-    [[a1] | _] = a
-    DP.heatmap(a1)
+  def heatmap(n) do
+    DP.heatmap(train_rgb(),n)
+  end 
+
+   def train_rgb() do
+    {:ok, bin} = File.read("data_batch_1.bin")
+    train_rgb1(bin)
   end
+
+  # get RGB 3ch data
+  def train_rgb1(<<>>) do
+    []
+  end
+
+  def train_rgb1(<<_, rest::binary>>) do
+    {image, other} = train_rgb2(rest, 3, [])
+    [image | train_rgb1(other)]
+  end
+
+  # get one RGB data
+  def train_rgb2(x, 0, res) do
+    {Enum.reverse(res), x}
+  end
+
+  def train_rgb2(x, n, res) do
+    {image, rest} = train_rgb3(x, 32, [])
+    train_rgb2(rest, n - 1, [image | res])
+  end
+
+  # get one image 2D data
+  def train_rgb3(x, 0, res) do
+    {Enum.reverse(res), x}
+  end
+
+  def train_rgb3(x, n, res) do
+    {image, rest} = train_rgb4(x, 32, [])
+    train_rgb3(rest, n - 1, [image | res])
+  end
+
+  # get one row vector
+  def train_rgb4(x, 0, res) do
+    # {Enum.reverse(res) , x}
+    {Enum.reverse(res) |> DP.normalize(-0, 1.0), x}
+  end
+
+  def train_rgb4(<<x, xs::binary>>, n, res) do
+    train_rgb4(xs, n - 1, [x | res])
+  end
+  
 end
