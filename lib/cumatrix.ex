@@ -178,8 +178,8 @@ defmodule Cumatrix do
     raise "NIF full1/5 not implemented"
   end
 
-  def unfull1(_1, _2, _3, _4) do
-    raise "NIF unfull1/4 not implemented"
+  def unfull1(_1, _2, _3, _4, _5) do
+    raise "NIF unfull1/5 not implemented"
   end
 
   def random_select1(_1, _2, _3, _4, _5, _6, _7) do
@@ -1091,11 +1091,11 @@ defmodule Cumatrix do
     end
   end
 
-  def unfull({r, _, dt1}, h, w) do
-    result = unfull1(r, h, w, dt1)
+  def unfull({r, _, dt1}, c ,h, w) do
+    result = unfull1(r, c, h, w, dt1)
 
     if !is_integer(result) do
-      {r, 1, h, w, result}
+      {r, c, h, w, result}
     else
       error("unfull1", result)
     end

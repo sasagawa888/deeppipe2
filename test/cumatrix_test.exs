@@ -115,7 +115,7 @@ defmodule CumatrixTest do
 
     assert Cumatrix.full(t3) == t4
 
-    assert Cumatrix.unfull(t4, 4, 4) == t3
+    assert Cumatrix.unfull(t4, 1, 4, 4) == t3
 
     t5 =
       Cumatrix.new([

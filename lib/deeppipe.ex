@@ -130,8 +130,8 @@ defmodule Deeppipe do
 
   defp backward(l, [{:full} | rest], [u | us], res) do
     # IO.puts("BK full")
-    {_, _, h, w} = CM.size(u)
-    l1 = CM.unfull(l, h, w)
+    {_, c, h, w} = CM.size(u)
+    l1 = CM.unfull(l, c, h, w)
     gbc()
     backward(l1, rest, us, [{:full} | res])
   end
