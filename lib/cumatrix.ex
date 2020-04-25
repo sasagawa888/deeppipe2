@@ -174,8 +174,8 @@ defmodule Cumatrix do
     raise "NIF gradfilter1/12 not implemented"
   end
 
-  def full1(_1, _2, _3, _4) do
-    raise "NIF full1/4 not implemented"
+  def full1(_1, _2, _3, _4, _5) do
+    raise "NIF full1/5 not implemented"
   end
 
   def unfull1(_1, _2, _3, _4) do
@@ -194,7 +194,6 @@ defmodule Cumatrix do
     raise "NIF is_near1/3 not implemented"
   end
 
-  
   # ----------------------------------------------------------------
   # c1 == r2 
   def mult({r1, c1, dt1}, {c1, c2, dt2}) do
@@ -571,14 +570,13 @@ defmodule Cumatrix do
   end
 
   def flatten([l | ls]) do
-    cond do 
+    cond do
       is_number(l) -> [l | flatten(ls)]
       is_list(l) -> flatten(l) ++ flatten(ls)
       true -> l ++ ls
     end
   end
 
-  
   @doc """
   iex(1)>  Cumatrix.list_dim([[1,2],[3,4]])
   2
@@ -593,30 +591,34 @@ defmodule Cumatrix do
     end
   end
 
-  def reshape(x,i) do
+  def reshape(x, i) do
     flatten(x) |> reshape1(i)
-  end 
+  end
 
-  def reshape1(x,[_]) do x end  
-  def reshape1(x,[i|is]) do
-    reshape2(x,i) |> Enum.map(fn(y) -> reshape1(y,is) end)     
-  end 
+  def reshape1(x, [_]) do
+    x
+  end
 
-  def reshape2(x,n) do
-    col = div(length(x),n)
-    Enum.chunk_every(x,col)
-  end 
+  def reshape1(x, [i | is]) do
+    reshape2(x, i) |> Enum.map(fn y -> reshape1(y, is) end)
+  end
 
-  def nth([x|_],1) do x end 
-  def nth([_|xs],n) do
-    nth(xs,n-1)
-  end 
-  def nth([],_) do 
+  def reshape2(x, n) do
+    col = div(length(x), n)
+    Enum.chunk_every(x, col)
+  end
+
+  def nth([x | _], 1) do
+    x
+  end
+
+  def nth([_ | xs], n) do
+    nth(xs, n - 1)
+  end
+
+  def nth([], _) do
     raise "nth error"
-  end 
-
-
-
+  end
 
   def transpose({r, c, dt}) do
     result = transpose1(r, c, dt)
@@ -1079,11 +1081,11 @@ defmodule Cumatrix do
     raise "gradfilter illegal data form"
   end
 
-  def full({n1, 1, h1, w1, dt1}) do
-    result = full1(n1, h1, w1, dt1)
+  def full({n1, c1, h1, w1, dt1}) do
+    result = full1(n1, c1, h1, w1, dt1)
 
     if !is_integer(result) do
-      {n1, h1 * w1, result}
+      {n1, c1*h1*w1, result}
     else
       error("full1", result)
     end
@@ -1127,7 +1129,6 @@ defmodule Cumatrix do
     false
   end
 
-  
   def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do
       true

@@ -165,7 +165,7 @@ defmodule Deeppipe do
   end
 
   def learning([{:filter, w, st, pad, ir, lr, v} | rest], [{:filter, w1, _, _, _, _, _} | rest1]) do
-     #IO.puts("LN filter")
+    # IO.puts("LN filter")
     w2 = CM.sub(w, CM.mult(w1, lr))
     # w2 |> CM.to_list() |> IO.inspect()
     [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1)]
@@ -408,8 +408,6 @@ defmodule Deeppipe do
   def newline() do
     IO.puts("")
   end
-
-  
 
   # -----------------------------
   # numerical gradient

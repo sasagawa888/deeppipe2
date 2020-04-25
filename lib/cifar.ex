@@ -9,18 +9,18 @@ defmodule CIFAR do
     _x
     |> f(5, 5, 3)
     |> pooling(2)
-    |> f(3,3)
+    |> f(3, 3)
     |> pooling(2)
-    |> f(3,3)
-    |> sigmoid
+    |> f(3, 3)
+    |> tanh
     |> full
     |> w(16, 200)
     |> b(200)
-    |> sigmoid
-    |> w(200,100)
+    |> relu
+    |> w(200, 100)
     |> b(100)
-    |> sigmoid
-    |> w(100,10)
+    |> relu
+    |> w(100, 10)
     |> b(10)
     |> softmax
   end
@@ -159,7 +159,7 @@ defmodule CIFAR do
   # get one row vector
   def train_image4(x, 0, res) do
     # {Enum.reverse(res) , x}
-    {Enum.reverse(res) |> DP.normalize(0, 255), x}
+    {Enum.reverse(res) |> DP.normalize(-128, 128), x}
   end
 
   def train_image4(<<x, xs::binary>>, n, res) do
@@ -167,40 +167,40 @@ defmodule CIFAR do
   end
 
   def heatmap(n) do
-    train_rgb(n) |> Matrex.new() |> Matrex.heatmap(:color24bit,[])
-  end 
+    train_rgb(n) |> Matrex.new() |> Matrex.heatmap(:color24bit, [])
+  end
 
   def heatmapr(n) do
-    train_r(n) |> Matrex.new() |> Matrex.heatmap(:color24bit,[])
-  end 
-  
+    train_r(n) |> Matrex.new() |> Matrex.heatmap(:color24bit, [])
+  end
+
   def heatmapg(n) do
-    train_g(n) |> Matrex.new() |> Matrex.heatmap(:color24bit,[])
-  end 
+    train_g(n) |> Matrex.new() |> Matrex.heatmap(:color24bit, [])
+  end
 
   def heatmapb(n) do
-    train_b(n) |> Matrex.new() |> Matrex.heatmap(:color24bit,[])
-  end 
+    train_b(n) |> Matrex.new() |> Matrex.heatmap(:color24bit, [])
+  end
 
   def train_rgb(n) do
     {:ok, bin} = File.read("data_batch_1.bin")
-    train_rgb1(bin) |> CM.nth(n) |> composit() |> CM.reshape([32,32])
+    train_rgb1(bin) |> CM.nth(n) |> composit() |> CM.reshape([32, 32])
   end
 
   def train_r(n) do
     {:ok, bin} = File.read("data_batch_1.bin")
-    train_rgb1(bin) |> CM.nth(n) |> CM.nth(1) |> CM.reshape([32,32])
-  end 
+    train_rgb1(bin) |> CM.nth(n) |> CM.nth(1) |> CM.reshape([32, 32])
+  end
 
   def train_g(n) do
     {:ok, bin} = File.read("data_batch_1.bin")
-    train_rgb1(bin) |> CM.nth(n) |> CM.nth(2) |> CM.reshape([32,32])
-  end 
+    train_rgb1(bin) |> CM.nth(n) |> CM.nth(2) |> CM.reshape([32, 32])
+  end
 
   def train_b(n) do
     {:ok, bin} = File.read("data_batch_1.bin")
-    train_rgb1(bin) |> CM.nth(n) |> CM.nth(3) |> CM.reshape([32,32])
-  end 
+    train_rgb1(bin) |> CM.nth(n) |> CM.nth(3) |> CM.reshape([32, 32])
+  end
 
   # get RGB 3ch data
   def train_rgb1(<<>>) do
@@ -231,15 +231,15 @@ defmodule CIFAR do
     train_rgb3(xs, n - 1, [x | res])
   end
 
-  def composit([r,g,b]) do
-    composit1(r,g,b)
-  end 
+  def composit([r, g, b]) do
+    composit1(r, g, b)
+  end
 
-  def composit1([],[],[]) do [] end
-  def composit1([r|rs],[g|gs],[b|bs]) do
-    [r*256*256 + g*256 + b | composit1(rs,gs,bs)]
-  end 
+  def composit1([], [], []) do
+    []
+  end
 
-  
-
+  def composit1([r | rs], [g | gs], [b | bs]) do
+    [r * 256 * 256 + g * 256 + b | composit1(rs, gs, bs)]
+  end
 end

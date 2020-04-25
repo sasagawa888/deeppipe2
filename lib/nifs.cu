@@ -760,47 +760,49 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-__global__ void full_kernel(float *a, float *b, int in_h, int in_w, int n)
+__global__ void full_kernel(float *a, float *b, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
-    int n1,i,j;
+    int n1,i,j,k;
     float elt;
     if(tid < n)
     {   
         n1 = tid;
-        for(i=0;i<in_h;i++){
-            for(j=0;j<in_w;j++){
-                elt = a[IDX4C(n1,0,i,j,1,in_h,in_w)];
-                b[IDX2C(n1,i*in_w + j,n)] = elt;
+        for(i=0;i<in_c;i++){
+            for(j=0;j<in_h;j++){
+                for(k=0;k<in_w;k++){
+                    elt = a[IDX4C(n1,i,j,k,in_c,in_h,in_w)];
+                    b[IDX2C(n1,i*in_c + j*in_w + k,n)] = elt;
+                }
             }
         }
     }
 }
   
 /*
-1st arg in_n of input tensor
-2rd arg in_h of input tensor
-3rd arg in_w of input tensor
-4th arg binary of input tensor
+1st arg in_n of input tensor 4DIM
+2nd arg in_c of input tensor
+3rd arg in_h of input tensor
+4th arg in_w of input tensor
+5th arg binary of input tensor
 */
 static ERL_NIF_TERM
 full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin;
-    int in_n,in_h,in_w,n1;
+    int in_n,in_c,in_h,in_w,n1;
     float *a,*b;
     float *dev_a, *dev_b;
 
     DISP("full1")
     if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &in_h)) return enif_make_int(env,2);
-    if (!enif_get_int(env, argv[2], &in_w)) return enif_make_int(env,3);
-    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,4);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_int(env,5);
 
-    //printf("%d %d %d \n\r", in_n, in_h, in_w);
-
-    // in_c is allways 1 
-    n1 = in_n * in_h * in_w;
+ 
+    n1 = in_n * in_c * in_h * in_w;
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &b_bin);
   
@@ -813,7 +815,7 @@ full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice));
 
-    full_kernel << <1, in_n>> >(dev_a, dev_b, in_h, in_w, in_n);
+    full_kernel << <1, in_n>> >(dev_a, dev_b, in_c, in_h, in_w, in_n);
   
     // copy to host d from GPU dev_d
     CHECK(cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -2553,7 +2555,7 @@ static ErlNifFunc nif_funcs[] = {
   {"deconvolute1", 10, deconvolute1},
   {"deconvolute2", 10, deconvolute2},
   {"gradfilter1", 12, gradfilter1},
-  {"full1", 4, full1},
+  {"full1", 5, full1},
   {"unfull1", 4, unfull1},
   {"sgd1", 5, sgd1},
   {"random_select1", 7, random_select1},

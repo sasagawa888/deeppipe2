@@ -3,26 +3,24 @@ defmodule Check do
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
 
-defnetwork init_network1(_x) do
+  defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 1, 1, 0.01, 0.01)
+    |> f(3, 3, 3, 1, 1, 1, 0.01, 0.01)
     |> pooling(2)
-    |> f(5, 5, 1, 1, 1, 0.01, 0.01)
-    |> f(5, 5, 1, 1, 1, 0.01, 0.01)
+    |> f(5, 5, 1, 1, 1, 1, 0.01, 0.01)
+    |> f(5, 5, 1, 1, 1, 1, 0.01, 0.01)
     |> sigmoid
     |> full
-    |> w(144, 300,0.1,0.01)
-    |> b(300,0.1,0.01)
+    |> w(144, 300, 0.1, 0.01)
+    |> b(300, 0.1, 0.01)
     |> sigmoid
-    |> w(300,200,0.1,0.01)
-    |> b(200,0.1,0.01)
+    |> w(300, 200, 0.1, 0.01)
+    |> b(200, 0.1, 0.01)
     |> sigmoid
-    |> w(200,10,0.1,0.01)
-    |> b(10,0.1,0.01)
+    |> w(200, 10, 0.1, 0.01)
+    |> b(10, 0.1, 0.01)
     |> softmax
   end
-
-
 
   def fd() do
     data = CM.rand(1, 3, 32, 32)
@@ -33,7 +31,6 @@ defnetwork init_network1(_x) do
 
   # for grad confirmation
   defnetwork test_network0(_x) do
-
     _x
     |> f(2, 2, 2)
     |> pooling(2)
@@ -43,8 +40,6 @@ defnetwork init_network1(_x) do
     |> b(4)
     |> softmax
   end
-  
-
 
   def test() do
     data = CM.rand(1, 3, 32, 32) |> CM.mult(0.1)

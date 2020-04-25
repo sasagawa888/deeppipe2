@@ -46,8 +46,8 @@ defmodule Test do
   # for CNN test
   defnetwork init_network4(_x) do
     _x
-    |> f(3, 3, 1, 1, 0, 0.1, 0.01)
-    |> f(5, 5, 1, 1, 0, 0.1, 0.01)
+    |> f(3, 3, 1, 1, 1, 0, 0.1, 0.01)
+    |> f(5, 5, 1, 1, 1, 0, 0.1, 0.01)
     |> full
     |> sigmoid
     |> w(484, 10, 0.1, 0.1)
@@ -58,8 +58,8 @@ defmodule Test do
   # convolution filter (4,4) 1ch, stride=2
   defnetwork init_network5(_x) do
     _x
-    |> f(2, 2, 1, 2)
-    |> f(2, 2, 1, 2)
+    |> f(2, 2, 1, 1, 2)
+    |> f(2, 2, 1, 1, 2)
     |> full
     |> w(49, 10)
     |> softmax
