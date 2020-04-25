@@ -134,35 +134,35 @@ defmodule Network do
   # {:filter,filter-matrix,stride,padding,init_rate,lewarning_rate,v}
   def parse({:f, _, [x, y]}, _) do
     quote do
-      {:filter, CM.new(1, unquote(x), unquote(y), 1.0) |> CM.mult(0.1), 1, 0, 0.1, 0.1,
+      {:filter, CM.rand(1, unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1,
        CM.new(1, unquote(x), unquote(y))}
     end
   end
 
   def parse({:f, _, [x, y, c]}, _) do
     quote do
-      {:filter, CM.new(unquote(c), unquote(x), unquote(y), 1.0) |> CM.mult(0.1), 1, 0, 0.1, 0.1,
+      {:filter, CM.rand(unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1,
        CM.new(unquote(c), unquote(x), unquote(y))}
     end
   end
 
   def parse({:f, _, [x, y, c, st]}, _) do
     quote do
-      {:filter, CM.new(unquote(c), unquote(x), unquote(y), 1.0) |> CM.mult(0.1), unquote(st), 0,
+      {:filter, CM.rand(unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), unquote(st), 0,
        0.1, 0.1, CM.new(unquote(c), unquote(x), unquote(y))}
     end
   end
 
   def parse({:f, _, [x, y, c, st, pad]}, _) do
     quote do
-      {:filter, CM.new(unquote(c), unquote(x), unquote(y), 1.0) |> CM.mult(0.1), unquote(st),
+      {:filter, CM.rand(unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), unquote(st),
        unquote(pad), 0.1, 0.1, CM.new(unquote(c), unquote(x), unquote(y))}
     end
   end
 
   def parse({:f, _, [x, y, c, st, pad, ir, lr]}, _) do
     quote do
-      {:filter, CM.new(unquote(c), unquote(x), unquote(y), 1.0) |> CM.mult(unquote(ir)),
+      {:filter, CM.rand(unquote(c), unquote(x), unquote(y)) |> CM.mult(unquote(ir)),
        unquote(st), unquote(pad), unquote(ir), unquote(lr),
        CM.new(unquote(c), unquote(x), unquote(y))}
     end

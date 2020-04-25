@@ -194,10 +194,7 @@ defmodule Cumatrix do
     raise "NIF is_near1/3 not implemented"
   end
 
-  def composit1(_1, _2, _3, _4) do
-    raise "NIF composit1/4 not implemented"
-  end 
-
+  
   # ----------------------------------------------------------------
   # c1 == r2 
   def mult({r1, c1, dt1}, {c1, c2, dt2}) do
@@ -574,21 +571,14 @@ defmodule Cumatrix do
   end
 
   def flatten([l | ls]) do
-    if is_nestlist(l) do
-      flatten(l) ++ flatten(ls)
-    else
-      l ++ flatten(ls)
+    cond do 
+      is_number(l) -> [l | flatten(ls)]
+      is_list(l) -> flatten(l) ++ flatten(ls)
+      true -> l ++ ls
     end
   end
 
-  def is_nestlist([l | _]) do
-    if is_list(l) do
-      true
-    else
-      false
-    end
-  end
-
+  
   @doc """
   iex(1)>  Cumatrix.list_dim([[1,2],[3,4]])
   2
@@ -602,6 +592,31 @@ defmodule Cumatrix do
       1
     end
   end
+
+  def reshape(x,i) do
+    flatten(x) |> reshape1(i)
+  end 
+
+  def reshape1(x,[_]) do x end  
+  def reshape1(x,[i|is]) do
+    reshape2(x,i) |> Enum.map(fn(y) -> reshape1(y,is) end)     
+  end 
+
+  def reshape2(x,n) do
+    col = div(length(x),n)
+    Enum.chunk_every(x,col)
+  end 
+
+  def nth([x|_],1) do x end 
+  def nth([_|xs],n) do
+    nth(xs,n-1)
+  end 
+  def nth([],_) do 
+    raise "nth error"
+  end 
+
+
+
 
   def transpose({r, c, dt}) do
     result = transpose1(r, c, dt)
@@ -1112,11 +1127,7 @@ defmodule Cumatrix do
     false
   end
 
-  def composit({c1,h1,w1,dt1}) do
-    result = composit1(c1,h1,w1,dt1)
-    {1,h1,w1,result}
-  end 
-
+  
   def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do
       true

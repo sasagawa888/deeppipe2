@@ -2506,37 +2506,6 @@ is_near1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-/*
-a_bin is 3 channel data RGB
-*/
-static ERL_NIF_TERM
-composit1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin;
-    ERL_NIF_TERM  b_bin;
-    int n,in_c,in_h,in_w,h1,w1;
-    float *a, *b;
-  
-    DISP("composit1")
-    if (!enif_get_int(env, argv[0], &in_c)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &in_h)) return enif_make_int(env,2);
-    if (!enif_get_int(env, argv[2], &in_w)) return enif_make_int(env,3);
-    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,4);
-
-    n = in_c * in_h * in_w;
-    a = (float *) a_bin.data;
-    b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
-
-    for(h1=0;h1<in_h;h1++){
-        for(w1=0;w1<in_w;w1++){
-            b[IDX3C(0,h1,w1,in_h,in_w)] = 
-                a[IDX3C(0,h1,w1,in_h,in_w)]*256*256 +
-                a[IDX3C(1,h1,w1,in_h,in_w)]*256+
-                a[IDX3C(2,h1,w1,in_h,in_w)];
-        }
-    }
-    
-    return(b_bin);
-}
 
 
 
@@ -2589,8 +2558,7 @@ static ErlNifFunc nif_funcs[] = {
   {"sgd1", 5, sgd1},
   {"random_select1", 7, random_select1},
   {"random_select2", 9, random_select2},
-  {"is_near1", 3, is_near1},
-  {"composit1", 4, composit1}
+  {"is_near1", 3, is_near1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)

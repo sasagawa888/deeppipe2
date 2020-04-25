@@ -41,6 +41,7 @@ defmodule Deeppipe do
   def forward(x, [{:filter, w, st, pad, _, _, _} | rest], res) do
     # IO.puts("FD filter")
     x1 = CM.convolute(x, w, st, pad)
+    gbc()
     forward(x1, rest, [x1 | res])
   end
 
@@ -110,6 +111,7 @@ defmodule Deeppipe do
     # IO.puts("BK filter")
     w1 = CM.gradfilter(u, w, l, st, pad)
     l1 = CM.deconvolute(l, w, st, pad)
+    gbc()
     backward(l1, rest, us, [{:filter, w1, st, pad, ir, lr, v} | res])
   end
 
@@ -155,7 +157,7 @@ defmodule Deeppipe do
   end
 
   def learning([{:filter, w, st, pad, ir, lr, v} | rest], [{:filter, w1, _, _, _, _, _} | rest1]) do
-    # IO.puts("LN filter")
+     #IO.puts("LN filter")
     w2 = CM.sub(w, CM.mult(w1, lr))
     # w2 |> CM.to_list() |> IO.inspect()
     [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1)]
@@ -399,17 +401,7 @@ defmodule Deeppipe do
     IO.puts("")
   end
 
-  def heatmap(x,n) do
-    x |> nth(n) |> CM.new() |> CM.composit() |> CM.to_list() |> nth(1) |> Matrex.new() |> Matrex.heatmap(:color24bit, [])
-  end
-
-  def nth([x|_],1) do x end 
-  def nth([_|xs],n) do
-    nth(xs,n-1)
-  end 
-  def nth([],_) do 
-    raise "nth error"
-  end 
+  
 
   # -----------------------------
   # numerical gradient
