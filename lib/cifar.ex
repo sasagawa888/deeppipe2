@@ -7,21 +7,20 @@ defmodule CIFAR do
   # CIFAR.sgd(30,10000)
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 1, 1)
-    |> sigmoid
+    |> f(5, 5, 3)
     |> pooling(2)
-    |> f(5, 5, 1, 1, 1)
-    |> sigmoid 
-    |> f(5, 5, 1, 1, 1)
+    |> f(3,3)
+    |> pooling(2)
+    |> f(3,3)
     |> sigmoid
     |> full
-    |> w(144, 300)
-    |> b(300,0.1)
-    |> sigmoid
-    |> w(300,200)
+    |> w(16, 200)
     |> b(200)
     |> sigmoid
-    |> w(200,10)
+    |> w(200,100)
+    |> b(100)
+    |> sigmoid
+    |> w(100,10)
     |> b(10)
     |> softmax
   end

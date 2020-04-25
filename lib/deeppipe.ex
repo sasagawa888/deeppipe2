@@ -23,18 +23,21 @@ defmodule Deeppipe do
   def forward(x, [{:weight, w, _, _, _, _} | rest], res) do
     # IO.puts("FD weight")
     x1 = CM.mult(x, w)
+    gbc()
     forward(x1, rest, [x1 | res])
   end
 
   def forward(x, [{:bias, b, _, _, _, _} | rest], res) do
     # IO.puts("FD bias")
     x1 = CM.add(x, b)
+    gbc()
     forward(x1, rest, [x1 | res])
   end
 
   def forward(x, [{:function, name} | rest], res) do
     # IO.puts("FD function")
     x1 = CM.activate(x, name)
+    gbc()
     forward(x1, rest, [x1 | res])
   end
 
@@ -48,12 +51,14 @@ defmodule Deeppipe do
   def forward(x, [{:pooling, st} | rest], [_ | res]) do
     # IO.puts("FD pooling")
     {x1, x2} = CM.pooling(x, st)
+    gbc()
     forward(x1, rest, [x1, x2 | res])
   end
 
   def forward(x, [{:full} | rest], res) do
     # IO.puts("FD full")
     x1 = CM.full(x)
+    gbc()
     forward(x1, rest, [x1 | res])
   end
 
@@ -65,9 +70,7 @@ defmodule Deeppipe do
     [x1 | x2] = forward(x, network, [x])
     loss = CM.sub(x1, t)
     network1 = Enum.reverse(network)
-    gbc()
     result = backward(loss, network1, x2, [])
-    gbc()
     result
   end
 
@@ -90,12 +93,14 @@ defmodule Deeppipe do
   defp backward(l, [{:function, name} | rest], [u | us], res) do
     # IO.puts("BK function")
     l1 = CM.diff(l, u, name)
+    gbc()
     backward(l1, rest, us, [{:function, name} | res])
   end
 
   defp backward(l, [{:bias, _, ir, lr, dr, v} | rest], [_ | us], res) do
     # IO.puts("BK bias")
     b1 = CM.average(l)
+    gbc()
     backward(l, rest, us, [{:bias, b1, ir, lr, dr, v} | res])
   end
 
@@ -104,6 +109,7 @@ defmodule Deeppipe do
     {n, _} = CM.size(l)
     w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n)
     l1 = CM.mult(l, CM.transpose(w))
+    gbc()
     backward(l1, rest, us, [{:weight, w1, ir, lr, dr, v} | res])
   end
 
@@ -118,6 +124,7 @@ defmodule Deeppipe do
   defp backward(l, [{:pooling, st} | rest], [u | us], res) do
     # IO.puts("BK pooling")
     l1 = CM.unpooling(u, l, st)
+    gbc()
     backward(l1, rest, us, [{:pooling, st} | res])
   end
 
@@ -125,6 +132,7 @@ defmodule Deeppipe do
     # IO.puts("BK full")
     {_, _, h, w} = CM.size(u)
     l1 = CM.unfull(l, h, w)
+    gbc()
     backward(l1, rest, us, [{:full} | res])
   end
 
