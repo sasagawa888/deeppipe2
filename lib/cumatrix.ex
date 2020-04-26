@@ -166,8 +166,8 @@ defmodule Cumatrix do
     raise "NIF deconvolute1/12 not implemented"
   end
 
-  def deconvolute2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) do
-    raise "NIF deconvolute2/10 not implemented"
+  def deconvolute2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) do
+    raise "NIF deconvolute2/12 not implemented"
   end
 
   def gradfilter1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) do
@@ -1057,10 +1057,10 @@ defmodule Cumatrix do
         error("deconvolute1", result)
       end
     else
-      result = deconvolute2(n, c1, oh, ow, h2, w2, dt1, dt2, st, pad)
+      result = deconvolute2(n, c1, oh, ow, n2, c2, h2, w2, dt1, dt2, st, pad)
 
       if !is_integer(result) do
-        {n, 1, h1, w1, result}
+        {n, c2, h1, w1, result}
       else
         error("deconvolute2", result)
       end

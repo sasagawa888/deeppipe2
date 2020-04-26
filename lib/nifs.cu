@@ -506,11 +506,11 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-__global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int loss_h, int loss_w, int n)
+__global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int filt_n, int filt_c,int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int loss_h, int loss_w, int n)
 {
     int tid = threadIdx.x;
-    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
-    int k,l,k1,l1;
+    int n1,c1,c2,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
+    int j,k,l,k1,l1;
     float sum,elt1,elt2;
     if(tid < n)
     {   
@@ -519,40 +519,47 @@ __global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int
         oh = (in_h+2*pad-filt_h) + 1;
         ow = (in_w+2*pad-filt_w) + 1;
     
-        //dilate loss tensor. loss tensor is 1 channel
-        for(k=0;k<loss_h;k++){
-            for(l=0;l<loss_w;l++){
-                elt1 = a[IDX4C(n1,0,k,l,1,loss_h,loss_w)];
-                k1 = st*k;
-                l1 = st*l;
-                a1[IDX4C(n1,0,k1,l1,1,in_h,in_w)] = elt1;
+        //dilate loss tensor.
+        for(j=0;j<in_c;j++){
+            for(k=0;k<loss_h;k++){
+                for(l=0;l<loss_w;l++){
+                    elt1 = a[IDX4C(n1,j,k,l,in_c,loss_h,loss_w)];
+                    k1 = st*k;
+                    l1 = st*l;
+                    a1[IDX4C(n1,j,k1,l1,in_c,in_h,in_w)] = elt1;
+                }
             }
         }
         //full convulute. stride=1
-        for(w2=0;w2<ow;w2++){
-            for(h2=0;h2<oh;h2++){
-                start_h1 = h2-pad;
-                end_h1 = start_h1 + filt_h;
-                start_w1 = w2-pad;
-                end_w1 = start_w1 + filt_w;
-                sum = 0.0;
-                for(c1=0;c1<in_c;c1++){
+        for(c2=0;c2<filt_c;c2++){
+            for(w2=0;w2<ow;w2++){
+                for(h2=0;h2<oh;h2++){
+                    start_h1 = h2-pad;
+                    end_h1 = start_h1 + filt_h;
+                    start_w1 = w2-pad;
+                    end_w1 = start_w1 + filt_w;
+                    sum = 0.0;
                     for(h1=start_h1;h1<end_h1;h1++){
                         for(w1=start_w1;w1<end_w1;w1++){
-                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
-                                elt1 = a1[IDX4C(n1,0,h1,w1,1,in_h,in_w)];
-                                elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
-                                sum = sum + elt1*elt2;
+                            for(c1=0;c1<filt_n;c1++){        
+                                if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
+                                    elt1 = a1[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)]; //loss tensor
+                                    elt2 = b[IDX4C(c1,c2,h1-start_h1,w1-start_w1,filt_c,filt_h,filt_w)]; //filter tensor
+                                    sum = sum + elt1*elt2;
+                                }
                             }
-                        }
+                        }   
                     }
+                    c[IDX4C(n1,c2,h2,w2,filt_c,oh,ow)] = sum;              
                 }
-                c[IDX4C(n1,0,h2,w2,1,oh,ow)] = sum;           
             }
         }
-        
     }
 }
+
+
+
+
 /*
 dilate loss tensor 
 e.g.
@@ -574,18 +581,20 @@ dilated stride=2
 2nd arg in_c of input loss tensor
 3rd arg in_h of input loss  tensor
 4th arg in_w of input loss tensor
-5th arg filt_h of filter tensor
-6th arg filt_w of filter tensor
-7th arg binary of input loss tensor
-8th arg binary of filter tensor
-9th arg stride
-10th arg padding   
+5th arg filt_n of filter tensor
+6th arg filt_c of filter tensor
+7th arg filt_h of filter tensor
+8th arg filt_w of filter tensor
+9th arg binary of input loss tensor
+10th arg binary of filter tensor
+11th arg stride
+12th arg padding   
 */
 static ERL_NIF_TERM
 deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
     ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k, loss_h, loss_w;
+    int in_n,in_c,in_h,in_w,filt_n,filt_c,filt_h, filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k,l, loss_h, loss_w;
     float *a, *a1, *b, *b1, *c;
     float *dev_a, *dev_a1, *dev_b, *dev_c;
 
@@ -595,39 +604,43 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
     if (!enif_get_int(env, argv[2], &loss_h)) return enif_make_int(env,3);
     if (!enif_get_int(env, argv[3], &loss_w)) return enif_make_int(env,4);
-    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_int(env,5);
-    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_int(env,6);
-    if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_int(env,7);
-    if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_int(env,8);
-    if (!enif_get_int(env, argv[8], &st)) return enif_make_int(env,9);
-    if (!enif_get_int(env, argv[9], &pad)) return enif_make_int(env,10);
+    if (!enif_get_int(env, argv[4], &filt_n)) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[5], &filt_c)) return enif_make_int(env,6);
+    if (!enif_get_int(env, argv[6], &filt_h)) return enif_make_int(env,7);
+    if (!enif_get_int(env, argv[7], &filt_w)) return enif_make_int(env,8);
+    if (!enif_inspect_binary(env, argv[8], &a_bin )) return enif_make_int(env,9);
+    if (!enif_inspect_binary(env, argv[9], &b_bin )) return enif_make_int(env,10);
+    if (!enif_get_int(env, argv[10], &st)) return enif_make_int(env,11);
+    if (!enif_get_int(env, argv[11], &pad)) return enif_make_int(env,12);
 
         
     // size for dilate
     in_h = loss_h + (loss_h - 1)*(st - 1);
     in_w = loss_w + (loss_w - 1)*(st - 1);
 
-    n1 = in_n * 1 * in_h * in_w;  //loss tensor size 
-    n2 = in_c * filt_h * filt_w;  //filter tensor size
+    n1 = in_n * in_c * in_h * in_w;  //loss tensor size 
+    n2 = filt_n * filt_c * filt_h * filt_w;  //filter tensor size
     pad1 = (filt_h - 1) + pad;    //padding size with dilate
     oh = (in_h+2*pad1-filt_h) + 1; //output deconvolute tensor size. caution stride=1.
     ow = (in_w+2*pad1-filt_w) + 1; // 
-    n3 = in_n * 1 * oh * ow;       // 
+    n3 = in_n * filt_c * oh * ow;   // 
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     a1 = (float *) enif_alloc(n1 * sizeof(float));
     b1 = (float *) enif_alloc(n2 * sizeof(float));
     c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
 
-    //rotate 180 degree  
-    for(i=0;i<in_c;i++){
-        for(j=0;j<filt_h;j++){
-            for(k=0;k<filt_w;k++){
-                //if(IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w) >= n2) return enif_make_int(env,11001);
-                b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
+    //rotate 180 degree
+    for(i=0;i<filt_n;i++){  
+        for(j=0;j<filt_c;j++){
+            for(k=0;k<filt_h;k++){
+                for(l=0;l<filt_w;l++){
+                    b1[IDX4C(i,j,filt_h-k-1,filt_w-l-1,filt_c,filt_h,filt_w)] = b[IDX4C(i,j,k,l,filt_c,filt_h,filt_w)];
+                }
             }
         }
     }
+
 
     // dilate 
     for(i=0;i<n1;i++){
@@ -644,7 +657,7 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
-    deconvolute2_kernel << <1, in_n>> >(dev_a1, dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, loss_h, loss_w, in_n);
+    deconvolute2_kernel << <1, in_n>> >(dev_a1, dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, loss_h, loss_w, in_n);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -2577,7 +2590,7 @@ static ErlNifFunc nif_funcs[] = {
   {"unpooling1", 7, unpooling1},
   {"convolute1", 12, convolute1},
   {"deconvolute1", 12, deconvolute1},
-  {"deconvolute2", 10, deconvolute2},
+  {"deconvolute2", 12, deconvolute2},
   {"gradfilter1", 12, gradfilter1},
   {"full1", 5, full1},
   {"unfull1", 5, unfull1},
