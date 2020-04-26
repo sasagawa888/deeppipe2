@@ -500,21 +500,23 @@ defmodule Deeppipe do
 
   # calc numerical gradient of filter
   def numerical_gradient_filter(x, w, t, before, now, rest) do
-    {c, h, w} = Cumatrix.size(w)
+    {n, c, h, w} = Cumatrix.size(w)
 
-    for c1 <- 1..c do
-      for h1 <- 1..h do
-        for w1 <- 1..w do
-          numerical_gradient_filter1(x, t, c1, h1, w1, before, now, rest)
+    for n1 <- 1..n do
+      for c1 <- 1..c do
+        for h1 <- 1..h do
+          for w1 <- 1..w do
+            numerical_gradient_filter1(x, t, n1, c1, h1, w1, before, now, rest)
+          end
         end
       end
     end
     |> CM.new()
   end
 
-  def numerical_gradient_filter1(x, t, c, h, w, before, {:filter, m, st, pad, ir, lr, v}, rest) do
+  def numerical_gradient_filter1(x, t, n, c, h, w, before, {:filter, m, st, pad, ir, lr, v}, rest) do
     delta = 0.0001
-    m1 = CM.add_diff(m, c, h, w, delta)
+    m1 = CM.add_diff(m, n, c, h, w, delta)
     network0 = Enum.reverse(before) ++ [{:filter, m, st, pad, ir, lr, v}] ++ rest
     network1 = Enum.reverse(before) ++ [{:filter, m1, st, pad, ir, lr, v}] ++ rest
     [y0 | _] = forward(x, network0, [])
