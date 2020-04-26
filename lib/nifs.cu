@@ -367,10 +367,10 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
   
-__global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+__global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
-    int n1,c1,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
+    int n1,c1,c2,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
     float sum,elt1,elt2;
     if(tid < n)
     {   
@@ -378,25 +378,27 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_h, in
         oh = (in_h+2*pad-filt_h)/st + 1;
         ow = (in_w+2*pad-filt_w)/st + 1;
         //full convolute. stride=1 always
-        for(w2=0;w2<ow;w2++){
-            for(h2=0;h2<oh;h2++){
-                start_h1 = h2-pad;
-                end_h1 = start_h1 + filt_h;
-                start_w1 = w2-pad;
-                end_w1 = start_w1 + filt_w;
-                sum = 0.0;
-                for(c1=0;c1<in_c;c1++){
+        for(c2=0;c2<filt_c;c2++){
+            for(w2=0;w2<ow;w2++){
+                for(h2=0;h2<oh;h2++){
+                    start_h1 = h2-pad;
+                    end_h1 = start_h1 + filt_h;
+                    start_w1 = w2-pad;
+                    end_w1 = start_w1 + filt_w;
+                    sum = 0.0;
                     for(h1=start_h1;h1<end_h1;h1++){
                         for(w1=start_w1;w1<end_w1;w1++){
-                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
-                                elt1 = a[IDX4C(n1,0,h1,w1,in_c,in_h,in_w)];
-                                elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
-                                sum = sum + elt1*elt2;
+                            for(c1=0;c1<filt_n;c1++){        
+                                if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
+                                    elt1 = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)]; //loss tensor
+                                    elt2 = b[IDX4C(c1,c2,h1-start_h1,w1-start_w1,filt_c,filt_h,filt_w)]; //filter tensor
+                                    sum = sum + elt1*elt2;
+                                }
                             }
-                        }
+                        }   
                     }
+                    c[IDX4C(n1,c2,h2,w2,filt_c,oh,ow)] = sum;              
                 }
-                c[IDX4C(n1,0,h2,w2,in_c,oh,ow)] = sum;               
             }
         }
     }
@@ -407,18 +409,20 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_h, in
 2nd arg in_c of input tensor
 3rd arg in_h of input tensor
 4th arg in_w of input tensor
-5th arg filt_h of filter tensor
-6th arg filt_w of filter tensor
-7th arg binary of input loss tensor
-8th arg binary of filter tensor
-9th arg stride
-10th arg padding   
+5th arg filt_n of filter tensor
+6th arg filt_c of filter tensor
+7th arg filt_h of filter tensor
+8th arg filt_w of filter tensor
+9th arg binary of input loss tensor
+10th arg binary of filter tensor
+11th arg stride
+12th arg padding   
 */
 static ERL_NIF_TERM
 deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
     ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w,filt_h, filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k;
+    int in_n,in_c,in_h,in_w, filt_n,filt_c,filt_h,filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k,l;
     float *a,*b, *b1, *c;
     float *dev_a, *dev_b, *dev_c;
   
@@ -427,47 +431,54 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
     if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
     if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
-    if (!enif_get_int(env, argv[4], &filt_h)) return enif_make_int(env,5);
-    if (!enif_get_int(env, argv[5], &filt_w)) return enif_make_int(env,6);
-    if (!enif_inspect_binary(env, argv[6], &a_bin )) return enif_make_int(env,7);
-    if (!enif_inspect_binary(env, argv[7], &b_bin )) return enif_make_int(env,8);
-    if (!enif_get_int(env, argv[8], &st)) return enif_make_int(env,9);
-    if (!enif_get_int(env, argv[9], &pad)) return enif_make_int(env,10);
+    if (!enif_get_int(env, argv[4], &filt_n)) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[5], &filt_c)) return enif_make_int(env,6);
+    if (!enif_get_int(env, argv[6], &filt_h)) return enif_make_int(env,7);
+    if (!enif_get_int(env, argv[7], &filt_w)) return enif_make_int(env,8);
+    if (!enif_inspect_binary(env, argv[8], &a_bin )) return enif_make_int(env,9);
+    if (!enif_inspect_binary(env, argv[9], &b_bin )) return enif_make_int(env,10);
+    if (!enif_get_int(env, argv[10], &st)) return enif_make_int(env,11);
+    if (!enif_get_int(env, argv[11], &pad)) return enif_make_int(env,12);
 
     
 
     n1 = in_n * in_c * in_h * in_w;
-    n2 = in_c * filt_h * filt_w;
+    n2 = filt_n * filt_c * filt_h * filt_w;
     pad1 = filt_h - 1 + pad;
     oh = (in_h+2*pad1-filt_h)/st + 1;
     ow = (in_w+2*pad1-filt_w)/st + 1;
-    n3 = in_n * 1 * oh * ow;
+    n3 = in_n * filt_c * oh * ow;  // channel of filter generate same channel input tensor
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     b1 = (float *) enif_alloc(n2 * sizeof(float));
     c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
   
       
-    //rotate 180 degree  
-    for(i=0;i<in_c;i++){
-        for(j=0;j<filt_h;j++){
-            for(k=0;k<filt_w;k++){
-                //if(IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w) >= n2) return enif_make_int(env,11001);
-                b1[IDX3C(i,filt_h-j-1,filt_w-k-1,filt_h,filt_w)] = b[IDX3C(i,j,k,filt_h,filt_w)];
+    //rotate 180 degree
+    for(i=0;i<filt_n;i++){  
+        for(j=0;j<filt_c;j++){
+            for(k=0;k<filt_h;k++){
+                for(l=0;l<filt_w;l++){
+                    b1[IDX4C(i,j,filt_h-k-1,filt_w-l-1,filt_c,filt_h,filt_w)] = b[IDX4C(i,j,k,l,filt_c,filt_h,filt_w)];
+                }
             }
         }
     }
-        
 
+    //debug
     /*
-    for(i=0;i<in_c;i++){
-        for(j=0;j<filt_h;j++){
-            for(k=0;k<filt_w;k++){
-                printf("%f",  b1[IDX3C(i,j,k,filt_h,filt_w)]);
+    for(i=0;i<filt_n;i++){
+        for(j=0;j<filt_c;j++){
+            for(k=0;k<filt_h;k++){
+                for(l=0;l<filt_w;l++){
+                    printf("%f ", b1[IDX4C(i,j,k,l,filt_c,filt_h,filt_w)]);
+                }
             }
         }
     }
+    printf("\n\r");
     */
+
     // Allocate for GPU
     CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
     CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
@@ -479,7 +490,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
-    deconvolute1_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, in_n);
+    deconvolute1_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, in_n);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -1909,19 +1920,21 @@ static ERL_NIF_TERM
 add_diff2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin;
-    int c1, h1, w1, n, i, j, k, x, y, z;
+    int n1, c1, h1, w1, n, i, j, k, l, n2, c2, h2, w2;
     float *a,*b;
     double val;
 
     DISP("add_diff2")
-    if (!enif_get_int(env, argv[0], &c1)) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &h1)) return enif_make_int(env,2);
-    if (!enif_get_int(env, argv[2], &w1)) return enif_make_int(env,2);
-    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,3);
-    if (!enif_get_int(env, argv[4], &x)) return enif_make_int(env,4);
-    if (!enif_get_int(env, argv[5], &y)) return enif_make_int(env,5);
-    if (!enif_get_int(env, argv[6], &z)) return enif_make_int(env,6);
-    if (!enif_get_double(env, argv[7], &val)) return enif_make_int(env,7);
+    if (!enif_get_int(env, argv[0], &n1)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &c1)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &h1)) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[3], &w1)) return enif_make_int(env,4);
+    if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[5], &n2)) return enif_make_int(env,6);
+    if (!enif_get_int(env, argv[6], &c2)) return enif_make_int(env,7);
+    if (!enif_get_int(env, argv[7], &h2)) return enif_make_int(env,8);
+    if (!enif_get_int(env, argv[8], &w2)) return enif_make_int(env,9);
+    if (!enif_get_double(env, argv[9], &val)) return enif_make_int(env,10);
 
 
     n = c1*h1*w1;
@@ -1929,13 +1942,15 @@ add_diff2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
 
     
-    for(i=0;i<c1;i++){
-        for(j=0;j<h1;j++){
-            for(k=0;k<w1;k++){
-                if(i==x && j==y && k==z)
-                    b[IDX3C(i,j,k,h1,w1)] = a[IDX3C(i,j,k,h1,w1)] + (float)val;
-                else 
-                    b[IDX3C(i,j,k,h1,w1)] = a[IDX3C(i,j,k,h1,w1)];
+    for(i=0;i<n1;i++){
+        for(j=0;j<c1;j++){
+            for(k=0;k<h1;k++){
+                for(l=0;l<w1;l++){
+                    if(i==n2 && j==c2 && k==h2 && l==w2)
+                        b[IDX4C(i,j,k,l,c1,h1,w1)] = a[IDX4C(i,j,k,l,c1,h1,w1)] + (float)val;
+                    else 
+                        b[IDX4C(i,j,k,l,c1,h1,w1)] = a[IDX4C(i,j,k,l,c1,h1,w1)];
+                }
             }
         }
     }
@@ -2549,7 +2564,7 @@ static ErlNifFunc nif_funcs[] = {
   {"elt1", 5, elt1},
   {"set1", 6, set1},
   {"add_diff1", 6, add_diff1},
-  {"add_diff2", 8, add_diff2},
+  {"add_diff2", 10, add_diff2},
   {"average1", 3, average1},
   {"sum1", 3, sum1},
   {"to_list1", 3, to_list1},
@@ -2561,7 +2576,7 @@ static ErlNifFunc nif_funcs[] = {
   {"pooling1", 6, pooling1},
   {"unpooling1", 7, unpooling1},
   {"convolute1", 12, convolute1},
-  {"deconvolute1", 10, deconvolute1},
+  {"deconvolute1", 12, deconvolute1},
   {"deconvolute2", 10, deconvolute2},
   {"gradfilter1", 12, gradfilter1},
   {"full1", 5, full1},

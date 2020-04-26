@@ -110,8 +110,8 @@ defmodule Cumatrix do
     raise "NIF add_diff1/6 not implemented"
   end
 
-  def add_diff2(_a, _b, _c, _d, _e, _f, _g, _h) do
-    raise "NIF add_diff2/8 not implemented"
+  def add_diff2(_a, _b, _c, _d, _e, _f, _g, _h, _i, _j) do
+    raise "NIF add_diff2/10 not implemented"
   end
 
   def average1(_a, _b, _c) do
@@ -158,12 +158,12 @@ defmodule Cumatrix do
     raise "NIF unpooling1/7 not implemented"
   end
 
-  def convolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10,_11,_12) do
+  def convolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) do
     raise "NIF convolute1/12 not implemented"
   end
 
-  def deconvolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) do
-    raise "NIF deconvolute1/10 not implemented"
+  def deconvolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) do
+    raise "NIF deconvolute1/12 not implemented"
   end
 
   def deconvolute2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) do
@@ -551,11 +551,11 @@ defmodule Cumatrix do
     end
   end
 
-  def add_diff({c, h, w, dt}, x, y, z, val) do
-    result = add_diff2(c, h, w, dt, x - 1, y - 1, z - 1, val)
+  def add_diff({n,c, h, w, dt}, n1, c1, h1, w1, val) do
+    result = add_diff2(n,c, h, w, dt, n1-1,c1 - 1, h1 - 1, w1 - 1, val)
 
     if !is_integer(result) do
-      {c, h, w, result}
+      {n,c, h, w, result}
     else
       error("add_diff2", result)
     end
@@ -1042,22 +1042,22 @@ defmodule Cumatrix do
     end
   end
 
-  # 1st arg filter-tensor
-  # 2nd arg loss-tesnor
-  def deconvolute({n, _, oh, ow, dt1}, {c, h2, w2, dt2}, st, pad) do
+  # 1st arg loss-tensor
+  # 2nd arg filter-tesnor
+  def deconvolute({n, c1, oh, ow, dt1}, {n2, c2, h2, w2, dt2}, st, pad) do
     h1 = (oh - 1) * st - 2 * pad + h2
     w1 = (ow - 1) * st - 2 * pad + h2
 
     if st == 1 do
-      result = deconvolute1(n, c, oh, ow, h2, w2, dt1, dt2, st, pad)
+      result = deconvolute1(n, c1, oh, ow, n2, c2, h2, w2, dt1, dt2, st, pad)
 
       if !is_integer(result) do
-        {n, 1, h1, w1, result}
+        {n, c2, h1, w1, result}
       else
         error("deconvolute1", result)
       end
     else
-      result = deconvolute2(n, c, oh, ow, h2, w2, dt1, dt2, st, pad)
+      result = deconvolute2(n, c1, oh, ow, h2, w2, dt1, dt2, st, pad)
 
       if !is_integer(result) do
         {n, 1, h1, w1, result}
@@ -1085,13 +1085,13 @@ defmodule Cumatrix do
     result = full1(n1, c1, h1, w1, dt1)
 
     if !is_integer(result) do
-      {n1, c1*h1*w1, result}
+      {n1, c1 * h1 * w1, result}
     else
       error("full1", result)
     end
   end
 
-  def unfull({r, _, dt1}, c ,h, w) do
+  def unfull({r, _, dt1}, c, h, w) do
     result = unfull1(r, c, h, w, dt1)
 
     if !is_integer(result) do
