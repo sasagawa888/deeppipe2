@@ -82,8 +82,8 @@ defmodule CumatrixTest do
     assert Cumatrix.deconvolute(t2, f1, 1, 0) |> Cumatrix.to_list() ==
              [[[[2.0, 7.0, 6.0], [10.0, 30.0, 22.0], [12.0, 31.0, 20.0]]]]
 
-    # assert Cumatrix.gradfilter(t1, f1, t2, 1, 0) |> Cumatrix.to_list() ==
-    #         Cumatrix.new([[[49.0, 63.0], [91.0, 105.0]]]) |> Cumatrix.to_list()
+    assert Cumatrix.gradfilter(t1, f1, t2, 1, 0) |> Cumatrix.to_list() ==
+             [[[[49.0, 63.0], [91.0, 105.0]]]]
 
     t3 =
       Cumatrix.new([
