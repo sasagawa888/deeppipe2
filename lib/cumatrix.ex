@@ -551,11 +551,11 @@ defmodule Cumatrix do
     end
   end
 
-  def add_diff({n,c, h, w, dt}, n1, c1, h1, w1, val) do
-    result = add_diff2(n,c, h, w, dt, n1-1,c1 - 1, h1 - 1, w1 - 1, val)
+  def add_diff({n, c, h, w, dt}, n1, c1, h1, w1, val) do
+    result = add_diff2(n, c, h, w, dt, n1 - 1, c1 - 1, h1 - 1, w1 - 1, val)
 
     if !is_integer(result) do
-      {n,c, h, w, result}
+      {n, c, h, w, result}
     else
       error("add_diff2", result)
     end
