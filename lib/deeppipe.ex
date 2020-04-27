@@ -62,6 +62,13 @@ defmodule Deeppipe do
     forward(x1, rest, [x1 | res])
   end
 
+  def forward(x, [{:analizer, n} | rest], res) do
+    # IO.puts("FD analizer")
+    CM.analizer(x, n)
+    gbc()
+    forward(x, rest, res)
+  end
+
   # gradient with backpropagation
   # 1st arg is input data matrix
   # 2nd arg is network list
@@ -134,6 +141,13 @@ defmodule Deeppipe do
     l1 = CM.unfull(l, c, h, w)
     gbc()
     backward(l1, rest, us, [{:full} | res])
+  end
+
+  defp backward(l, [{:analizer, n} | rest], us, res) do
+    # IO.puts("BK analizer")
+    CM.analizer(l,-n)
+    gbc()
+    backward(l, rest, us, [{:analizer, n} |res])
   end
 
   # ------- learning -------

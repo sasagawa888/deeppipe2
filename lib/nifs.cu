@@ -2533,8 +2533,8 @@ is_near1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     DISP("is_near1")
     if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
-    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,1);
-    if (!enif_inspect_binary(env, argv[2], &b_bin )) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &b_bin )) return enif_make_int(env,3);
 
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -2550,6 +2550,28 @@ is_near1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return enif_make_int(env,1);
 }
 
+
+static ERL_NIF_TERM
+analizer1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    int i, n;
+    float *a;
+  
+    DISP("analizer1")
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
+
+    a = (float *) a_bin.data;
+
+    // near check
+    for(i=0;i<n;i++){
+        if(isnan(a[i])){
+            return enif_make_int(env,0);
+        }
+    }
+
+    return enif_make_int(env,1);
+}
 
 
 
@@ -2603,7 +2625,8 @@ static ErlNifFunc nif_funcs[] = {
   {"sgd1", 5, sgd1},
   {"random_select1", 7, random_select1},
   {"random_select2", 9, random_select2},
-  {"is_near1", 3, is_near1}
+  {"is_near1", 3, is_near1},
+  {"analizer1", 2, analizer1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)

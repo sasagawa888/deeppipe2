@@ -194,6 +194,10 @@ defmodule Cumatrix do
     raise "NIF is_near1/3 not implemented"
   end
 
+  def analizer1(_1, _2) do
+    raise "NIF analizer1/2 not implemented"
+  end 
+
   # ----------------------------------------------------------------
   # c1 == r2 
   def mult({r1, c1, dt1}, {c1, c2, dt2}) do
@@ -778,7 +782,10 @@ defmodule Cumatrix do
     end
   end
 
-  def diff(_, _, _) do
+  def diff(a, b, c) do
+    IO.inspect(a)
+    IO.inspect(b)
+    IO.inspect(c)
     raise "differ illegal argument"
   end
 
@@ -1133,6 +1140,18 @@ defmodule Cumatrix do
   def is_near(_, _) do
     false
   end
+
+  def analizer({n,c,h,w,dt}, code) do
+    if analizer1(n*c*h*w, dt) == 0 do
+      raise "analizer " <> Integer.to_string(code)
+    end
+  end 
+
+  def analizer({r,c,dt}, code) do
+    if analizer1(r*c, dt) == 0 do
+      raise "analizer " <> Integer.to_string(code)
+    end
+  end 
 
   def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do

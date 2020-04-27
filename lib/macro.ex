@@ -190,6 +190,13 @@ defmodule Network do
     end
   end
 
+  # analizer for debug
+  def parse({:analizer, _, [x]}, _) do
+    quote do
+      {:analizer, unquote(x)}
+    end
+  end
+
   def parse({x, _, nil}, _) do
     x
   end

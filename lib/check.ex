@@ -5,20 +5,10 @@ defmodule Check do
 
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 1, 1, 1, 0.01, 0.01)
+    |> f(3, 3, 3, 3, 1, 1, 0.01, 0.01)
     |> pooling(2)
-    |> f(5, 5, 1, 1, 1, 1, 0.01, 0.01)
-    |> f(5, 5, 1, 1, 1, 1, 0.01, 0.01)
-    |> sigmoid
     |> full
-    |> w(144, 300, 0.1, 0.01)
-    |> b(300, 0.1, 0.01)
-    |> sigmoid
-    |> w(300, 200, 0.1, 0.01)
-    |> b(200, 0.1, 0.01)
-    |> sigmoid
-    |> w(200, 10, 0.1, 0.01)
-    |> b(10, 0.1, 0.01)
+    |> w(48,10)
     |> softmax
   end
 
@@ -32,19 +22,19 @@ defmodule Check do
   # for grad confirmation
   defnetwork test_network0(_x) do
     _x
-    |> f(2, 2, 2)
+    |> f(3, 3, 2)
     |> pooling(2)
     |> f(2, 2, 1, 2)
     |> full
-    |> w(4, 4)
-    |> b(4)
+    |> w(392, 10)
+    |> b(10)
     |> softmax
   end
 
   def test() do
-    data = CM.rand(1, 3, 32, 32) |> CM.mult(0.1)
+    data = CM.rand(1, 2, 32, 32) |> CM.mult(0.1)
     train = [[0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]] |> CM.new()
-    network1 = DP.numerical_gradient(data, init_network1(0), train)
+    network1 = DP.numerical_gradient(data, test_network0(0), train)
     network2 = DP.gradient(data, init_network1(0), train)
     test1(network1, network2, 1)
   end

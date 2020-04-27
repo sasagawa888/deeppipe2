@@ -12,6 +12,7 @@ defmodule CIFAR do
     |> f(3, 3, 3, 3)
     |> pooling(2)
     |> f(3, 3, 3, 3)
+    |> analizer(1)
     |> tanh
     |> full
     |> w(48, 200)
