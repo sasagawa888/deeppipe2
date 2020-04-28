@@ -145,9 +145,9 @@ defmodule Deeppipe do
 
   defp backward(l, [{:analizer, n} | rest], us, res) do
     # IO.puts("BK analizer")
-    CM.analizer(l,-n)
+    CM.analizer(l, -n)
     gbc()
-    backward(l, rest, us, [{:analizer, n} |res])
+    backward(l, rest, us, [{:analizer, n} | res])
   end
 
   # ------- learning -------

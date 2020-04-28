@@ -196,7 +196,7 @@ defmodule Cumatrix do
 
   def analizer1(_1, _2, _3) do
     raise "NIF analizer1/3 not implemented"
-  end 
+  end
 
   # ----------------------------------------------------------------
   # c1 == r2 
@@ -1137,30 +1137,29 @@ defmodule Cumatrix do
     end
   end
 
-  def is_near({n,c, h, w, dt1}, {n,c, h, w, dt2}) do
-    if is_near1(n*c * h * w, dt1, dt2) == 1 do
+  def is_near({n, c, h, w, dt1}, {n, c, h, w, dt2}) do
+    if is_near1(n * c * h * w, dt1, dt2) == 1 do
       true
     else
       false
     end
   end
 
-
   def is_near(_, _) do
     false
   end
 
-  def analizer({n,c,h,w,dt}, id) do
-    if analizer1(n*c*h*w, dt, id) == 0 do
+  def analizer({n, c, h, w, dt}, id) do
+    if analizer1(n * c * h * w, dt, id) == 0 do
       raise "analizer " <> Integer.to_string(id)
     end
-  end 
+  end
 
-  def analizer({r,c,dt}, id) do
-    if analizer1(r*c, dt, id) == 0 do
+  def analizer({r, c, dt}, id) do
+    if analizer1(r * c, dt, id) == 0 do
       raise "analizer " <> Integer.to_string(id)
     end
-  end 
+  end
 
   def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do

@@ -8,7 +8,7 @@ defmodule Check do
     |> f(3, 3, 3, 3, 1, 1, 0.01, 0.01)
     |> pooling(2)
     |> full
-    |> w(48,10)
+    |> w(48, 10)
     |> softmax
   end
 
@@ -26,14 +26,22 @@ defmodule Check do
     |> pooling(2)
     |> f(2, 2, 1, 2)
     |> full
+    |> sigmoid
     |> w(392, 10)
     |> b(10)
     |> softmax
   end
 
   def test() do
-    data = CM.rand(1, 2, 32, 32) |> CM.mult(0.1)
-    train = [[0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]] |> CM.new()
+    data = CM.rand(2, 2, 32, 32) |> CM.mult(0.1)
+
+    train =
+      [
+        [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      ]
+      |> CM.new()
+
     IO.puts("numerical gradient")
     network1 = DP.numerical_gradient(data, test_network0(0), train)
     IO.puts("backpropagation")
