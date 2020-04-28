@@ -54,7 +54,7 @@ defmodule Test do
     |> softmax
   end
 
-  # convolution filter (4,4) 1ch, stride=2
+  # convolution filter (2,2) 1ch, stride=2
   defnetwork init_network5(_x) do
     _x
     |> f(2, 2, 1, 1, 2)
@@ -69,7 +69,7 @@ defmodule Test do
     _x
     |> f(4, 4, 1, 1, 1)
     |> full
-    |> w(729, 300)
+    |> w(625, 300)
     |> b(300)
     |> relu
     |> w(300, 100)
@@ -96,8 +96,6 @@ defmodule Test do
   end
 
   # long network test
-  # 
-  # check bad argument error in cross_entropy
   defnetwork init_network8(_x) do
     _x
     |> w(784, 600)
