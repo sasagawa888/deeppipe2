@@ -194,8 +194,8 @@ defmodule Cumatrix do
     raise "NIF is_near1/3 not implemented"
   end
 
-  def analizer1(_1, _2) do
-    raise "NIF analizer1/2 not implemented"
+  def analizer1(_1, _2, _3) do
+    raise "NIF analizer1/3 not implemented"
   end 
 
   # ----------------------------------------------------------------
@@ -1141,15 +1141,15 @@ defmodule Cumatrix do
     false
   end
 
-  def analizer({n,c,h,w,dt}, code) do
-    if analizer1(n*c*h*w, dt) == 0 do
-      raise "analizer " <> Integer.to_string(code)
+  def analizer({n,c,h,w,dt}, id) do
+    if analizer1(n*c*h*w, dt, id) == 0 do
+      raise "analizer " <> Integer.to_string(id)
     end
   end 
 
-  def analizer({r,c,dt}, code) do
-    if analizer1(r*c, dt) == 0 do
-      raise "analizer " <> Integer.to_string(code)
+  def analizer({r,c,dt}, id) do
+    if analizer1(r*c, dt, id) == 0 do
+      raise "analizer " <> Integer.to_string(id)
     end
   end 
 

@@ -796,7 +796,7 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-__global__ void full_kernel(float *a, float *b, int in_c, int in_h, int in_w, int n)
+__global__ void full_kernel(float *a, float *b, int in_n, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
     int n1,i,j,k;
@@ -808,7 +808,7 @@ __global__ void full_kernel(float *a, float *b, int in_c, int in_h, int in_w, in
             for(j=0;j<in_h;j++){
                 for(k=0;k<in_w;k++){
                     elt = a[IDX4C(n1,i,j,k,in_c,in_h,in_w)];
-                    b[IDX2C(n1,i*in_c + j*in_w + k,n)] = elt;
+                    b[IDX2C(n1,i*in_h*in_w + j*in_w + k,in_n)] = elt;
                 }
             }
         }
@@ -826,7 +826,7 @@ static ERL_NIF_TERM
 full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin;
-    int in_n,in_c,in_h,in_w,n1;
+    int in_n,in_c,in_h,in_w,n1,n;
     float *a,*b;
     float *dev_a, *dev_b;
 
@@ -841,7 +841,7 @@ full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     n1 = in_n * in_c * in_h * in_w;
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &b_bin);
-  
+    n = in_n;
       
     // Allocate for GPU
     CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
@@ -851,7 +851,7 @@ full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice));
 
-    full_kernel << <1, in_n>> >(dev_a, dev_b, in_c, in_h, in_w, in_n);
+    full_kernel << <1, n>> >(dev_a, dev_b, in_n, in_c, in_h, in_w, n);
   
     // copy to host d from GPU dev_d
     CHECK(cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -864,7 +864,7 @@ full1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-__global__ void unfull_kernel(float *a, float *b, int in_c, int in_h, int in_w, int n)
+__global__ void unfull_kernel(float *a, float *b, int in_n, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
     int n1,i,j,k;
@@ -875,7 +875,7 @@ __global__ void unfull_kernel(float *a, float *b, int in_c, int in_h, int in_w, 
         for(i=0;i<in_c;i++){
             for(j=0;j<in_h;j++){
                 for(k=0;k<in_w;k++){
-                    elt = a[IDX2C(n1,i*in_c + j*in_w + k,n)];
+                    elt = a[IDX2C(n1,i*in_h*in_w + j*in_w + k,in_n)];
                     b[IDX4C(n1,i,j,k,in_c,in_h,in_w)] = elt;
                 }
             }
@@ -894,7 +894,7 @@ static ERL_NIF_TERM
 unfull1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin;
-    int in_n,in_c,in_h,in_w,n1;
+    int in_n,in_c,in_h,in_w,n1,n;
     float *a,*b;
     float *dev_a, *dev_b;
     
@@ -908,7 +908,7 @@ unfull1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     n1 = in_n * in_c * in_h * in_w;
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env,  n1 * sizeof(float), &b_bin);
-  
+    n = in_n;
       
       // Allocate for GPU
     CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
@@ -918,7 +918,7 @@ unfull1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice));
 
-    unfull_kernel << <1, in_n>> >(dev_a, dev_b, in_c, in_h, in_w, in_n);
+    unfull_kernel << <1, n>> >(dev_a, dev_b, in_n, in_c, in_h, in_w, n);
   
     // copy to host d from GPU dev_d
     CHECK(cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -2554,21 +2554,45 @@ is_near1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 static ERL_NIF_TERM
 analizer1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
-    int i, n;
+    int i, n, id;
     float *a;
+    float max,min,sum;
   
     DISP("analizer1")
     if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
     if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &id)) return enif_make_int(env,3);
 
     a = (float *) a_bin.data;
 
     // near check
     for(i=0;i<n;i++){
         if(isnan(a[i])){
+            printf("find nan");
+            return enif_make_int(env,0);
+        }
+        if(isinf(a[i])){
+            printf("find inf");
             return enif_make_int(env,0);
         }
     }
+
+    //find max min avarage
+    max = -999999999;
+    min = 999999999;
+    sum = 0;
+    for(i=0;i<n;i++){
+        if(a[i] > max)
+            max = a[i];
+        
+        if(a[i] < min)
+            min = a[i];
+        
+        sum = sum+a[i];
+
+    }
+    printf("id max min average\r\n");
+    printf("%d %f %f %f \r\n", id, max, min, sum/(float)n);
 
     return enif_make_int(env,1);
 }
@@ -2626,7 +2650,7 @@ static ErlNifFunc nif_funcs[] = {
   {"random_select1", 7, random_select1},
   {"random_select2", 9, random_select2},
   {"is_near1", 3, is_near1},
-  {"analizer1", 2, analizer1}
+  {"analizer1", 3, analizer1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)

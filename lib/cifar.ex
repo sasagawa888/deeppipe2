@@ -8,21 +8,26 @@ defmodule CIFAR do
   defnetwork init_network1(_x) do
     _x
     |> f(5, 5, 3, 3)
+    #|> analizer(1)
     |> pooling(2)
     |> f(3, 3, 3, 3)
+    #|> analizer(2)
     |> pooling(2)
     |> f(3, 3, 3, 3)
-    |> analizer(1)
-    |> tanh
+    #|> analizer(3)
     |> full
+    #|> analizer(4)
     |> w(48, 200)
+    #|> analizer(5)
     |> b(200)
-    |> sigmoid
     |> w(200, 100)
+    #|> analizer(6)
     |> b(100)
-    |> sigmoid
+    #|> analizer(7)
     |> w(100, 10)
+    #|> analizer(8)
     |> b(10)
+    #|> analizer(9)
     |> softmax
   end
 
