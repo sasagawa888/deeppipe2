@@ -1137,6 +1137,15 @@ defmodule Cumatrix do
     end
   end
 
+  def is_near({n,c, h, w, dt1}, {n,c, h, w, dt2}) do
+    if is_near1(n*c * h * w, dt1, dt2) == 1 do
+      true
+    else
+      false
+    end
+  end
+
+
   def is_near(_, _) do
     false
   end
