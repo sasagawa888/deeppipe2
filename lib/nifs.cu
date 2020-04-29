@@ -753,7 +753,7 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     n1 = in_n * in_c * in_h * in_w;
     n2 = in_n * loss_h * loss_w;
-    n3 = in_n * filt_n * filt_h * filt_w;
+    n3 = in_n * filt_n * in_c * filt_h * filt_w;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
