@@ -3,22 +3,7 @@ defmodule Check do
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
 
-  defnetwork init_network1(_x) do
-    _x
-    |> f(3, 3, 3, 3, 1, 1, 0.01, 0.01)
-    |> pooling(2)
-    |> full
-    |> w(48, 10)
-    |> softmax
-  end
-
-  def fd() do
-    data = CM.rand(1, 3, 32, 32)
-    network = init_network1(0)
-    [y | _] = DP.forward(data, network, [])
-    y |> CM.to_list()
-  end
-
+  
   # for grad confirmation
   defnetwork test_network0(_x) do
     _x

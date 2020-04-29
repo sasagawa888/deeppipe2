@@ -42,7 +42,7 @@ __global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, i
         for(c1=0;c1<in_c;c1++){
             for(w2=0;w2<in_w2;w2++){
                 for(h2=0;h2<in_h2;h2++){
-                    max = 0.0;
+                    max = -999999999;
                     start_h1 = st*h2;
                     end_h1 = st*(h2+1);
                     start_w1 = st*w2;

@@ -7,29 +7,30 @@ defmodule CIFAR do
   # CIFAR.sgd(100,10000)
   defnetwork init_network1(_x) do
     _x
-    |> f(5, 5, 3, 32, 1, 0, 0.1, 0.001)
-   |> analizer(1)
+    |> f(5, 5, 3, 3, 1, 0, 0.1, 0.001)
+    #|> analizer(1)
     |> relu
+    #|> analizer(2)
     |> pooling(2)
-    |> f(3, 3, 32, 32, 1, 0, 0.1, 0.001)
-    |> analizer(2)
+    |> f(3, 3, 3, 3, 1, 0, 0.1, 0.001)
+    #|> analizer(3)
     |> pooling(2)
-    |> f(3, 3, 32, 32, 1, 0, 0.1, 0.001)
-    |> sigmoid
-    |> analizer(3)
+    #|> analizer(4)
+    |> f(3, 3, 3, 3, 1, 0, 0.1, 0.001)
+    #|> analizer(5)
     |> full
-    |> analizer(4)
-    |> w(512, 200, 0.1, 0.001)
-    |> analizer(5)
+    #|> analizer(6)
+    |> w(48, 200, 0.1, 0.001)
+    #|> analizer(7)
     |> b(200, 0.1, 0.01)
     |> w(200, 100, 0.1, 0.001)
-    |> analizer(6)
+    #|> analizer(8)
     |> b(100, 0.1, 0.001)
-    |> analizer(7)
+    #|> analizer(9)
     |> w(100, 10, 0.1, 0.001)
-    |> analizer(8)
+    #|> analizer(10)
     |> b(10, 0.1, 0.001)
-    |> analizer(9)
+    #|> analizer(11)
     |> softmax
   end
 
