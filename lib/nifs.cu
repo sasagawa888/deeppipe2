@@ -378,7 +378,7 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, in
         oh = (in_h+2*pad-filt_h)/st + 1;
         ow = (in_w+2*pad-filt_w)/st + 1;
         //full convolute. stride=1 always
-        for(c2=0;c2<filt_c;c2++){
+        for(c2=0;c2<in_c;c2++){
             for(w2=0;w2<ow;w2++){
                 for(h2=0;h2<oh;h2++){
                     start_h1 = h2-pad;
@@ -447,7 +447,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     pad1 = filt_h - 1 + pad;
     oh = (in_h+2*pad1-filt_h)/st + 1;
     ow = (in_w+2*pad1-filt_w)/st + 1;
-    n3 = in_n * filt_c * oh * ow;  // channel of filter generate same channel input tensor
+    n3 = in_n * in_c * oh * ow;  // channel of filter generate same channel input tensor
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     b1 = (float *) enif_alloc(n2 * sizeof(float));
@@ -753,7 +753,7 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     n1 = in_n * in_c * in_h * in_w;
     n2 = in_n * loss_h * loss_w;
-    n3 = in_n * in_c * filt_h * filt_w;
+    n3 = in_n * filt_n * filt_h * filt_w;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
