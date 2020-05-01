@@ -378,7 +378,8 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, in
         oh = (in_h+2*pad-filt_h)/st + 1;
         ow = (in_w+2*pad-filt_w)/st + 1;
         //full convolute. stride=1 always
-        for(c2=0;c2<in_c;c2++){
+
+        for(c2=0;c2<filt_c;c2++){
             for(w2=0;w2<ow;w2++){
                 for(h2=0;h2<oh;h2++){
                     start_h1 = h2-pad;
@@ -397,7 +398,7 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, in
                             }
                         }   
                     }
-                    c[IDX4C(n1,c2,h2,w2,filt_c,oh,ow)] = sum;              
+                    c[IDX4C(n1,c2,h2,w2,filt_c,oh,ow)] = sum;             
                 }
             }
         }
@@ -447,7 +448,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     pad1 = filt_h - 1 + pad;
     oh = (in_h+2*pad1-filt_h)/st + 1;
     ow = (in_w+2*pad1-filt_w)/st + 1;
-    n3 = in_n * in_c * oh * ow;  // channel of filter generate same channel input tensor
+    n3 = in_n * filt_c * oh * ow;  // channel of filter generate same channel input tensor
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     b1 = (float *) enif_alloc(n2 * sizeof(float));
@@ -520,7 +521,7 @@ __global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int
         ow = (in_w+2*pad-filt_w) + 1;
     
         //dilate loss tensor.
-        for(j=0;j<in_c;j++){
+        for(j=0;j<filt_c;j++){
             for(k=0;k<loss_h;k++){
                 for(l=0;l<loss_w;l++){
                     elt1 = a[IDX4C(n1,j,k,l,in_c,loss_h,loss_w)];
@@ -2542,7 +2543,7 @@ is_near1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     // near check
     sw = 0;
     for(i=0;i<n;i++){
-       if(fabsf(a[i]) > fabsf(b[i])*1.10 || fabsf(a[i]) < fabsf(b[i])*0.90){
+       if(fabsf(a[i]) > fabsf(b[i])*1.15 || fabsf(a[i]) < fabsf(b[i])*0.85){
             printf("%f %f \r\n", a[i], b[i]);
             sw = 1;
         }
