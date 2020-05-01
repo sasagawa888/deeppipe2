@@ -26,9 +26,9 @@ defmodule Check do
       ]
       |> CM.new()
 
-    IO.puts("numerical gradient")
+    IO.puts("compute numerical gradient")
     network1 = DP.numerical_gradient(data, test_network0(0), train)
-    IO.puts("backpropagation")
+    IO.puts("compute backpropagation")
     network2 = DP.gradient(data, test_network0(0), train)
     test1(network1, network2, 1)
   end
@@ -45,8 +45,6 @@ defmodule Check do
     else
       IO.write(n)
       IO.puts(" filter layer error")
-      x |> CM.to_list() |> IO.inspect()
-      y |> CM.to_list() |> IO.inspect()
       test1(xs, ys, n + 1)
     end
   end
@@ -59,8 +57,6 @@ defmodule Check do
     else
       IO.write(n)
       IO.puts(" weight layer error")
-      x |> CM.to_list() |> IO.inspect()
-      y |> CM.to_list() |> IO.inspect()
       test1(xs, ys, n + 1)
     end
   end
@@ -73,8 +69,6 @@ defmodule Check do
     else
       IO.write(n)
       IO.puts(" bias layer error")
-      x |> CM.to_list() |> IO.inspect()
-      y |> CM.to_list() |> IO.inspect()
       test1(xs, ys, n + 1)
     end
   end

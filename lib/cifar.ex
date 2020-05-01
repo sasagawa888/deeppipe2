@@ -15,7 +15,7 @@ defmodule CIFAR do
     #|> analizer(3)
     |> pooling(2)
     #|> analizer(4)
-    |> f(3, 3, 32, 64, 1, 1, 0.0, 0.001)
+    |> f(3, 3, 32, 64, 1, 1, 0.1, 0.001)
     #|> analizer(5)
     |> relu
     #|> analizer(6)
@@ -30,6 +30,7 @@ defmodule CIFAR do
     |> w(4096, 10, 0.1, 0.001)
     #|> analizer(11)
     |> b(10, 0.1, 0.001)
+    |> relu
     #|> analizer(12)
     |> softmax
   end

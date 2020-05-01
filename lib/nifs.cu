@@ -2528,7 +2528,7 @@ random_select2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 static ERL_NIF_TERM
 is_near1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
-    int i, n;
+    int i, n, sw;
     float *a, *b;
   
     DISP("is_near1")
@@ -2540,14 +2540,17 @@ is_near1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     b = (float *) b_bin.data;
 
     // near check
+    sw = 0;
     for(i=0;i<n;i++){
        if(fabsf(a[i]) > fabsf(b[i])*1.10 || fabsf(a[i]) < fabsf(b[i])*0.90){
             printf("%f %f \r\n", a[i], b[i]);
-            return enif_make_int(env,0);
+            sw = 1;
         }
     }
-
-    return enif_make_int(env,1);
+    if(sw == 0)
+        return enif_make_int(env,1); //safe
+    else
+        return enif_make_int(env,0); //error
 }
 
 
@@ -2596,7 +2599,6 @@ analizer1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     return enif_make_int(env,1);
 }
-
 
 
 

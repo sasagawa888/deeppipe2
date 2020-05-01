@@ -712,7 +712,10 @@ defmodule Cumatrix do
     result = activate_softmax(r, c, dt)
 
     if !is_integer(result) do
-      {r, c, result}
+      a = {r, c, result}
+      #inspect softmax fordebug
+      #to_list(a) |> IO.inspect()
+      a
     else
       error("activate_softmax", result)
     end
