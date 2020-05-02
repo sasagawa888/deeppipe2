@@ -51,7 +51,7 @@ defmodule Test do
     |> full
     |> w(484, 10)
     |> b(10)
-    #|> analizer(1)
+    # |> analizer(1)
     |> softmax
   end
 

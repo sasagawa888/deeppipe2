@@ -8,30 +8,30 @@ defmodule CIFAR do
   defnetwork init_network1(_x) do
     _x
     |> f(3, 3, 3, 32, 1, 1, 0.1, 0.001)
-    #|> analizer(1)
+    # |> analizer(1)
     |> relu
-    #|> analizer(2)
+    # |> analizer(2)
     |> f(3, 3, 32, 32, 1, 1, 0.1, 0.001)
-    #|> analizer(3)
+    # |> analizer(3)
     |> pooling(2)
-    #|> analizer(4)
+    # |> analizer(4)
     |> f(3, 3, 32, 64, 1, 1, 0.1, 0.001)
-    #|> analizer(5)
+    # |> analizer(5)
     |> relu
-    #|> analizer(6)
+    # |> analizer(6)
     |> f(3, 3, 64, 64, 1, 1, 0.1, 0.001)
-    #|> analizer(7)
+    # |> analizer(7)
     |> relu
-    #|> analizer(8)
+    # |> analizer(8)
     |> pooling(2)
-    #|> analizer(9)
+    # |> analizer(9)
     |> full
-    #|> analizer(10)
+    # |> analizer(10)
     |> w(4096, 10, 0.1, 0.001)
-    #|> analizer(11)
+    # |> analizer(11)
     |> b(10, 0.1, 0.001)
     |> relu
-    #|> analizer(12)
+    # |> analizer(12)
     |> softmax
   end
 

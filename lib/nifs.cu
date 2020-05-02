@@ -675,7 +675,7 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-__global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int loss_h, int loss_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+__global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int loss_c, int loss_h, int loss_w, int st, int pad, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
     int n1,c1,c2,h1,w1,h2,w2,h3,w3;
@@ -684,7 +684,7 @@ __global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_n, int 
     {   
         n1 = tid;
         for(c2=0;c2<filt_n;c2++){
-            for(c1=0;c1<in_c;c1++){
+            for(c1=0;c1<filt_c;c1++){
                 //h1,w1 is index of filter
                 for(h1=0;h1<filt_h;h1++){
                     for(w1=0;w1<filt_w;w1++){
@@ -697,13 +697,13 @@ __global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_n, int 
                                 w3 = w1*st-pad + w2;
                                 if(h3>=0 && h3<in_h && w3>=0 && w3<in_w){
                                     elt1 = a[IDX4C(n1,c1,h3,w3,in_c,in_h,in_w)];    //input tensor
-                                    elt2 = b[IDX4C(n1,0,h2,w2,in_c,loss_h,loss_w)]; //loss tensor
+                                    elt2 = b[IDX4C(n1,c2,h2,w2,loss_c,loss_h,loss_w)]; //loss tensor
                                     sum = sum + elt1*elt2;
                                 }
                             }
                         }
                         //set filter tensor
-                        c[IDX4C(c2,c1,h1,w1,in_c,filt_h,filt_w)] = c[IDX4C(c2,c1,h1,w1,in_c,filt_h,filt_w)] + sum;
+                        c[IDX4C(c2,c1,h1,w1,in_c,filt_h,filt_w)] = sum;
                     }
                 }
             } 
@@ -731,7 +731,7 @@ static ERL_NIF_TERM
 gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
     ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w,filt_n,filt_c,filt_h,filt_w,loss_h,loss_w,st,pad,n1,n2,n3,i;
+    int in_n,in_c,in_h,in_w,filt_n,filt_c,filt_h,filt_w,loss_c,loss_h,loss_w,st,pad,n1,n2,n3,i;
     float *a,*b,*c;
     float *dev_a, *dev_b, *dev_c;
     float count;
@@ -745,15 +745,16 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[5], &filt_c)) return enif_make_int(env,6);
     if (!enif_get_int(env, argv[6], &filt_h)) return enif_make_int(env,7);
     if (!enif_get_int(env, argv[7], &filt_w)) return enif_make_int(env,8);
-    if (!enif_get_int(env, argv[8], &loss_h)) return enif_make_int(env,9);
-    if (!enif_get_int(env, argv[9], &loss_w)) return enif_make_int(env,10);
-    if (!enif_inspect_binary(env, argv[10], &a_bin )) return enif_make_int(env,11);
-    if (!enif_inspect_binary(env, argv[11], &b_bin )) return enif_make_int(env,12);
-    if (!enif_get_int(env, argv[12], &st)) return enif_make_int(env,13);
-    if (!enif_get_int(env, argv[13], &pad)) return enif_make_int(env,14);
+    if (!enif_get_int(env, argv[8], &loss_c)) return enif_make_int(env,9);
+    if (!enif_get_int(env, argv[9], &loss_h)) return enif_make_int(env,10);
+    if (!enif_get_int(env, argv[10], &loss_w)) return enif_make_int(env,11);
+    if (!enif_inspect_binary(env, argv[11], &a_bin )) return enif_make_int(env,12);
+    if (!enif_inspect_binary(env, argv[12], &b_bin )) return enif_make_int(env,13);
+    if (!enif_get_int(env, argv[13], &st)) return enif_make_int(env,14);
+    if (!enif_get_int(env, argv[14], &pad)) return enif_make_int(env,15);
 
     n1 = in_n * in_c * in_h * in_w;
-    n2 = in_n * loss_h * loss_w;
+    n2 = in_n * loss_c * loss_h * loss_w;
     n3 = in_n * filt_n * in_c * filt_h * filt_w;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -775,7 +776,7 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
-    gradfilter_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, loss_h, loss_w, st, pad, in_c, in_h, in_w, in_n);
+    gradfilter_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, loss_c, loss_h, loss_w, st, pad, in_c, in_h, in_w, in_n);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -2646,7 +2647,7 @@ static ErlNifFunc nif_funcs[] = {
   {"convolute1", 12, convolute1},
   {"deconvolute1", 12, deconvolute1},
   {"deconvolute2", 12, deconvolute2},
-  {"gradfilter1", 14, gradfilter1},
+  {"gradfilter1", 15, gradfilter1},
   {"full1", 5, full1},
   {"unfull1", 5, unfull1},
   {"sgd1", 5, sgd1},

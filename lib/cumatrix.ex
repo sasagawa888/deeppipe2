@@ -170,8 +170,8 @@ defmodule Cumatrix do
     raise "NIF deconvolute2/12 not implemented"
   end
 
-  def gradfilter1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14) do
-    raise "NIF gradfilter1/14 not implemented"
+  def gradfilter1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15) do
+    raise "NIF gradfilter1/15 not implemented"
   end
 
   def full1(_1, _2, _3, _4, _5) do
@@ -713,8 +713,8 @@ defmodule Cumatrix do
 
     if !is_integer(result) do
       a = {r, c, result}
-      #inspect softmax fordebug
-      #to_list(a) |> IO.inspect()
+      # inspect softmax fordebug
+      # to_list(a) |> IO.inspect()
       a
     else
       error("activate_softmax", result)
@@ -1082,8 +1082,8 @@ defmodule Cumatrix do
   # 3rd arg loss tensor
   # 4th arg stride
   # 5th arg padding
-  def gradfilter({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, _}, {n1, _, h3, w3, dt3}, st, pad) do
-    result = gradfilter1(n1, c1, h1, w1, n2, c2, h2, w2, h3, w3, dt1, dt3, st, pad)
+  def gradfilter({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, _}, {n1, c3, h3, w3, dt3}, st, pad) do
+    result = gradfilter1(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st, pad)
 
     if !is_integer(result) do
       {n2, c1, h2, w2, result}
