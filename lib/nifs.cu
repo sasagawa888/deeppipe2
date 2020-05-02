@@ -288,7 +288,7 @@ __global__ void convolute_kernel(float *a, float *b, float *c, int filt_n, int f
                             }
                         }
                     }
-                    c[IDX4C(n1,c2,h2,w2,in_c,oh,ow)] = sum;   
+                    c[IDX4C(n1,c2,h2,w2,filt_n,oh,ow)] = sum;   
                 }
             }
         }
@@ -1836,7 +1836,7 @@ cross_entropy(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     s = 0.0;
     for(i=0;i<r1;i++){
         for (j=0;j<c1;j++){
-            d = fabsf(a[IDX2C(i,j,r1)]) + delta;
+            d = a[IDX2C(i,j,r1)] + delta;
             s = s + b[IDX2C(i,j,r1)] * log(d);
         }
     }

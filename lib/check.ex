@@ -16,6 +16,14 @@ defmodule Check do
     |> softmax
   end
 
+  def fd() do
+    data = CM.rand(2, 2, 6, 6) |> CM.mult(0.1)
+    network = test_network0(0)
+    DP.print(network)
+    [y | _] = DP.forward(data,network,[])
+    y |> CM.to_list() |> IO.inspect()
+  end 
+
   def test() do
     data = CM.rand(2, 2, 6, 6) |> CM.mult(0.1)
 
