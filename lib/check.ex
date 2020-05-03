@@ -7,34 +7,16 @@ defmodule Check do
   defnetwork test_network0(_x) do
     _x
     |> f(2, 2, 2)
-    |> f(2, 2, 2)
+    |> pooling(2)
+    |> f(2, 2, 1)
     |> sigmoid
     |> full
     |> w(4, 4)
     |> softmax
   end
 
-  def fd() do
-    data =
-      CM.new([
-        [
-          [[0.1, -0.2, 0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]],
-          [[0.11, 0.12, 0.13], [0.14, -0.15, 0.16], [0.17, 0.18, 0.19]]
-        ],
-        [
-          [[0.1, 0.2, -0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]],
-          [[0.11, 0.12, 0.13], [0.14, 0.15, 0.16], [0.17, -0.18, 0.19]]
-        ]
-      ])
-
-    network = test_network0(0)
-    DP.print(network)
-    [y | _] = DP.forward(data, network, [])
-    y |> CM.to_list() |> IO.inspect()
-  end
-
   def test() do
-    data = CM.rand(2, 2, 4, 4)
+    data = CM.rand(2, 2, 7, 7)
 
     train =
       [
