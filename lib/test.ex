@@ -46,8 +46,8 @@ defmodule Test do
   # for CNN test
   defnetwork init_network4(_x) do
     _x
-    |> f(3, 3, 1, 12, 1)
-    |> f(5, 5, 12, 12, 1)
+    |> f(3, 3, 1, 12, 1, 0, 0.1, 0.01)
+    |> f(5, 5, 12, 12, 1, 0, 0.1, 0.01)
     |> full
     |> w(5808, 10)
     |> b(10)
