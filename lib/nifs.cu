@@ -7,6 +7,7 @@
 #define IDX2C(i,j,ld) (((j)*(ld))+(i))
 #define IDX3C(c,i,j,in_h,in_w) ((c)*((in_h)*(in_w)) + (i)*(in_w) +(j))
 #define IDX4C(n,c,i,j,in_c,in_h,in_w) ((n)*((in_c)*(in_h)*(in_w)) + (c)*((in_h)*(in_w)) + (i)*(in_w) +(j))
+#define IDX5C(t,n,c,i,j,in_n,in_c,in_h,in_w) ((t)*((in_n)*(in_c)*(in_h)*(in_w)) + (n)*((in_c)*(in_h)*(in_w)) + (c)*((in_h)*(in_w)) + (i)*(in_w) +(j))
 #define BREAK return(enif_make_int(env, 0));
 #define PI 3.14159265358979323846
 #define SIGMOID(x)  (1 / (1+exp(-1*x)))
@@ -703,7 +704,7 @@ __global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_n, int 
                             }
                         }
                         //set filter tensor
-                        c[IDX4C(c2,c1,h1,w1,in_c,filt_h,filt_w)] = + sum;
+                        c[IDX5C(n1,c2,c1,h1,w1,filt_n,filt_c,filt_h,filt_w)] = + sum;
                     }
                 }
             } 
@@ -733,11 +734,11 @@ __global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_n, int 
 static ERL_NIF_TERM
 gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
-    ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w,filt_n,filt_c,filt_h,filt_w,loss_c,loss_h,loss_w,st,pad,n1,n2,n3,i;
-    float *a,*b,*c;
+    ERL_NIF_TERM  c_bin,d_bin;
+    int in_n,in_c,in_h,in_w,filt_n,filt_c,filt_h,filt_w,loss_c,loss_h,loss_w,st,pad,n1,n2,n3,n4,i,j,k,l,m;
+    float *a,*b,*c,*d;
     float *dev_a, *dev_b, *dev_c;
-    float count;
+    float elt;
   
     DISP("gradfilter1")
     if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
@@ -758,11 +759,13 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     n1 = in_n * in_c * in_h * in_w;
     n2 = in_n * loss_c * loss_h * loss_w;
-    n3 = filt_n * filt_c * filt_h * filt_w;
+    n3 = in_n * filt_n * filt_c * filt_h * filt_w;
+    n4 = filt_n * filt_c * filt_h * filt_w;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
-    
+    d = (float *) enif_make_new_binary(env,  n4 * sizeof(float), &d_bin);
+
     //initialize c
     for(i=0;i<n3;i++){
         c[i] = 0.0;
@@ -785,20 +788,35 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
 
     //average
-    
-    count = (float) in_n;
-    if(in_n != 0){
-        for(i=0;i<n3;i++){
-            c[i] = c[i] / count;
+    // clear d
+    for(i=0;i<n4;i++){
+        d[i] = 0.0;
+    }
+    // copy from c to d and compute sum
+    for(i=0;i<in_n;i++){
+        for(j=0;j<filt_n;j++){
+            for(k=0;k<filt_c;k++){
+                for(l=0;l<filt_h;l++){
+                    for(m=0;m<filt_w;m++){
+                        elt = c[IDX5C(i,j,k,l,m,filt_n,filt_c,filt_h,filt_w)];
+                        d[IDX4C(j,k,l,m,filt_c,filt_h,filt_w)] = d[IDX4C(j,k,l,m,filt_c,filt_h,filt_w)] + elt;
+                    }
+                }
+            }
         }
-    } 
+    }
+    // average
+    for(i=0;i<n4;i++){
+        d[i] = d[i] / (float)in_n;
+    }
+     
     
     // free 
     cudaFree(dev_a);
     cudaFree(dev_b);
     cudaFree(dev_c);
   
-    return(c_bin);
+    return(d_bin);
 }
 
 

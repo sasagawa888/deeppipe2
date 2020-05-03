@@ -34,12 +34,12 @@ defmodule CIFAR do
     |> softmax
   end
 
-  def sgd(m,n) do
-     {time, dict} = :timer.tc(fn -> sgd1(m,n) end)
-      IO.inspect("time: #{time / 1000000} second")
-      IO.inspect("-------------")
-      dict
-  end 
+  def sgd(m, n) do
+    {time, dict} = :timer.tc(fn -> sgd1(m, n) end)
+    IO.inspect("time: #{time / 1_000_000} second")
+    IO.inspect("-------------")
+    dict
+  end
 
   def sgd1(m, n) do
     IO.puts("preparing data")
