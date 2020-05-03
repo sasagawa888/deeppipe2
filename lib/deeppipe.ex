@@ -247,7 +247,7 @@ defmodule Deeppipe do
         [{:filter, w1, _, _, _, _, _} | rest1],
         :adagrad
       ) do
-    w2 = CM.sub(w, CM.mult(w1, lr))
+    w2 = CM.add(w, CM.mult(w1, lr))
     [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1, :adagrad)]
   end
 

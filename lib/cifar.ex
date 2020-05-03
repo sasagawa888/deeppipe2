@@ -7,19 +7,19 @@ defmodule CIFAR do
   # CIFAR.sgd(100,10000)
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 32, 1, 1, 0.1, 0.005)
+    |> f(3, 3, 3, 32, 1, 1, 0.1, 0.1)
     # |> analizer(1)
     |> relu
     # |> analizer(2)
-    |> f(3, 3, 32, 32, 1, 1, 0.1, 0.005)
+    |> f(3, 3, 32, 32, 1, 1, 0.1, 0.1)
     # |> analizer(3)
     |> pooling(2)
     # |> analizer(4)
-    |> f(3, 3, 32, 64, 1, 1, 0.1, 0.005)
+    |> f(3, 3, 32, 64, 1, 1, 0.1, 0.1)
     # |> analizer(5)
     |> relu
     # |> analizer(6)
-    |> f(3, 3, 64, 64, 1, 1, 0.1, 0.005)
+    |> f(3, 3, 64, 64, 1, 1, 0.1, 0.1)
     # |> analizer(7)
     |> relu
     # |> analizer(8)
@@ -27,20 +27,27 @@ defmodule CIFAR do
     # |> analizer(9)
     |> full
     # |> analizer(10)
-    |> w(4096, 10, 0.1, 0.01)
+    |> w(4096, 10, 0.1, 0.1)
     # |> analizer(11)
-    |> b(10, 0.1, 0.01)
+    |> b(10, 0.1, 0.1)
     # |> analizer(12)
     |> softmax
   end
 
-  def sgd(m, n) do
+  def sgd(m,n) do
+     {time, dict} = :timer.tc(fn -> sgd1(m,n) end)
+      IO.inspect("time: #{time / 1000000} second")
+      IO.inspect("-------------")
+      dict
+  end 
+
+  def sgd1(m, n) do
     IO.puts("preparing data")
     image = train_image(10000) |> CM.new()
     label = train_label_onehot(10000) |> CM.new()
     network = init_network1(0)
     IO.puts("ready")
-    network1 = sgd1(image, network, label, m, n)
+    network1 = sgd2(image, network, label, m, n)
     test_image = test_image(100) |> CM.new()
     test_label = test_label(100)
     correct = DP.accuracy(test_image, network1, test_label)
@@ -49,23 +56,20 @@ defmodule CIFAR do
     IO.puts("end")
   end
 
-  def sgd1(_, network, _, _, 0) do
+  def sgd2(_, network, _, _, 0) do
     network
   end
 
-  def sgd1(image, network, train, m, n) do
+  def sgd2(image, network, train, m, n) do
     {image1, train1} = CM.random_select(image, train, m)
-    # [x | _] = DP.forward(image1, network, [])
-    # CM.print(x)
     network1 = DP.gradient(image1, network, train1)
     network2 = DP.learning(network, network1)
-    # DP.print(network2)
     [y | _] = DP.forward(image1, network2, [])
-    # CM.print(z)
     loss = CM.loss(y, train1, :cross)
+    IO.write(n)
+    IO.write(" ")
     IO.puts(loss)
-    # IO.puts(n)
-    sgd1(image, network2, train, m, n - 1)
+    sgd2(image, network2, train, m, n - 1)
   end
 
   # transfer from train-label to onehot list

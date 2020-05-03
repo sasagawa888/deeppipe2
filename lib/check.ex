@@ -6,31 +6,54 @@ defmodule Check do
   # for grad confirmation
   defnetwork test_network0(_x) do
     _x
-    |> f(3, 3, 2)
-    # |> pooling(2)
-    # |> f(2, 2, 1, 2)
+    |> cf([[[[0.1, -0.2], [0.3, 0.4]], [[0.5, -0.6], [0.7, 0.9]]]])
     |> full
-    # |> sigmoid
-    |> w(16, 10)
-    # |> b(10)
     |> softmax
   end
 
   def fd() do
-    data = CM.rand(2, 2, 6, 6) |> CM.mult(0.1)
-    network = test_network0(0)
-    DP.print(network)
-    [y | _] = DP.forward(data,network,[])
-    y |> CM.to_list() |> IO.inspect()
-  end 
-
-  def test() do
-    data = CM.rand(2, 2, 6, 6) |> CM.mult(0.1)
+    data =
+      CM.new([
+        [
+          [[0.1, -0.2, 0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]],
+          [[0.11, 0.12, 0.13], [0.14, -0.15, 0.16], [0.17, 0.18, 0.19]]
+        ],
+        [
+          [[0.1, 0.2, -0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]],
+          [[0.11, 0.12, 0.13], [0.14, 0.15, 0.16], [0.17, -0.18, 0.19]]
+        ]
+      ])
 
     train =
       [
-        [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0]
+      ]
+      |> CM.new()
+
+    network = test_network0(0)
+    DP.print(network)
+    [y | _] = DP.forward(data, network, [])
+    y |> CM.to_list() |> IO.inspect()
+  end
+
+  def test() do
+    data =
+      CM.new([
+        [
+          [[0.1, 0.2, 0.3], [0.4, -0.5, 0.6], [0.7, 0.8, 0.9]],
+          [[0.11, 0.12, 0.13], [0.14, 0.15, 0.16], [0.17, 0.18, 0.19]]
+        ],
+        #[
+        #  [[0.1, 0.2, -0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]],
+        #  [[0.11, 0.12, 0.13], [0.14, 0.15, 0.16], [0.17, -0.18, 0.19]]
+        #]
+      ])
+
+    train =
+      [
+        [0.0, 1.0, 0.0, 0.0],
+        #[0.0, 0.0, 1.0, 0.0]
       ]
       |> CM.new()
 
@@ -53,6 +76,8 @@ defmodule Check do
     else
       IO.write(n)
       IO.puts(" filter layer error")
+      x |> CM.to_list() |> IO.inspect()
+      y |> CM.to_list() |> IO.inspect()
       test1(xs, ys, n + 1)
     end
   end

@@ -703,13 +703,16 @@ __global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_n, int 
                             }
                         }
                         //set filter tensor
-                        c[IDX4C(c2,c1,h1,w1,in_c,filt_h,filt_w)] = sum;
+                        c[IDX4C(c2,c1,h1,w1,in_c,filt_h,filt_w)] = + sum;
                     }
                 }
             } 
         }      
     }
 }
+
+
+
   
 /*
 1st arg in_n of input tensor
@@ -755,7 +758,7 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     n1 = in_n * in_c * in_h * in_w;
     n2 = in_n * loss_c * loss_h * loss_w;
-    n3 = in_n * filt_n * in_c * filt_h * filt_w;
+    n3 = filt_n * filt_c * filt_h * filt_w;
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
@@ -782,6 +785,7 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
 
     //average
+    
     count = (float) in_n;
     if(in_n != 0){
         for(i=0;i<n3;i++){
