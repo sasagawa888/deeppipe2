@@ -6,12 +6,12 @@ defmodule Check do
   # for grad confirmation
   defnetwork test_network0(_x) do
     _x
-    |> f(2, 2, 2)
+    |> f(2, 2, 2, 1, 1, 1)
     |> pooling(2)
-    |> f(2, 2, 1)
+    |> f(2, 2, 1, 1, 1, 1)
     |> sigmoid
     |> full
-    |> w(4, 4)
+    |> w(25, 4)
     |> softmax
   end
 

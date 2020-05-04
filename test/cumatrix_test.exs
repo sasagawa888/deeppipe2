@@ -379,5 +379,22 @@ defmodule CumatrixTest do
 
     assert Cumatrix.convolute(t10, f10, 1, 0) |> Cumatrix.to_list() ==
              [[[[12.0, 16.0], [24.0, 28.0]]], [[[2.0, 6.0], [-2.0, 2.0]]]]
+
+    t11 =
+      Cumatrix.new([
+        [
+          [
+            [1.0, 2.0, 3.0, 4.0],
+            [5.0, 6.0, 7.0, 8.0],
+            [9.0, 10.0, 11.0, 12.0],
+            [13.0, 14.0, 15.0, 16.0]
+          ]
+        ]
+      ])
+
+    f11 = Cumatrix.new([[[[1.0, 2.0], [3.0, 4.0]]]])
+
+    assert Cumatrix.deconvolute(t11, f11, 1, 1) |> Cumatrix.to_list() ==
+             [[[[6.0, 19.0, 14.0], [28.0, 76.0, 50.0], [30.0, 73.0, 44.0]]]]
   end
 end

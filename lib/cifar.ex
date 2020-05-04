@@ -6,7 +6,7 @@ defmodule CIFAR do
   # for CNN test
   # CIFAR.sgd(100,1000)
 
- defnetwork init_network1(_x) do
+  defnetwork init_network1(_x) do
     _x
     |> f(3, 3, 3, 32, 1, 1, 0.1, 0.01)
     # |> analizer(1)
@@ -33,8 +33,7 @@ defmodule CIFAR do
     |> b(10, 0.1, 0.01)
     # |> analizer(12)
     |> softmax
-end
-  
+  end
 
   def sgd(m, n) do
     {time, dict} = :timer.tc(fn -> sgd1(m, n) end)

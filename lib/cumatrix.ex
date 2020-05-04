@@ -1188,17 +1188,3 @@ defmodule Cumatrix do
     false
   end
 end
-
-defmodule Time do
-  @moduledoc """
-  macro for measure execution time
-  """
-  defmacro time(exp) do
-    quote do
-      {time, dict} = :timer.tc(fn -> unquote(exp) end)
-      IO.inspect("time: #{time} micro second")
-      IO.inspect("-------------")
-      dict
-    end
-  end
-end
