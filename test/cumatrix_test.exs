@@ -384,6 +384,19 @@ defmodule CumatrixTest do
       Cumatrix.new([
         [
           [
+            [1.0, 2.0, 3.0],
+            [5.0, 6.0, 7.0],
+            [9.0, 10.0, 11.0]
+          ]
+        ]
+      ])
+
+    f11 = Cumatrix.new([[[[1.0, 2.0], [3.0, 4.0]]]])
+
+    l11 =
+      Cumatrix.new([
+        [
+          [
             [1.0, 2.0, 3.0, 4.0],
             [5.0, 6.0, 7.0, 8.0],
             [9.0, 10.0, 11.0, 12.0],
@@ -392,9 +405,10 @@ defmodule CumatrixTest do
         ]
       ])
 
-    f11 = Cumatrix.new([[[[1.0, 2.0], [3.0, 4.0]]]])
-
-    assert Cumatrix.deconvolute(t11, f11, 1, 1) |> Cumatrix.to_list() ==
+    assert Cumatrix.deconvolute(l11, f11, 1, 1) |> Cumatrix.to_list() ==
              [[[[26.0, 36.0, 46.0], [66.0, 76.0, 86.0], [106.0, 116.0, 126.0]]]]
+
+    assert Cumatrix.gradfilter(t11, f11, l11, 1, 1) |> Cumatrix.to_list() ==
+             [[[[696.0, 642.0], [480.0, 426.0]]]]
   end
 end

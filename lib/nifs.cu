@@ -699,6 +699,7 @@ __global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_n, int 
     if(tid < n)
     {   
         n1 = tid;
+
         for(c2=0;c2<filt_n;c2++){
             for(c1=0;c1<filt_c;c1++){
                 //h1,w1 is index of filter
@@ -709,8 +710,8 @@ __global__ void gradfilter_kernel(float *a, float *b, float *c, int filt_n, int 
                         for(h2=0;h2<loss_h;h2++){
                             for(w2=0;w2<loss_w;w2++){
                                 //h3,w3 is index of input tensor
-                                h3 = h1*st-pad + h2;
-                                w3 = w1*st-pad + w2;
+                                h3 = h1*st - pad + h2;
+                                w3 = w1*st - pad + w2;
                                 if(h3>=0 && h3<in_h && w3>=0 && w3<in_w){
                                     elt1 = a[IDX4C(n1,c1,h3,w3,in_c,in_h,in_w)];    //input tensor
                                     elt2 = b[IDX4C(n1,c2,h2,w2,loss_c,loss_h,loss_w)]; //loss tensor
