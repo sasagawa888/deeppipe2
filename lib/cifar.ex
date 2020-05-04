@@ -36,10 +36,12 @@ defmodule CIFAR do
   end
 
   def sgd(m, n) do
-    {time, dict} = :timer.tc(fn -> sgd1(m, n) end)
-    IO.inspect("time: #{time / 1_000_000} second")
-    IO.inspect("-------------")
-    dict
+    image = train_image(10000)
+    onehot = train_label_onehot(10000) 
+    test_image = test_image(100)
+    test_label = test_label(100)
+    network = init_network1(0)
+    DP.train(network,image,onehot,test_image,test_label,:cross,:sgd,m,n)
   end
 
   def sgd1(m, n) do

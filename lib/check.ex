@@ -6,9 +6,10 @@ defmodule Check do
   # for grad confirmation
   defnetwork test_network0(_x) do
     _x
+    |> f(2,2,1)
     |> f(2, 2, 1, 1, 1, 1)
     |> full
-    |> w(64, 4)
+    |> w(49, 4)
     |> softmax
   end
 

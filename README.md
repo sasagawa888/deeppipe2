@@ -204,6 +204,21 @@ update method is momentam, adagrad
 
 ```
 
+- train/9
+
+```
+1st arg network
+2nd arg train image list
+3rd arg train onehot list
+4th arg test image list
+5th arg test labeel list
+6th arg loss function (;cross or :squre)
+7th arg minibatch size
+8th arg lewarning method
+9th arg repeat number
+
+```
+
 
 
 
@@ -377,15 +392,7 @@ element of mt1 - element of mt2*lr. and dropout with rate dr.
 - 10000<= N <11000 CUDA error   N-10000 is error code of CUDA.
 - 11000 < N  cuBLAS error  N-11000 is error code of cuBLAS.
 
-## segmentation fault
-if DeepPipe2 down by segmentation fault. expand stack memory size with ulimit command.
+## Hradware 
+recommended  memory 8GB or moreover.
 
-e.g.
-
-```
-ulimit -s 65536
-```
-
-recommended  memory 16GB or moreover.
-
-recommended GTX1660 GPU or moreover.
+recommended GTX960 GPU or moreover.
