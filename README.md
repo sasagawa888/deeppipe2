@@ -40,40 +40,29 @@ MNIST 100 mini batch size, 100 epocs
 ```
 iex(1)> Test.sgd(100,100)
 preparing data
-ready
--2.285336971282959
--2.1092705726623535
--1.9825358390808105
+learning start
+100 2.204291343688965
+99 2.0511350631713867
+98 1.851050615310669
+97 1.7592202425003052
+96 1.7395706176757813
+95 1.6045866012573242
+94 1.5952904224395752
+93 1.4877655506134033
 ...
--0.2589882016181946
--0.22275760769844055
--0.2696773409843445
-accuracy rate = 0.841
-end
-:ok
-iex(2)> 
-
-```
-
-## time
-
-```
-iex(2)> require(Time)
-Time
-iex(3)> Time.time(Test.sgd(100,100))
-preparing data
-ready
--2.0867862701416016
--2.009648084640503
--1.9592150449752808
-...
--0.19911997020244598
--0.3847019076347351
-accuracy rate = 0.84
-end
-"time: 17937936 micro second"
+7 0.4388183653354645
+6 0.49198096990585327
+5 0.5398643016815186
+4 0.43334200978279114
+3 0.47159287333488464
+2 0.37558087706565857
+1 0.37841811776161194
+learning end
+accuracy rate = 0.8495
+"time: 4.006799 second"
 "-------------"
 :ok
+iex(2)> 
 
 ```
 
@@ -330,15 +319,38 @@ iex(5)>
 ```
 
 ## CNN
-Now testing.
+Now testing CIFAR10.
 
 ```
-# for CNN test
-  defnetwork init_network4(_x) do
-    _x |> f(5,5) |> pooling(2) |> full
-    |> w(144,300) |> b(300) |> relu
-    |> w(300,100) |> b(100) |> relu
-    |> w(100,10) |> b(10) |> softmax
+# CIFAR.sgd(100,1000)
+
+  defnetwork init_network1(_x) do
+    _x
+    |> f(3, 3, 3, 32, 1, 1, 0.1, 0.01)
+    # |> analizer(1)
+    |> relu
+    # |> analizer(2)
+    |> f(3, 3, 32, 32, 1, 1, 0.1, 0.01)
+    # |> analizer(3)
+    |> pooling(2)
+    # |> analizer(4)
+    |> f(3, 3, 32, 64, 1, 1, 0.1, 0.01)
+    # |> analizer(5)
+    |> relu
+    # |> analizer(6)
+    |> f(3, 3, 64, 64, 1, 1, 0.1, 0.01)
+    # |> analizer(7)
+    |> relu
+    # |> analizer(8)
+    |> pooling(2)
+    # |> analizer(9)
+    |> full
+    # |> analizer(10)
+    |> w(4096, 10, 0.1, 0.01)
+    # |> analizer(11)
+    |> b(10, 0.1, 0.01)
+    # |> analizer(12)
+    |> softmax
   end
 
 ```
