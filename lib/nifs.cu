@@ -371,28 +371,30 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int st, int pad1, int pad, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
-    int n1,c1,c2,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
+    int n1,c1,c2,h1,w1,h2,w2,oh,ow,oh1,ow1,start_h1,end_h1,start_w1,end_w1;
     float sum,elt1,elt2;
     if(tid < n)
     {   
         n1 = tid;
         // pad1 = filt_h -1,  pad is original padding size
-        oh = (in_h+2*(pad1-pad)-filt_h)/st + 1;
-        ow = (in_w+2*(pad1-pad)-filt_w)/st + 1;
+        oh = (in_h+2*pad1-filt_h)/st + 1;
+        ow = (in_w+2*pad1-filt_w)/st + 1;
+        oh1 = (in_h+2*(pad1-pad)-filt_h)/st + 1;
+        ow1 = (in_w+2*(pad1-pad)-filt_w)/st + 1;
         
         //full convolute. stride=1 always
         for(c2=0;c2<filt_c;c2++){
             for(w2=0;w2<ow;w2++){
                 for(h2=0;h2<oh;h2++){
-                    start_h1 = h2-pad1+pad;  
+                    start_h1 = h2-pad1;  
                     end_h1 = start_h1 + filt_h;
-                    start_w1 = w2-pad1+pad;
+                    start_w1 = w2-pad1;
                     end_w1 = start_w1 + filt_w;
                     sum = 0.0;
                     for(h1=start_h1;h1<end_h1;h1++){
                         for(w1=start_w1;w1<end_w1;w1++){
                             for(c1=0;c1<filt_n;c1++){        
-                                if(h1 >= 0+pad && h1 < in_h-pad && w1 >= 0+pad && w1 < in_w-pad){
+                                if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
                                     elt1 = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)]; //loss tensor
                                     elt2 = b[IDX4C(c1,c2,h1-start_h1,w1-start_w1,filt_c,filt_h,filt_w)]; //filter tensor
                                     sum = sum + elt1*elt2;
@@ -400,7 +402,9 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, in
                             }
                         }   
                     }
-                    c[IDX4C(n1,c2,h2,w2,filt_c,oh,ow)] = sum;             
+                    if(h2-pad >=0 && h2-pad < oh1 && w2-pad >= 0 && w2-pad < ow1){
+                        c[IDX4C(n1,c2,h2-pad,w2-pad,filt_c,oh1,ow1)] = sum;
+                    }             
                 }
             }
         }
@@ -420,6 +424,16 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, in
 10th arg binary of filter tensor
 11th arg stride
 12th arg padding   
+
+memo
+ex padding = 1
+loss 4*4
+filter 2*2
+input 3*3  padding=1
+(3-2+2*1)/1 + 1 = 4  
+decovolute compute 5*5(3*3 padding=1) and save result range 3*3
+
+
 */
 static ERL_NIF_TERM
 deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
@@ -448,8 +462,8 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     n1 = in_n * in_c * in_h * in_w;
     n2 = filt_n * filt_c * filt_h * filt_w;
     pad1 = filt_h - 1;
-    oh = (in_h+2*pad1-filt_h)/st + 1;
-    ow = (in_w+2*pad1-filt_w)/st + 1;
+    oh = (in_h+2*(pad1-pad)-filt_h)/st + 1;
+    ow = (in_w+2*(pad1-pad)-filt_w)/st + 1;
     n3 = in_n * filt_c * oh * ow;  // channel of filter generate same channel input tensor
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;

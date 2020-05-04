@@ -395,6 +395,6 @@ defmodule CumatrixTest do
     f11 = Cumatrix.new([[[[1.0, 2.0], [3.0, 4.0]]]])
 
     assert Cumatrix.deconvolute(t11, f11, 1, 1) |> Cumatrix.to_list() ==
-             [[[[6.0, 19.0, 14.0], [28.0, 76.0, 50.0], [30.0, 73.0, 44.0]]]]
+             [[[[26.0, 36.0, 46.0], [66.0, 76.0, 86.0], [106.0, 116.0, 126.0]]]]
   end
 end

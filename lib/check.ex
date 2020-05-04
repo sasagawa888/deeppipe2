@@ -6,22 +6,22 @@ defmodule Check do
   # for grad confirmation
   defnetwork test_network0(_x) do
     _x
-    |> f(2, 2, 2, 1, 1, 1)
+    |> f(2, 2, 2, 1, 1, 0)
     |> pooling(2)
-    |> f(2, 2, 1, 1, 1, 1)
+    |> f(2, 2, 1, 1, 1, 0)
     |> sigmoid
     |> full
-    |> w(25, 4)
+    |> w(4, 4)
     |> softmax
   end
 
   def test() do
-    data = CM.rand(2, 2, 7, 7)
+    data = CM.rand(1, 2, 7, 7)
 
     train =
       [
         [0.0, 1.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0, 0.0]
+       # [0.0, 1.0, 0.0, 0.0]
       ]
       |> CM.new()
 
