@@ -334,7 +334,7 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     
     n1 = in_n * in_c * in_h * in_w;
-    n2 = in_c * filt_h * filt_w;
+    n2 = filt_n * filt_c * filt_h * filt_w;
     oh = (in_h+2*pad-filt_h)/st + 1;
     ow = (in_w+2*pad-filt_w)/st + 1;
     n3 = in_n * filt_n * oh * ow;  // n of filter generate n channel
@@ -2180,7 +2180,7 @@ add_diff2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_double(env, argv[9], &val)) return enif_make_int(env,10);
 
 
-    n = c1*h1*w1;
+    n = n1*c1*h1*w1;
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
 
@@ -2189,10 +2189,12 @@ add_diff2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         for(j=0;j<c1;j++){
             for(k=0;k<h1;k++){
                 for(l=0;l<w1;l++){
-                    if(i==n2 && j==c2 && k==h2 && l==w2)
+                    if(i==n2 && j==c2 && k==h2 && l==w2){
                         b[IDX4C(i,j,k,l,c1,h1,w1)] = a[IDX4C(i,j,k,l,c1,h1,w1)] + (float)val;
-                    else 
+                    }
+                    else {
                         b[IDX4C(i,j,k,l,c1,h1,w1)] = a[IDX4C(i,j,k,l,c1,h1,w1)];
+                    }
                 }
             }
         }
