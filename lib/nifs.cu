@@ -1155,35 +1155,6 @@ unfull1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-
-static ERL_NIF_TERM
-print1(ErlNifEnv *env, int argc, const ERL_NIF_TERM *argv) {
-    ErlNifBinary  a_bin;
-    ERL_NIF_TERM  result;
-    float        *a;
-    int r,c,i,j;
-
-
-    DISP("print1")
-    if (!enif_get_int(env, argv[0], &r )) return enif_make_int(env,1);
-    if (!enif_get_int(env, argv[1], &c )) return enif_make_int(env,2);
-    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
-    
-    a  = (float *) a_bin.data;
-  
-    for(i=0;i<r;i++){
-        for(j=0;j<c;j++){
-            printf("%f ", a[IDX2C(i,j,r)]);
-        }
-        printf("\n\r"); 
-    }
-    printf("\n\r"); 
-    result = enif_make_atom(env,"true");
-
-    return result;
-}
-
-
 static ERL_NIF_TERM
 new1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     int n,i;
@@ -2831,7 +2802,6 @@ analizer1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 // define the array of ErlNifFunc
 static ErlNifFunc nif_funcs[] = {
   // {erl_function_name, erl_function_arity, c_function}
-  {"print1", 3, print1},
   {"mult1", 6, mult1},
   {"new1", 2, new1},
   {"new2", 3, new2},

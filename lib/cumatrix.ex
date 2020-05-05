@@ -6,10 +6,6 @@ defmodule Cumatrix do
     :erlang.load_nif('./lib/nifs', 0)
   end
 
-  def print1(_a, _b, _c) do
-    raise "NIF print1/3 not implemented"
-  end
-
   def new1(_a, _b) do
     raise "NIF new1/2 not implemented"
   end
@@ -1011,8 +1007,8 @@ defmodule Cumatrix do
     end
   end
 
-  def print({r, c, dt}) do
-    print1(r, c, dt)
+  def print(x) do
+    x |> to_list() |> IO.inspect()
   end
 
   def pooling({n, c, h, w, dt}, st) do
@@ -1093,7 +1089,7 @@ defmodule Cumatrix do
       if !is_integer(result) do
         {n2, c1, h2, w2, result}
       else
-        error("gradfilter", result)
+        error("gradfilter1", result)
       end
     else
       result = gradfilter2(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st, pad)
@@ -1101,7 +1097,7 @@ defmodule Cumatrix do
       if !is_integer(result) do
         {n2, c1, h2, w2, result}
       else
-        error("gradfilter", result)
+        error("gradfilter2", result)
       end
     end
   end

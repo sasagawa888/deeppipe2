@@ -577,6 +577,8 @@ defmodule Deeppipe do
     network1 = Enum.reverse(before) ++ [{:filter, m1, st, pad, ir, lr, v}] ++ rest
     [y0 | _] = forward(x, network0, [])
     [y1 | _] = forward(x, network1, [])
+    CM.print(y0)
+    CM.print(y1)
     (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / delta
   end
 end
