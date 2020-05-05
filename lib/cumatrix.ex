@@ -174,6 +174,10 @@ defmodule Cumatrix do
     raise "NIF gradfilter1/15 not implemented"
   end
 
+  def gradfilter2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15) do
+    raise "NIF gradfilter2/15 not implemented"
+  end
+
   def full1(_1, _2, _3, _4, _5) do
     raise "NIF full1/5 not implemented"
   end
@@ -1083,12 +1087,22 @@ defmodule Cumatrix do
   # 4th arg stride
   # 5th arg padding
   def gradfilter({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, _}, {n1, c3, h3, w3, dt3}, st, pad) do
-    result = gradfilter1(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st, pad)
+    if st == 1 do
+      result = gradfilter1(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st, pad)
 
-    if !is_integer(result) do
-      {n2, c1, h2, w2, result}
+      if !is_integer(result) do
+        {n2, c1, h2, w2, result}
+      else
+        error("gradfilter", result)
+      end
     else
-      error("gradfilter", result)
+      result = gradfilter2(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st, pad)
+
+      if !is_integer(result) do
+        {n2, c1, h2, w2, result}
+      else
+        error("gradfilter", result)
+      end
     end
   end
 

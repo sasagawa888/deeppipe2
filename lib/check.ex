@@ -6,20 +6,28 @@ defmodule Check do
   # for grad confirmation
   defnetwork test_network0(_x) do
     _x
-    |> f(2,2,1)
-    |> f(2, 2, 1, 1, 1, 1)
+    |> f(2, 2, 1, 1, 2, 0)
     |> full
-    |> w(49, 4)
     |> softmax
   end
 
   def test() do
-    data = CM.rand(2, 1, 7, 7)
+    data = CM.rand(1, 1, 6, 6)
 
     train =
       [
-        [0.0, 1.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0, 0.0]
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+        # [0.0, 1.0, 0.0, 0.0]
       ]
       |> CM.new()
 
@@ -76,5 +84,24 @@ defmodule Check do
     IO.write(n)
     IO.inspect(x)
     test1(xs, ys, n + 1)
+  end
+
+  # ---tested-------------
+
+  defnetwork test_network1(_x) do
+    _x
+    |> f(2, 2, 1, 1, 1, 1)
+    |> f(2, 2, 1, 1, 1, 1)
+    |> pooling(2)
+    |> full
+    |> softmax
+  end
+
+  # ----bad-------
+  defnetwork test_network2(_x) do
+    _x
+    |> f(2, 2, 1, 1, 2, 0)
+    |> full
+    |> softmax
   end
 end

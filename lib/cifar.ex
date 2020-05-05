@@ -8,19 +8,19 @@ defmodule CIFAR do
 
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 32, 1, 1, 0.1, 0.01)
+    |> f(3, 3, 3, 32, 1, 1, 0.5, 0.0001)
     # |> analizer(1)
     |> relu
     # |> analizer(2)
-    |> f(3, 3, 32, 32, 1, 1, 0.1, 0.01)
+    |> f(3, 3, 32, 32, 1, 1, 0.5, 0.0001)
     # |> analizer(3)
     |> pooling(2)
     # |> analizer(4)
-    |> f(3, 3, 32, 64, 1, 1, 0.1, 0.01)
+    |> f(3, 3, 32, 64, 1, 1, 0.5, 0.0001)
     # |> analizer(5)
     |> relu
     # |> analizer(6)
-    |> f(3, 3, 64, 64, 1, 1, 0.1, 0.01)
+    |> f(3, 3, 64, 64, 1, 1, 0.5, 0.0001)
     # |> analizer(7)
     |> relu
     # |> analizer(8)
@@ -28,20 +28,20 @@ defmodule CIFAR do
     # |> analizer(9)
     |> full
     # |> analizer(10)
-    |> w(4096, 10, 0.1, 0.01)
+    |> w(4096, 10, 0.5, 0.0001)
     # |> analizer(11)
-    |> b(10, 0.1, 0.01)
+    |> b(10, 0.5, 0.0001)
     # |> analizer(12)
     |> softmax
   end
 
   def sgd(m, n) do
     image = train_image(10000)
-    onehot = train_label_onehot(10000) 
+    onehot = train_label_onehot(10000)
     test_image = test_image(100)
     test_label = test_label(100)
     network = init_network1(0)
-    DP.train(network,image,onehot,test_image,test_label,:cross,:sgd,m,n)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
   def sgd1(m, n) do

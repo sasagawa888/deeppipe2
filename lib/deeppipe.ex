@@ -177,10 +177,9 @@ defmodule Deeppipe do
     [network | learning(rest, rest1)]
   end
 
-  def learning(network1,network2,:sgd) do
-    learning(network1,network2)
-  end 
-
+  def learning(network1, network2, :sgd) do
+    learning(network1, network2)
+  end
 
   # --------momentum-------------
   def learning([], _, :momentum) do
@@ -247,23 +246,27 @@ defmodule Deeppipe do
   end
 
   # ----------train-----------
-  #1st arg network
-  #2nd arg train image list
-  #3rd arg train onehot list
-  #4th arg test image list
-  #5th arg test labeel list
-  #6th arg loss function (;cross or :squre)
-  #7th arg learning method
-  #8th arg minibatch size
-  #9th arg repeat number
+  # 1st arg network
+  # 2nd arg train image list
+  # 3rd arg train onehot list
+  # 4th arg test image list
+  # 5th arg test labeel list
+  # 6th arg loss function (;cross or :squre)
+  # 7th arg learning method
+  # 8th arg minibatch size
+  # 9th arg repeat number
 
-
-  def train(network, tr_imag,tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
+  def train(network, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
     IO.puts("preparing data")
     train_image = tr_imag |> CM.new()
     train_onehot = tr_onehot |> CM.new()
     test_image = ts_imag |> CM.new()
-    {time, dict} = :timer.tc(fn -> train1(network, train_image, train_onehot, test_image, ts_label, loss_func, method, m, n) end)
+
+    {time, dict} =
+      :timer.tc(fn ->
+        train1(network, train_image, train_onehot, test_image, ts_label, loss_func, method, m, n)
+      end)
+
     IO.inspect("time: #{time / 1_000_000} second")
     IO.inspect("-------------")
     dict
@@ -278,7 +281,7 @@ defmodule Deeppipe do
     IO.puts(correct)
   end
 
-  def train2(_, network, _, _, _,_, 0) do
+  def train2(_, network, _, _, _, _, 0) do
     network
   end
 
