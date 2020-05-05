@@ -319,39 +319,24 @@ iex(5)>
 ```
 
 ## CNN
-Now testing CIFAR10.
+Now testing.
 
 ```
-# CIFAR.sgd(100,1000)
-
-  defnetwork init_network1(_x) do
+# for CNN test for MNIST
+  defnetwork init_network4(_x) do
     _x
-    |> f(3, 3, 3, 32, 1, 1, 0.1, 0.01)
-    # |> analizer(1)
-    |> relu
-    # |> analizer(2)
-    |> f(3, 3, 32, 32, 1, 1, 0.1, 0.01)
-    # |> analizer(3)
+    |> f(5, 5, 1, 12, 1, 1, 0.5, 0.0001)
     |> pooling(2)
-    # |> analizer(4)
-    |> f(3, 3, 32, 64, 1, 1, 0.1, 0.01)
-    # |> analizer(5)
-    |> relu
-    # |> analizer(6)
-    |> f(3, 3, 64, 64, 1, 1, 0.1, 0.01)
-    # |> analizer(7)
-    |> relu
-    # |> analizer(8)
+    |> f(3, 3, 12, 12, 1, 1, 0.5, 0.0001)
+    |> f(2, 2, 12, 12, 1, 1, 0.5, 0.0001)
     |> pooling(2)
-    # |> analizer(9)
+    |> f(3, 3, 12, 12, 1, 0, 0.5, 0.0001)
+    |> relu
     |> full
-    # |> analizer(10)
-    |> w(4096, 10, 0.1, 0.01)
-    # |> analizer(11)
-    |> b(10, 0.1, 0.01)
-    # |> analizer(12)
+    |> w(300, 10, 0.1, 0.001)
     |> softmax
   end
+
 
 ```
 

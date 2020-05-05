@@ -45,7 +45,7 @@ defmodule Test do
     |> softmax
   end
 
-  # for CNN test
+  # for CNN test for MNIST
   defnetwork init_network4(_x) do
     _x
     |> f(5, 5, 1, 12, 1, 1, 0.5, 0.0001)
