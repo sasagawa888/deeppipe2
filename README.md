@@ -276,7 +276,7 @@ For Deep-Learning.
 - Cumatrix.loss(mt1,mt2,fun)
 generate float that is average of loss. fun is :square or :cross.
 :square means mean_square function, and :cross means cross_entropy function.
-mt1 is calculated data matrix , mt2 is teacher data matrix.
+mt1 is calculated data matrix , mt2 is train data matrix.
 each data is row vector.
 
 - Cumatrix.diff(mt1,mt2,fun)
