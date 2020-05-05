@@ -34,7 +34,7 @@ defmodule Network do
 
   def parse({:w, _, [x, y]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1), 0.1, 0.1, 0.0,
+      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1), 0.1, 0.11, 0.0,
        CM.new(unquote(x), unquote(y))}
     end
   end
@@ -127,42 +127,42 @@ defmodule Network do
   # cf means constant filter for gradient check
   def parse({:cf, _, [m]}, _) do
     quote do
-      {:filter, CM.new(unquote(m)), 1, 0, 0.5, 0.1, CM.new(1, 3, 3)}
+      {:filter, CM.new(unquote(m)), 1, 0, 0.5, 0.001, CM.new(1, 3, 3)}
     end
   end
 
   # {:filter,filter-matrix,stride,padding,init_rate,lewarning_rate,v}
   def parse({:f, _, [x, y]}, _) do
     quote do
-      {:filter, CM.rand(1, 1, unquote(x), unquote(y)) |> CM.mult(0.5), 1, 0, 0.1, 0.1,
+      {:filter, CM.rand(1, 1, unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1,
        CM.new(1, 1, unquote(x), unquote(y))}
     end
   end
 
   def parse({:f, _, [x, y, c]}, _) do
     quote do
-      {:filter, CM.rand(1, unquote(c), unquote(x), unquote(y)) |> CM.mult(0.5), 1, 0, 0.1, 0.1,
+      {:filter, CM.rand(1, unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1,
        CM.new(1, unquote(c), unquote(x), unquote(y))}
     end
   end
 
   def parse({:f, _, [x, y, c, n]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.5), 1, 0,
+      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0,
        0.1, 0.1, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end
   end
 
   def parse({:f, _, [x, y, c, n, st]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.5),
+      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1),
        unquote(st), 0, 0.1, 0.1, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end
   end
 
   def parse({:f, _, [x, y, c, n, st, pad]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.5),
+      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1),
        unquote(st), unquote(pad), 0.1, 0.1,
        CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end

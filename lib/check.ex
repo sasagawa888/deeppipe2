@@ -8,12 +8,11 @@ defmodule Check do
     _x
     |> f(2, 2, 2, 2, 1)
     |> full
-    |> w(8,8,0.5)
-    #|> softmax
+    |> w(8, 8, 0.5)
+
+    # |> softmax
   end
 
-  
-  
   def test() do
     data = CM.rand(1, 2, 3, 3)
 
@@ -114,5 +113,4 @@ defmodule Check do
     |> full
     |> softmax
   end
-  
 end
