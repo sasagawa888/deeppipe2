@@ -952,8 +952,8 @@ defmodule Cumatrix do
     end
   end
 
-  def adagrad({c, h, w, dt1}, {c, h, w, dt2}, {c, h, w, dt3}, lr, dr) do
-    result = adagrad1(c * h * w, dt1, dt2, dt3, lr, dr)
+  def adagrad({n, c, h, w, dt1}, {n, c, h, w, dt2}, {n, c, h, w, dt3}, lr, dr) do
+    result = adagrad1(n * c * h * w, dt1, dt2, dt3, lr, dr)
 
     if !is_integer(result) do
       {dth, dtw} = result

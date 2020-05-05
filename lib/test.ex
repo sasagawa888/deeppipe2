@@ -33,15 +33,22 @@ defmodule Test do
   # for adagrad
   defnetwork init_network3(_x) do
     _x
-    |> w(784, 300, 0.1, 0.1)
-    |> b(300, 0.1, 0.1)
-    |> sigmoid
-    |> w(300, 100, 0.1, 0.1)
-    |> b(100, 0.1, 0.1)
-    |> sigmoid
-    |> w(100, 10, 0.1, 0.1)
-    |> b(10, 0.1, 0.1)
+    |> w(784, 300, 0.1, 0.001)
     |> analizer(1)
+    |> b(300, 0.1, 0.001)
+    |> analizer(2)
+    |> sigmoid
+    |> analizer(3)
+    |> w(300, 100, 0.1, 0.001)
+    |> analizer(4)
+    |> b(100, 0.1, 0.001)
+    |> analizer(5)
+    |> sigmoid
+    |> analizer(6)
+    |> w(100, 10, 0.1, 0.001)
+    |> analizer(7)
+    |> b(10, 0.1, 0.001)
+    |> analizer(8)
     |> softmax
   end
 

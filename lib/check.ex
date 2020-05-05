@@ -6,7 +6,7 @@ defmodule Check do
   # for grad confirmation
   defnetwork test_network0(_x) do
     _x
-    |> f(2, 2, 1, 2, 1)
+    |> f(2, 2, 2, 2, 1)
     |> analizer(1)
     |> full
     |> w(8, 8, 0.5)
@@ -15,7 +15,7 @@ defmodule Check do
   end
 
   def fd() do
-    data = CM.rand(1, 1, 3, 3)
+    data = CM.rand(1, 2, 3, 3)
     network = test_network0(0)
     DP.forward(data, network, []) |> DP.print()
     true
