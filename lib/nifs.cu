@@ -2768,12 +2768,10 @@ analizer1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     // near check
     for(i=0;i<n;i++){
         if(isnan(a[i])){
-            printf("find nan");
-            return enif_make_int(env,0);
+            return enif_make_int(env,9999);
         }
         if(isinf(a[i])){
-            printf("find inf");
-            return enif_make_int(env,0);
+            return enif_make_int(env,9998);
         }
     }
 

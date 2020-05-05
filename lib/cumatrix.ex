@@ -1163,14 +1163,18 @@ defmodule Cumatrix do
   end
 
   def analizer({n, c, h, w, dt}, id) do
-    if analizer1(n * c * h * w, dt, id) == 0 do
-      raise "analizer " <> Integer.to_string(id)
+    cond do 
+      analizer1(n * c * h * w, dt, id) == 9999 -> raise "analizer NAN"
+      analizer1(n * c * h * w, dt, id) == 9998 -> raise "analizer INF"
+      true -> true
     end
   end
 
   def analizer({r, c, dt}, id) do
-    if analizer1(r * c, dt, id) == 0 do
-      raise "analizer " <> Integer.to_string(id)
+    cond do 
+      analizer1(r * c, dt, id) == 9999 -> raise "analizer NAN"
+      analizer1(r * c, dt, id) == 9998 -> raise "analizer INF"
+      true -> true
     end
   end
 
