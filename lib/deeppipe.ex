@@ -164,7 +164,9 @@ defmodule Deeppipe do
     [{:bias, w2, ir, lr, dr, v} | learning(rest, rest1)]
   end
 
-  def learning([{:filter, w, st, pad, ir, lr, dr, v} | rest], [{:filter, w1, _, _, _, _, _, _} | rest1]) do
+  def learning([{:filter, w, st, pad, ir, lr, dr, v} | rest], [
+        {:filter, w1, _, _, _, _, _, _} | rest1
+      ]) do
     # IO.puts("LN filter")
     w2 = CM.sgd(w, w1, lr, dr)
     # w2 |> CM.to_list() |> IO.inspect()
@@ -234,7 +236,7 @@ defmodule Deeppipe do
 
   def learning(
         [{:filter, w, st, pad, ir, lr, dr, h} | rest],
-        [{:filter, w1, _, _, _, _, _,_} | rest1],
+        [{:filter, w1, _, _, _, _, _, _} | rest1],
         :adagrad
       ) do
     {h1, w2} = CM.adagrad(w, h, w1, lr, dr)
@@ -257,7 +259,6 @@ defmodule Deeppipe do
   # 9th arg repeat number
 
   # automaticaly save network to temp.ex
-
 
   def train(network, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
     IO.puts("preparing data")
@@ -283,7 +284,7 @@ defmodule Deeppipe do
     IO.puts("learning end")
     IO.write("accuracy rate = ")
     IO.puts(correct)
-    save("temp.ex",network1)
+    save("temp.ex", network1)
   end
 
   def train2(_, network, _, _, _, _, 0) do
@@ -320,8 +321,6 @@ defmodule Deeppipe do
     IO.inspect("-------------")
     dict
   end
-
-  
 
   # calculate accurace 
   def accuracy(image, network, label) do
@@ -535,7 +534,16 @@ defmodule Deeppipe do
     w1 = numerical_gradient_filter(x, w, t, before, {:filter, w, st, pad, ir, lr, dr, v}, rest)
 
     numerical_gradient1(x, rest, t, [{:filter, w, st, pad, ir, lr, dr, v} | before], [
-      {:filter, w1, st, pad, ir, lr, dr,v} | res
+      {:filter, w1, st, pad, ir, lr, dr, v} | res
+    ])
+  end
+
+  def numerical_gradient1(x, [{:analizer, n} | rest], t, before, res) do
+    # IO.puts("FD analizer")
+    CM.analizer(x, n)
+
+    numerical_gradient1(x, rest, t, [{:analizer, n} | before], [
+      {:analizer, n} | res
     ])
   end
 
@@ -604,7 +612,17 @@ defmodule Deeppipe do
     |> CM.new()
   end
 
-  def numerical_gradient_filter1(x, t, n, c, h, w, before, {:filter, m, st, pad, ir, lr, dr, v}, rest) do
+  def numerical_gradient_filter1(
+        x,
+        t,
+        n,
+        c,
+        h,
+        w,
+        before,
+        {:filter, m, st, pad, ir, lr, dr, v},
+        rest
+      ) do
     delta = 0.0001
     m1 = CM.add_diff(m, n, c, h, w, delta)
     network0 = Enum.reverse(before) ++ [{:filter, m, st, pad, ir, lr, dr, v}] ++ rest

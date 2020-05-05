@@ -6,15 +6,23 @@ defmodule Check do
   # for grad confirmation
   defnetwork test_network0(_x) do
     _x
-    |> f(2, 2, 2, 2, 1)
+    |> f(2, 2, 1, 2, 1)
+    |> analizer(1)
     |> full
     |> w(8, 8, 0.5)
+    |> analizer(2)
+    |> softmax
+  end
 
-    # |> softmax
+  def fd() do
+    data = CM.rand(1, 1, 3, 3)
+    network = test_network0(0)
+    DP.forward(data, network, []) |> DP.print()
+    true
   end
 
   def test() do
-    data = CM.rand(1, 2, 3, 3)
+    data = CM.rand(1, 1, 3, 3)
 
     train =
       [
@@ -42,7 +50,7 @@ defmodule Check do
     true
   end
 
-  def test1([{:filter, x, _, _, _, _, _} | xs], [{:filter, y, _, _, _, _, _} | ys], n) do
+  def test1([{:filter, x, _, _, _, _, _, _} | xs], [{:filter, y, _, _, _, _, _, _} | ys], n) do
     if CM.is_near(x, y) == 1 do
       IO.write(n)
       IO.puts(" filter layer ok")

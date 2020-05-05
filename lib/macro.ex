@@ -134,29 +134,29 @@ defmodule Network do
   # {:filter,filter-matrix,stride,padding,init_rate,learning_rate,dropout_rate,v}
   def parse({:f, _, [x, y]}, _) do
     quote do
-      {:filter, CM.rand(1, 1, unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1,0.0,
+      {:filter, CM.rand(1, 1, unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1, 0.0,
        CM.new(1, 1, unquote(x), unquote(y))}
     end
   end
 
   def parse({:f, _, [x, y, c]}, _) do
     quote do
-      {:filter, CM.rand(1, unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1,0.0,
-       CM.new(1, unquote(c), unquote(x), unquote(y))}
+      {:filter, CM.rand(1, unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1,
+       0.0, CM.new(1, unquote(c), unquote(x), unquote(y))}
     end
   end
 
   def parse({:f, _, [x, y, c, n]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0,0.0,
-       0.1, 0.1, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0,
+       0.0, 0.1, 0.1, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end
   end
 
   def parse({:f, _, [x, y, c, n, st]}, _) do
     quote do
       {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1),
-       unquote(st), 0, 0.1, 0.1,0.0, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+       unquote(st), 0, 0.1, 0.1, 0.0, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end
   end
 
