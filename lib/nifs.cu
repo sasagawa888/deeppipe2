@@ -854,7 +854,7 @@ __global__ void gradfilter2_kernel(float *a, float *b1, float *b, float *c, int 
                     elt1 = b[IDX4C(n1,j,k,l,loss_c,loss_h,loss_w)];
                     k1 = st*k;
                     l1 = st*l;
-                    b1[IDX4C(n1,j,k1,l1,loss_c,loss_h,loss_w)] = elt1;
+                    b1[IDX4C(n1,j,k1,l1,loss_c,loss_h1,loss_w1)] = elt1;
                 }
             }
         }

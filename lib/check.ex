@@ -97,11 +97,13 @@ defmodule Check do
     |> softmax
   end
 
-  # ----bad-------
   defnetwork test_network2(_x) do
     _x
     |> f(2, 2, 1, 1, 2, 0)
     |> full
     |> softmax
   end
+
+  # ----bad-------
+  
 end
