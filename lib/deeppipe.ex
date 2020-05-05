@@ -38,7 +38,7 @@ defmodule Deeppipe do
     forward(x1, rest, [x1 | res])
   end
 
-  def forward(x, [{:filter, w, st, pad, _, _, _} | rest], res) do
+  def forward(x, [{:filter, w, st, pad, _, _, _, _} | rest], res) do
     # IO.puts("FD filter")
     x1 = CM.convolute(x, w, st, pad)
     forward(x1, rest, [x1 | res])
@@ -110,11 +110,11 @@ defmodule Deeppipe do
     backward(l1, rest, us, [{:weight, w1, ir, lr, dr, v} | res])
   end
 
-  defp backward(l, [{:filter, w, st, pad, ir, lr, v} | rest], [u | us], res) do
+  defp backward(l, [{:filter, w, st, pad, ir, lr, dr, v} | rest], [u | us], res) do
     # IO.puts("BK filter")
     w1 = CM.gradfilter(u, w, l, st, pad)
     l1 = CM.deconvolute(l, w, st, pad)
-    backward(l1, rest, us, [{:filter, w1, st, pad, ir, lr, v} | res])
+    backward(l1, rest, us, [{:filter, w1, st, pad, ir, lr, dr, v} | res])
   end
 
   defp backward(l, [{:pooling, st} | rest], [u | us], res) do
@@ -164,11 +164,11 @@ defmodule Deeppipe do
     [{:bias, w2, ir, lr, dr, v} | learning(rest, rest1)]
   end
 
-  def learning([{:filter, w, st, pad, ir, lr, v} | rest], [{:filter, w1, _, _, _, _, _} | rest1]) do
+  def learning([{:filter, w, st, pad, ir, lr, dr, v} | rest], [{:filter, w1, _, _, _, _, _, _} | rest1]) do
     # IO.puts("LN filter")
-    w2 = CM.sub(w, CM.mult(w1, lr))
+    w2 = CM.sgd(w, w1, lr, dr)
     # w2 |> CM.to_list() |> IO.inspect()
-    [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1)]
+    [{:filter, w2, st, pad, ir, lr, dr, v} | learning(rest, rest1)]
   end
 
   def learning([network | rest], [_ | rest1]) do
@@ -201,12 +201,12 @@ defmodule Deeppipe do
   end
 
   def learning(
-        [{:filter, w, st, pad, ir, lr, v} | rest],
-        [{:filter, w1, _, _, _, _, _} | rest1],
+        [{:filter, w, st, pad, ir, lr, dr, v} | rest],
+        [{:filter, w1, _, _, _, _, _, _} | rest1],
         :momentum
       ) do
-    w2 = CM.sub(w, CM.mult(w1, lr))
-    [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1, :momentum)]
+    {v1, w2} = CM.momentum(w, v, w1, lr, dr)
+    [{:filter, w2, st, pad, ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
   end
 
   def learning([network | rest], [_ | rest1], :momentum) do
@@ -233,12 +233,12 @@ defmodule Deeppipe do
   end
 
   def learning(
-        [{:filter, w, st, pad, ir, lr, v} | rest],
-        [{:filter, w1, _, _, _, _, _} | rest1],
+        [{:filter, w, st, pad, ir, lr, dr, h} | rest],
+        [{:filter, w1, _, _, _, _, _,_} | rest1],
         :adagrad
       ) do
-    w2 = CM.add(w, CM.mult(w1, lr))
-    [{:filter, w2, st, pad, ir, lr, v} | learning(rest, rest1, :adagrad)]
+    {h1, w2} = CM.adagrad(w, h, w1, lr, dr)
+    [{:filter, w2, st, pad, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
   def learning([network | rest], [_ | rest1], :adagrad) do
@@ -255,6 +255,9 @@ defmodule Deeppipe do
   # 7th arg learning method
   # 8th arg minibatch size
   # 9th arg repeat number
+
+  # automaticaly save network to temp.ex
+
 
   def train(network, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
     IO.puts("preparing data")
@@ -274,11 +277,13 @@ defmodule Deeppipe do
 
   def train1(network, train_image, train_onehot, test_image, test_label, loss_func, method, m, n) do
     IO.puts("learning start")
+    IO.puts("count down: loss:")
     network1 = train2(train_image, network, train_onehot, loss_func, method, m, n)
     correct = accuracy(test_image, network1, test_label)
     IO.puts("learning end")
     IO.write("accuracy rate = ")
     IO.puts(correct)
+    save("temp.ex",network1)
   end
 
   def train2(_, network, _, _, _, _, 0) do
@@ -296,6 +301,27 @@ defmodule Deeppipe do
     IO.puts(loss)
     train2(image, network2, train, loss_func, method, m, n - 1)
   end
+
+  # retrain
+  # load network from file and restart learning
+  def retrain(file, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
+    IO.puts("preparing data")
+    network = load(file)
+    train_image = tr_imag |> CM.new()
+    train_onehot = tr_onehot |> CM.new()
+    test_image = ts_imag |> CM.new()
+
+    {time, dict} =
+      :timer.tc(fn ->
+        train1(network, train_image, train_onehot, test_image, ts_label, loss_func, method, m, n)
+      end)
+
+    IO.inspect("time: #{time / 1_000_000} second")
+    IO.inspect("-------------")
+    dict
+  end
+
+  
 
   # calculate accurace 
   def accuracy(image, network, label) do
@@ -370,12 +396,16 @@ defmodule Deeppipe do
     []
   end
 
-  def save1([{:weight, w, lr, v} | rest]) do
-    [{:weight, CM.to_list(w), lr, v} | save1(rest)]
+  def save1([{:weight, w, ir, lr, dr, v} | rest]) do
+    [{:weight, CM.to_list(w), ir, lr, dr, v} | save1(rest)]
   end
 
-  def save1([{:bias, w, lr, v} | rest]) do
-    [{:bias, CM.to_list(w), lr, v} | save1(rest)]
+  def save1([{:bias, w, ir, lr, dr, v} | rest]) do
+    [{:bias, CM.to_list(w), ir, lr, dr, v} | save1(rest)]
+  end
+
+  def save1([{:filter, w, st, pad, ir, lr, dr, v} | rest]) do
+    [{:bias, CM.to_list(w), st, pad, ir, lr, dr, v} | save1(rest)]
   end
 
   def save1([{:function, name} | rest]) do
@@ -394,12 +424,16 @@ defmodule Deeppipe do
     []
   end
 
-  def load1([{:weight, w, lr, v} | rest]) do
-    [{:weight, CM.new(w), lr, v} | load1(rest)]
+  def load1([{:weight, w, ir, lr, dr, v} | rest]) do
+    [{:weight, CM.new(w), ir, lr, dr, v} | load1(rest)]
   end
 
-  def load1([{:bias, w, lr, v} | rest]) do
-    [{:bias, CM.new(w), lr, v} | load1(rest)]
+  def load1([{:bias, w, ir, lr, dr, v} | rest]) do
+    [{:bias, CM.new(w), ir, lr, dr, v} | load1(rest)]
+  end
+
+  def load1([{:filter, w, st, pad, ir, lr, dr, v} | rest]) do
+    [{:bias, CM.new(w), st, pad, ir, lr, dr, v} | load1(rest)]
   end
 
   def load1([{:function, name} | rest]) do
@@ -449,7 +483,7 @@ defmodule Deeppipe do
     :io.write(name)
   end
 
-  def print2({:filter, w, _, _, _, _, _}) do
+  def print2({:filter, w, _, _, _, _, _, _}) do
     w |> CM.to_list() |> IO.inspect()
   end
 
@@ -496,12 +530,12 @@ defmodule Deeppipe do
     ])
   end
 
-  def numerical_gradient1(x, [{:filter, w, st, pad, ir, lr, v} | rest], t, before, res) do
+  def numerical_gradient1(x, [{:filter, w, st, pad, ir, lr, dr, v} | rest], t, before, res) do
     # IO.puts("ngrad filter")
-    w1 = numerical_gradient_filter(x, w, t, before, {:filter, w, st, pad, ir, lr, v}, rest)
+    w1 = numerical_gradient_filter(x, w, t, before, {:filter, w, st, pad, ir, lr, dr, v}, rest)
 
-    numerical_gradient1(x, rest, t, [{:filter, w, st, pad, ir, lr, v} | before], [
-      {:filter, w1, st, pad, ir, lr, v} | res
+    numerical_gradient1(x, rest, t, [{:filter, w, st, pad, ir, lr, dr, v} | before], [
+      {:filter, w1, st, pad, ir, lr, dr,v} | res
     ])
   end
 
@@ -570,11 +604,11 @@ defmodule Deeppipe do
     |> CM.new()
   end
 
-  def numerical_gradient_filter1(x, t, n, c, h, w, before, {:filter, m, st, pad, ir, lr, v}, rest) do
+  def numerical_gradient_filter1(x, t, n, c, h, w, before, {:filter, m, st, pad, ir, lr, dr, v}, rest) do
     delta = 0.0001
     m1 = CM.add_diff(m, n, c, h, w, delta)
-    network0 = Enum.reverse(before) ++ [{:filter, m, st, pad, ir, lr, v}] ++ rest
-    network1 = Enum.reverse(before) ++ [{:filter, m1, st, pad, ir, lr, v}] ++ rest
+    network0 = Enum.reverse(before) ++ [{:filter, m, st, pad, ir, lr, dr, v}] ++ rest
+    network1 = Enum.reverse(before) ++ [{:filter, m1, st, pad, ir, lr, dr, v}] ++ rest
     [y0 | _] = forward(x, network0, [])
     [y1 | _] = forward(x, network1, [])
     CM.print(y0)

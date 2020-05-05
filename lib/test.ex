@@ -195,4 +195,12 @@ defmodule Test do
     test_label = MNIST.test_label(1000)
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
+
+  def resgd(m, n) do
+    image = MNIST.train_image(3000, :flatten)
+    onehot = MNIST.train_label_onehot(3000)
+    test_image = MNIST.test_image(1000, :flatten)
+    test_label = MNIST.test_label(1000)
+    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
+  end
 end
