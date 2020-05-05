@@ -404,7 +404,7 @@ defmodule Deeppipe do
   end
 
   def save1([{:filter, w, st, pad, ir, lr, dr, v} | rest]) do
-    [{:bias, CM.to_list(w), st, pad, ir, lr, dr, v} | save1(rest)]
+    [{:filter, CM.to_list(w), st, pad, ir, lr, dr, v} | save1(rest)]
   end
 
   def save1([{:function, name} | rest]) do
@@ -432,7 +432,7 @@ defmodule Deeppipe do
   end
 
   def load1([{:filter, w, st, pad, ir, lr, dr, v} | rest]) do
-    [{:bias, CM.new(w), st, pad, ir, lr, dr, v} | load1(rest)]
+    [{:filter, CM.new(w), st, pad, ir, lr, dr, v} | load1(rest)]
   end
 
   def load1([{:function, name} | rest]) do

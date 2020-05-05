@@ -28,12 +28,12 @@ defmodule CIFAR do
     # |> analizer(9)
     |> full
     # |> analizer(10)
-    |> w(4096, 300, 0.1, 0.0003)
-    |> w(300, 200, 0.1, 0.0003)
-    |> w(200, 100, 0.1, 0.0003)
-    |> w(100, 10, 0.1, 0.0003)
+    |> w(4096, 300, 0.1, 0.0001)
+    |> w(300, 200, 0.1, 0.0001)
+    |> w(200, 100, 0.1, 0.0001)
+    |> w(100, 10, 0.1, 0.0001)
     # |> analizer(11)
-    |> b(10, 0.5, 0.0003)
+    |> b(10, 0.5, 0.0001)
     # |> analizer(12)
     |> softmax
   end
@@ -46,6 +46,14 @@ defmodule CIFAR do
     network = init_network1(0)
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
+
+  def resgd(m, n) do
+    image = train_image(10000)
+    onehot = train_label_onehot(10000)
+    test_image = test_image(100)
+    test_label = test_label(100)
+    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
+  end 
 
   def sgd1(m, n) do
     IO.puts("preparing data")
