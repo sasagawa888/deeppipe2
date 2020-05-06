@@ -7,29 +7,23 @@ defmodule Check do
   defnetwork test_network0(_x) do
     _x
     |> f(2, 2, 2, 2, 1, 1)
-    |> f(2, 2, 2, 1, 1, 1)
-    |> pooling(2)
     |> full
-    |> w(9,8)
+    |> w(18,4)
     |> softmax
   end
 
   
 
   def test() do
-    data = CM.rand(1, 1, 4, 4)
+    data = CM.rand(1, 2, 2, 2)
 
     train =
       [
         [
-          0.0,
-          0.0,
-          0.0,
-          0.0,
-          0.0,
-          0.0,
-          1.0,
-          0.0
+          0.2,
+          0.2,
+          0.3,
+          0.3
         ]
       ]
       |> CM.new()
@@ -118,5 +112,25 @@ defmodule Check do
 
 
   # ----bad-------
- 
+  defnetwork test_network3(_x) do
+    _x
+    |> f(2, 2, 2, 2, 1, 1)
+    |> f(2, 2, 2, 1, 1, 1)
+    |> pooling(2)
+    |> full
+    |> softmax
+  end
+
+  # output 2ch is bad, output 1ch is good
+  # bug of gradfilter 
+  # or bug of numerical_gradient. Cause second ch grad is all zero.
+  
+  defnetwork test_network5(_x) do
+    _x
+    |> f(2, 2, 2, 2, 1, 1)
+    |> full
+    |> w(18,4)
+    |> softmax
+  end
+
 end

@@ -720,7 +720,7 @@ __global__ void gradfilter1_kernel(float *a, float *b, float *c, int filt_n, int
                             }
                         }
                         //set filter tensor
-                        c[IDX5C(n1,c2,c1,h1,w1,filt_n,filt_c,filt_h,filt_w)] = + sum;
+                        c[IDX5C(n1,c2,c1,h1,w1,filt_n,filt_c,filt_h,filt_w)] =  sum;
                     }
                 }
             } 
