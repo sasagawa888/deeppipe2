@@ -1058,6 +1058,7 @@ defmodule Cumatrix do
     h1 = (oh - 1) * st - 2 * pad + h2
     w1 = (ow - 1) * st - 2 * pad + h2
 
+
     if st == 1 do
       result = deconvolute1(n, c1, oh, ow, n2, c2, h2, w2, dt1, dt2, st, pad)
 
@@ -1087,7 +1088,7 @@ defmodule Cumatrix do
       result = gradfilter1(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st, pad)
 
       if !is_integer(result) do
-        {n2, c1, h2, w2, result}
+        {n2, c2, h2, w2, result}
       else
         error("gradfilter1", result)
       end
@@ -1095,7 +1096,7 @@ defmodule Cumatrix do
       result = gradfilter2(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st, pad)
 
       if !is_integer(result) do
-        {n2, c1, h2, w2, result}
+        {n2, c2, h2, w2, result}
       else
         error("gradfilter2", result)
       end
