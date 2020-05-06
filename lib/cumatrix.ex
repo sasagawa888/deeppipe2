@@ -1058,7 +1058,6 @@ defmodule Cumatrix do
     h1 = (oh - 1) * st - 2 * pad + h2
     w1 = (ow - 1) * st - 2 * pad + h2
 
-
     if st == 1 do
       result = deconvolute1(n, c1, oh, ow, n2, c2, h2, w2, dt1, dt2, st, pad)
 

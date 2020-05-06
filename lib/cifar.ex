@@ -8,13 +8,13 @@ defmodule CIFAR do
 
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 32, 1, 1, 0.5, 0.00001)
+    |> f(3, 3, 3, 32, 1, 1, 0.3, 0.00001)
     |> relu
-    |> f(3, 3, 32, 32, 1, 1, 0.5, 0.00001)
+    |> f(3, 3, 32, 32, 1, 1, 0.3, 0.00001)
     |> pooling(2)
-    |> f(3, 3, 32, 64, 1, 1, 0.5, 0.00001)
+    |> f(3, 3, 32, 64, 1, 1, 0.3, 0.00001)
     |> relu
-    |> f(3, 3, 64, 64, 1, 1, 0.5, 0.00001)
+    |> f(3, 3, 64, 64, 1, 1, 0.3, 0.00001)
     |> relu
     |> pooling(2)
     |> full
@@ -41,7 +41,7 @@ defmodule CIFAR do
     test_image = test_image(100)
     test_label = test_label(100)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
-  end 
+  end
 
   def sgd1(m, n) do
     IO.puts("preparing data")
