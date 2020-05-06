@@ -3,26 +3,21 @@ defmodule Check do
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
 
-  # for grad confirmation
+  # for grad confirmation 
   defnetwork test_network0(_x) do
     _x
-    |> f(2, 2, 2, 1, 1)
-    |> analizer(1)
+    |> f(2, 2, 2, 2, 1, 1)
+    |> f(2, 2, 2, 1, 1, 1)
+    |> pooling(2)
     |> full
-    |> w(4, 8)
-    |> analizer(2)
+    |> w(9,8)
     |> softmax
   end
 
-  def fd() do
-    data = CM.rand(1, 2, 8, 8)
-    network = test_network0(0)
-    DP.forward(data, network, []) |> DP.print()
-    true
-  end
+  
 
   def test() do
-    data = CM.rand(1, 1, 3, 3)
+    data = CM.rand(1, 1, 4, 4)
 
     train =
       [
@@ -39,10 +34,11 @@ defmodule Check do
       ]
       |> CM.new()
 
+    network = test_network0(0)
     IO.puts("compute numerical gradient")
-    network1 = DP.numerical_gradient(data, test_network0(0), train)
+    network1 = DP.numerical_gradient(data, network, train)
     IO.puts("compute backpropagation")
-    network2 = DP.gradient(data, test_network0(0), train)
+    network2 = DP.gradient(data, network, train)
     test1(network1, network2, 1)
   end
 
@@ -112,13 +108,15 @@ defmodule Check do
     |> softmax
   end
 
-  # ----bad-------
-  defnetwork test_network3(_x) do
+  defnetwork test_network4(_x) do
     _x
-    |> f(2, 2, 2, 2, 1, 1)
-    |> f(2, 2, 2, 1, 1, 1)
-    |> pooling(2)
+    |> f(2, 2, 2, 1, 1)
     |> full
+    |> w(4, 8)
     |> softmax
   end
+
+
+  # ----bad-------
+ 
 end
