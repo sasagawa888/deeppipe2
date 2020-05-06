@@ -2745,10 +2745,35 @@ is_near1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         }
     }
     if(sw == 0)
-        return enif_make_int(env,1); //safe
+        return enif_make_int(env,1); //true
     else
-        return enif_make_int(env,0); //error
+        return enif_make_int(env,0); //false
 }
+
+static ERL_NIF_TERM
+is_equal1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    int i, n;
+    float *a, *b;
+  
+    DISP("is_near1")
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &b_bin )) return enif_make_int(env,3);
+
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+
+    // equal check
+    for(i=0;i<n;i++){
+       if(a[i] != b[i]){
+            return enif_make_int(env,0); //false
+        }
+    }
+    
+    return enif_make_int(env,1); //true
+}
+
 
 
 static ERL_NIF_TERM
@@ -2847,6 +2872,7 @@ static ErlNifFunc nif_funcs[] = {
   {"random_select1", 7, random_select1},
   {"random_select2", 9, random_select2},
   {"is_near1", 3, is_near1},
+  {"is_equal1", 3, is_equal1},
   {"analizer1", 3, analizer1}
 };
 

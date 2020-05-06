@@ -470,11 +470,13 @@ defmodule Deeppipe do
     print1(xs)
   end
 
-  def print2({:weight, w, _, _}) do
+  def print2({:weight, w, _, _,_,_}) do
+    IO.puts("weight")
     CM.print(w)
   end
 
-  def print2({:bias, w, _, _}) do
+  def print2({:bias, w, _, _,_,_}) do
+    IO.puts("bias")
     CM.print(w)
   end
 
@@ -483,7 +485,8 @@ defmodule Deeppipe do
   end
 
   def print2({:filter, w, _, _, _, _, _, _}) do
-    w |> CM.to_list() |> IO.inspect()
+    IO.puts("filter")
+    CM.print(w)
   end
 
   def print2(x) do
@@ -491,6 +494,7 @@ defmodule Deeppipe do
       CM.print(x)
     else
       :io.write(x)
+      IO.puts("")
     end
   end
 

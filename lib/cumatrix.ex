@@ -194,6 +194,10 @@ defmodule Cumatrix do
     raise "NIF is_near1/3 not implemented"
   end
 
+  def is_equal1(_1, _2, _3) do
+    raise "NIF is_equal1/3 not implemented"
+  end
+
   def analizer1(_1, _2, _3) do
     raise "NIF analizer1/3 not implemented"
   end
@@ -1159,6 +1163,34 @@ defmodule Cumatrix do
   end
 
   def is_near(_, _) do
+    false
+  end
+
+  def is_equal({r, c, dt1}, {r, c, dt2}) do
+    if is_equal1(r * c, dt1, dt2) == 1 do
+      true
+    else
+      false
+    end
+  end
+
+  def is_equal({c, h, w, dt1}, {c, h, w, dt2}) do
+    if is_equal1(c * h * w, dt1, dt2) == 1 do
+      true
+    else
+      false
+    end
+  end
+
+  def is_equal({n, c, h, w, dt1}, {n, c, h, w, dt2}) do
+    if is_equal1(n * c * h * w, dt1, dt2) == 1 do
+      true
+    else
+      false
+    end
+  end
+
+  def is_equal(_, _) do
     false
   end
 
