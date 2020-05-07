@@ -189,7 +189,7 @@ update method is sgd
 
 learning/3
 added update method to 3rd arg
-update method is momentam, adagrad
+update method is sgd, momentam, adagrad
 
 ```
 

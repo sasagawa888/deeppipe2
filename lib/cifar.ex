@@ -8,13 +8,13 @@ defmodule CIFAR do
 
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 32, 1, 1, 0.3, 0.000001)
+    |> f(3, 3, 3, 32, 1, 1, 0.3, 0.00001)
     |> relu
-    |> f(3, 3, 32, 32, 1, 1, 0.3, 0.000001)
+    |> f(3, 3, 32, 32, 1, 1, 0.3, 0.00001)
     |> pooling(2)
-    |> f(3, 3, 32, 64, 1, 1, 0.3, 0.000001)
+    |> f(3, 3, 32, 64, 1, 1, 0.3, 0.00001)
     |> relu
-    |> f(3, 3, 64, 64, 1, 1, 0.3, 0.000001)
+    |> f(3, 3, 64, 64, 1, 1, 0.3, 0.00001)
     |> relu
     |> pooling(2)
     |> full
@@ -25,8 +25,8 @@ defmodule CIFAR do
   def sgd(m, n) do
     image = train_image(10000)
     onehot = train_label_onehot(10000)
-    test_image = test_image(100)
-    test_label = test_label(100)
+    test_image = test_image(300)
+    test_label = test_label(300)
     network = init_network1(0)
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
@@ -34,8 +34,10 @@ defmodule CIFAR do
   def resgd(m, n) do
     image = train_image(10000)
     onehot = train_label_onehot(10000)
-    test_image = test_image(100)
-    test_label = test_label(100)
+    #test_image = test_image(100)
+    #test_label = test_label(100)
+    test_image = train_image(300)
+    test_label = train_label(300)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
@@ -136,6 +138,10 @@ defmodule CIFAR do
     {:ok, bin} = File.read("test_batch.bin")
     train_image1(bin)
   end
+
+  def train_label(n) do
+    train_label() |> Enum.take(n)
+  end 
 
   # get RGB 3ch data
   def train_image1(<<>>) do
