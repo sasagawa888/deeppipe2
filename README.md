@@ -124,9 +124,9 @@ element
 #### network
 [{:weight,w,ir,lr,v},{:bias,b,ir,lr},{:function,name}, ...]
 ##### weight
-{:weight,w,ir,lr,v} w is matrix, ir is rate for initial random number,lr is learning rate, v is for momentum,adagrad,adam
+{:weight,w,ir,lr,dp,v} w is matrix, ir is rate for initial random number,lr is learning rate, dp is dropout rate, v is for momentum,adagrad,adam
 ##### bias
-{:bias,b,ir,lr,v} b is row vector
+{:bias,b,ir,lr,dp,v} b is row vector
 ##### function
 {:function,name} name is function name within sigmoid tanh relu
 
@@ -152,7 +152,7 @@ lr is learning rate (default is 0.1)
 sigmoid,tanh,relu,softmax
 
 #### filter(convolution)
-{:filter,w,st,pad,ir,lr,v}
+{:filter,w,st,pad,ir,lr,dp,v}
 
 #### pooling
 {:pooling,st}
