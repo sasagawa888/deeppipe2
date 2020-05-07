@@ -62,6 +62,12 @@ defmodule Deeppipe do
     forward(x, rest, res)
   end
 
+  def forward(x, [{:visualizer, n, c} | rest], res) do
+    # IO.puts("FD visualizer")
+    CM.visualizer(x, n, c)
+    forward(x, rest, res)
+  end
+
   # gradient with backpropagation
   # 1st arg is input data matrix
   # 2nd arg is network list
@@ -134,6 +140,11 @@ defmodule Deeppipe do
     # IO.puts("BK analizer")
     CM.analizer(l, -n)
     backward(l, rest, us, [{:analizer, n} | res])
+  end
+
+  defp backward(l, [{:visualizer, n, c} | rest], us, res) do
+    # IO.puts("BK visualizer")
+    backward(l, rest, us, [{:visualizer, n, c} | res])
   end
 
   # ------- learning -------
@@ -396,15 +407,15 @@ defmodule Deeppipe do
   end
 
   def save1([{:weight, w, ir, lr, dr, v} | rest]) do
-    [{:weight, CM.to_list(w), ir, lr, dr, v} | save1(rest)]
+    [{:weight, CM.to_list(w), ir, lr, dr, CM.to_list(v)} | save1(rest)]
   end
 
   def save1([{:bias, w, ir, lr, dr, v} | rest]) do
-    [{:bias, CM.to_list(w), ir, lr, dr, v} | save1(rest)]
+    [{:bias, CM.to_list(w), ir, lr, dr, CM.to_list(v)} | save1(rest)]
   end
 
   def save1([{:filter, w, st, pad, ir, lr, dr, v} | rest]) do
-    [{:filter, CM.to_list(w), st, pad, ir, lr, dr, v} | save1(rest)]
+    [{:filter, CM.to_list(w), st, pad, ir, lr, dr, CM.to_list(v)} | save1(rest)]
   end
 
   def save1([{:function, name} | rest]) do
@@ -424,15 +435,15 @@ defmodule Deeppipe do
   end
 
   def load1([{:weight, w, ir, lr, dr, v} | rest]) do
-    [{:weight, CM.new(w), ir, lr, dr, v} | load1(rest)]
+    [{:weight, CM.new(w), ir, lr, dr, CM.new(v)} | load1(rest)]
   end
 
   def load1([{:bias, w, ir, lr, dr, v} | rest]) do
-    [{:bias, CM.new(w), ir, lr, dr, v} | load1(rest)]
+    [{:bias, CM.new(w), ir, lr, dr, CM.new(v)} | load1(rest)]
   end
 
   def load1([{:filter, w, st, pad, ir, lr, dr, v} | rest]) do
-    [{:filter, CM.new(w), st, pad, ir, lr, dr, v} | load1(rest)]
+    [{:filter, CM.new(w), st, pad, ir, lr, dr, CM.new(v)} | load1(rest)]
   end
 
   def load1([{:function, name} | rest]) do

@@ -1210,6 +1210,10 @@ defmodule Cumatrix do
     end
   end
 
+  def visualizer(x,n,c) do
+    x |> to_list() |> nth(n) |> nth(c) |> Matrex.new() |> Matrex.heatmap(:color256, [])
+  end 
+
   def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do
       true

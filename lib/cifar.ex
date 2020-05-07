@@ -8,6 +8,7 @@ defmodule CIFAR do
 
   defnetwork init_network1(_x) do
     _x
+    |> visualizer(1,1)
     |> f(3, 3, 3, 32, 1, 1, 0.3, 0.00001)
     |> relu
     |> f(3, 3, 32, 32, 1, 1, 0.3, 0.00001)
@@ -17,6 +18,7 @@ defmodule CIFAR do
     |> f(3, 3, 64, 64, 1, 1, 0.3, 0.00001)
     |> relu
     |> pooling(2)
+    |> visualizer(1,1)
     |> full
     |> w(4096, 10, 0.1, 0.00001)
     |> softmax

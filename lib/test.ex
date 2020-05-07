@@ -55,6 +55,7 @@ defmodule Test do
   # for CNN test for MNIST
   defnetwork init_network4(_x) do
     _x
+    #|> visualizer(1,1)
     |> f(5, 5, 1, 12, 1, 1, 0.5, 0.0001)
     |> pooling(2)
     |> f(3, 3, 12, 12, 1, 1, 0.5, 0.0001)
@@ -62,6 +63,7 @@ defmodule Test do
     |> pooling(2)
     |> f(3, 3, 12, 12, 1, 0, 0.5, 0.0001)
     |> relu
+    #|> visualizer(1,1)
     |> full
     |> w(300, 10, 0.1, 0.001)
     |> softmax
@@ -165,6 +167,14 @@ defmodule Test do
     test_image = MNIST.test_image(1000, :structure)
     test_label = MNIST.test_label(1000)
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
+  end
+
+  def recnn(m, n) do
+    image = MNIST.train_image(3000, :structure)
+    onehot = MNIST.train_label_onehot(3000)
+    test_image = MNIST.test_image(1000, :structure)
+    test_label = MNIST.test_label(1000)
+    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
   def st(m, n) do
