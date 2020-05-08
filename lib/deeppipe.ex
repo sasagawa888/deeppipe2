@@ -64,7 +64,7 @@ defmodule Deeppipe do
 
   def forward(x, [{:visualizer, n, c} | rest], res) do
     # IO.puts("FD visualizer")
-    #CM.visualizer(x, n, c)
+    CM.visualizer(x, n, c)
     forward(x, rest, res)
   end
 
