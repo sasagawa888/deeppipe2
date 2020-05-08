@@ -283,7 +283,7 @@ __global__ void convolute_kernel(float *a, float *b, float *c, int filt_n, int f
                             for(w1=start_w1;w1<end_w1;w1++){
                                 if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
                                     elt1 = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
-                                    elt2 = b[IDX3C(c1,h1-start_h1,w1-start_w1,filt_h,filt_w)];
+                                    elt2 = b[IDX4C(c2,c1,h1-start_h1,w1-start_w1,filt_c,filt_h,filt_w)];
                                     sum = sum + elt1*elt2;
                                 }
                             }

@@ -8,19 +8,50 @@ defmodule CIFAR do
 
   defnetwork init_network1(_x) do
     _x
-    |> visualizer(1,1)
-    |> f(3, 3, 3, 3, 1, 1, 0.5, 0.001)
+    |> f(3, 3, 3, 32, 1, 1, 0.5, 0.0001)
+    # |> analizer(1)
     |> relu
-    |> f(3, 3, 3, 3, 1, 1, 0.5, 0.001)
+    # |> analizer(2)
+    |> f(3, 3, 32, 32, 1, 1, 0.5, 0.0001)
+    # |> analizer(3)
     |> pooling(2)
-    |> f(3, 3, 3, 3, 1, 1, 0.5, 0.001)
+    # |> analizer(4)
+    |> f(3, 3, 32, 64, 1, 1, 0.5, 0.0001)
+    # |> analizer(5)
     |> relu
-    |> f(3, 3, 3, 3, 1, 1, 0.5, 0.001)
+    # |> analizer(6)
+    |> f(3, 3, 64, 64, 1, 1, 0.5, 0.0001)
+    # |> analizer(7)
     |> relu
+    # |> analizer(8)
     |> pooling(2)
-    |> visualizer(1,1)
+    # |> analizer(9)
     |> full
-    |> w(192, 10, 0.5, 0.001)
+    # |> analizer(10)
+    |> w(4096, 10, 0.5, 0.0001)
+    # |> analizer(11)
+    |> b(10, 0.5, 0.0001)
+    # |> analizer(12)
+    |> softmax
+  end
+
+  defnetwork init_network2(_x) do
+    _x
+    |> visualizer(1,1)
+    |> f(3, 3, 3, 3, 1, 1, 0.5, 0.0001)
+    |> relu
+    |> f(3, 3, 3, 3, 1, 1, 0.5, 0.0001)
+    |> pooling(2)
+    |> f(3, 3, 3, 3, 1, 1, 0.5, 0.0001)
+    |> relu
+    |> f(3, 3, 3, 3, 1, 1, 0.5, 0.0001)
+    |> relu
+    |> pooling(2)
+    |> visualizer(1,1)
+    |> visualizer(1,2)
+    |> visualizer(1,3)
+    |> full
+    |> w(192, 10, 0.5, 0.0001)
     |> softmax
   end
 
@@ -74,6 +105,7 @@ defmodule CIFAR do
     sgd2(image, network2, train, m, n - 1)
   end
 
+  
   # transfer from train-label to onehot list
   def train_label_onehot(n) do
     Enum.take(test_label(), n) |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
