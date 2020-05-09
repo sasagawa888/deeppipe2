@@ -8,21 +8,21 @@ defmodule CIFAR do
 
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 32, 1, 1, 0.5, 0.001)
+    |> f(3, 3, 3, 32, 1, 1, 0.5, 0.01)
     # |> analizer(1)
-    |> sigmoid
+    |> relu
     # |> analizer(2)
-    |> f(3, 3, 32, 32, 1, 1, 0.5, 0.001)
+    |> f(3, 3, 32, 32, 1, 1, 0.5, 0.01)
     # |> analizer(3)
     |> pooling(2)
     # |> analizer(4)
-    |> f(3, 3, 32, 64, 1, 1, 0.5, 0.001)
+    |> f(3, 3, 32, 64, 1, 1, 0.1, 0.01)
     # |> analizer(5)
-    |> sigmoid
+    |> relu
     # |> analizer(6)
-    |> f(3, 3, 64, 64, 1, 1, 0.5, 0.001)
+    |> f(3, 3, 64, 64, 1, 1, 0.1, 0.01)
     # |> analizer(7)
-    |> sigmoid
+    |> relu
     # |> analizer(8)
     |> pooling(2)
     # |> analizer(9)
@@ -61,7 +61,7 @@ defmodule CIFAR do
     test_image = test_image(300)
     test_label = test_label(300)
     network = init_network1(0)
-    DP.train(network, image, onehot, test_image, test_label, :cross, :momentum, m, n)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
   def resgd(m, n) do
@@ -71,7 +71,7 @@ defmodule CIFAR do
     # test_label = test_label(100)
     test_image = train_image(300)
     test_label = train_label(300)
-    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :momentum, m, n)
+    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
   def sgd1(m, n) do
