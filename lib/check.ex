@@ -8,11 +8,9 @@ defmodule Check do
     _x
     |> f(2, 2, 2, 2, 1, 1)
     |> full
-    |> w(18,4)
+    |> w(18, 4)
     |> softmax
   end
-
-  
 
   def test() do
     data = CM.rand(1, 2, 2, 2)
@@ -110,7 +108,6 @@ defmodule Check do
     |> softmax
   end
 
-
   # ----bad-------
   defnetwork test_network3(_x) do
     _x
@@ -124,13 +121,12 @@ defmodule Check do
   # output 2ch is bad, output 1ch is good
   # bug of gradfilter 
   # or bug of numerical_gradient. Cause second ch grad is all zero.
-  
+
   defnetwork test_network5(_x) do
     _x
     |> f(2, 2, 2, 2, 1, 1)
     |> full
-    |> w(18,4)
+    |> w(18, 4)
     |> softmax
   end
-
 end

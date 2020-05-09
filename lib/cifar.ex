@@ -8,36 +8,36 @@ defmodule CIFAR do
 
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 32, 1, 1, 0.5, 0.0001)
+    |> f(3, 3, 3, 32, 1, 1, 0.5, 0.001)
     # |> analizer(1)
-    |> relu
+    |> sigmoid
     # |> analizer(2)
-    |> f(3, 3, 32, 32, 1, 1, 0.5, 0.0001)
+    |> f(3, 3, 32, 32, 1, 1, 0.5, 0.001)
     # |> analizer(3)
     |> pooling(2)
     # |> analizer(4)
-    |> f(3, 3, 32, 64, 1, 1, 0.5, 0.0001)
+    |> f(3, 3, 32, 64, 1, 1, 0.5, 0.001)
     # |> analizer(5)
-    |> relu
+    |> sigmoid
     # |> analizer(6)
-    |> f(3, 3, 64, 64, 1, 1, 0.5, 0.0001)
+    |> f(3, 3, 64, 64, 1, 1, 0.5, 0.001)
     # |> analizer(7)
-    |> relu
+    |> sigmoid
     # |> analizer(8)
     |> pooling(2)
     # |> analizer(9)
     |> full
     # |> analizer(10)
-    |> w(4096, 10, 0.5, 0.0001)
+    |> w(4096, 10, 0.5, 0.001)
     # |> analizer(11)
-    |> b(10, 0.5, 0.0001)
+    |> b(10, 0.5, 0.001)
     # |> analizer(12)
     |> softmax
   end
 
   defnetwork init_network2(_x) do
     _x
-    |> visualizer(1,1)
+    |> visualizer(1, 1)
     |> f(3, 3, 3, 3, 1, 1, 0.5, 0.0001)
     |> relu
     |> f(3, 3, 3, 3, 1, 1, 0.5, 0.0001)
@@ -47,9 +47,9 @@ defmodule CIFAR do
     |> f(3, 3, 3, 3, 1, 1, 0.5, 0.0001)
     |> relu
     |> pooling(2)
-    |> visualizer(1,1)
-    |> visualizer(1,2)
-    |> visualizer(1,3)
+    |> visualizer(1, 1)
+    |> visualizer(1, 2)
+    |> visualizer(1, 3)
     |> full
     |> w(192, 10, 0.5, 0.0001)
     |> softmax
@@ -61,17 +61,17 @@ defmodule CIFAR do
     test_image = test_image(300)
     test_label = test_label(300)
     network = init_network1(0)
-    DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :momentum, m, n)
   end
 
   def resgd(m, n) do
     image = train_image(10000)
     onehot = train_label_onehot(10000)
-    #test_image = test_image(100)
-    #test_label = test_label(100)
+    # test_image = test_image(100)
+    # test_label = test_label(100)
     test_image = train_image(300)
     test_label = train_label(300)
-    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
+    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :momentum, m, n)
   end
 
   def sgd1(m, n) do
@@ -105,7 +105,6 @@ defmodule CIFAR do
     sgd2(image, network2, train, m, n - 1)
   end
 
-  
   # transfer from train-label to onehot list
   def train_label_onehot(n) do
     Enum.take(test_label(), n) |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
@@ -175,7 +174,7 @@ defmodule CIFAR do
 
   def train_label(n) do
     train_label() |> Enum.take(n)
-  end 
+  end
 
   # get RGB 3ch data
   def train_image1(<<>>) do

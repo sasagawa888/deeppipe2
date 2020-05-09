@@ -481,12 +481,12 @@ defmodule Deeppipe do
     print1(xs)
   end
 
-  def print2({:weight, w, _, _,_,_}) do
+  def print2({:weight, w, _, _, _, _}) do
     IO.puts("weight")
     CM.print(w)
   end
 
-  def print2({:bias, w, _, _,_,_}) do
+  def print2({:bias, w, _, _, _, _}) do
     IO.puts("bias")
     CM.print(w)
   end

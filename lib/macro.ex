@@ -206,7 +206,7 @@ defmodule Network do
   end
 
   # visualizer for debug
-  def parse({:visualizer, _, [n,c]}, _) do
+  def parse({:visualizer, _, [n, c]}, _) do
     quote do
       {:visualizer, unquote(n), unquote(c)}
     end

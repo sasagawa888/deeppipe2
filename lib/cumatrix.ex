@@ -930,12 +930,12 @@ defmodule Cumatrix do
     end
   end
 
-  def momentum({c, h, w, dt1}, {c, h, w, dt2}, {c, h, w, dt3}, lr, dr) do
+  def momentum({n, c, h, w, dt1}, {n, c, h, w, dt2}, {n, c, h, w, dt3}, lr, dr) do
     result = momentum1(c * h * w, dt1, dt2, dt3, lr, dr)
 
     if !is_integer(result) do
       {v1, w1} = result
-      {{c, h, w, v1}, {c, h, w, w1}}
+      {{n, c, h, w, v1}, {n, c, h, w, w1}}
     else
       error("momentum1", result)
     end
@@ -961,7 +961,7 @@ defmodule Cumatrix do
 
     if !is_integer(result) do
       {dth, dtw} = result
-      {{c, h, w, dth}, {c, h, w, dtw}}
+      {{n,c, h, w, dth}, {n,c, h, w, dtw}}
     else
       error("adagrad1", result)
     end
@@ -1210,9 +1210,9 @@ defmodule Cumatrix do
     end
   end
 
-  def visualizer(x,n,c) do
+  def visualizer(x, n, c) do
     x |> to_list() |> nth(n) |> nth(c) |> Matrex.new() |> Matrex.heatmap(:color256, [])
-  end 
+  end
 
   def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do
