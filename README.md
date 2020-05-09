@@ -35,7 +35,7 @@ $iex -S mix
 ```
 
 ## example
-MNIST 100 mini batch size, 100 epocs
+MNIST 100 mini batch size, 100 times repeat.
 
 ```
 iex(1)> Test.sgd(100,100)
