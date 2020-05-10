@@ -7,25 +7,20 @@ defmodule Check do
   defnetwork test_network0(_x) do
     _x
     |> f(2, 2, 2, 2, 1, 1)
-    |> f(2, 2, 2, 1, 1, 1)
+    |> f(2, 2, 2, 2, 1, 1)
     |> pooling(2)
     |> full
-    |> w(16,4)
+    |> w(32,4)
     |> softmax
   end
   
 
   def test() do
-    data = CM.rand(1, 2, 6, 6)
+    data = CM.rand(2, 2, 6, 6)
 
     train =
-      [
-        [
-          0.2,
-          0.2,
-          0.3,
-          0.3
-        ]
+      [[0.0,1.0,0.0,0.0],
+       [0.0,0.0,1.0,0.0]
       ]
       |> CM.new()
 

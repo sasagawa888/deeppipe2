@@ -4,7 +4,7 @@ defmodule CIFAR do
   alias Cumatrix, as: CM
 
   # for CNN test
-  # CIFAR.sgd(100,1000)
+  # CIFAR.sgd(100,15000) 150epochs
 
   defnetwork init_network1(_x) do
     _x
