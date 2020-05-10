@@ -37,10 +37,10 @@ defmodule CIFAR do
   def resgd(m, n) do
     image = train_image(10000)
     onehot = train_label_onehot(10000)
-    # test_image = test_image(100)
-    # test_label = test_label(100)
-    test_image = train_image(300)
-    test_label = train_label(300)
+    test_image = test_image(100)
+    test_label = test_label(100)
+    #test_image = train_image(300)
+    #test_label = train_label(300)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
