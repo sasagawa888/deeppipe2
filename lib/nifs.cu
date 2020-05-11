@@ -2421,20 +2421,22 @@ __global__ void momentum_kernel(float *a, float *b, float *c, float *d, float *e
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     while (tid < n)
     {   
-        d[tid] = (0.5 * b[tid]) - (lr * c[tid]);
+        
+        d[tid] = ((0.9 * b[tid]) - (lr * c[tid]));
         if(a[tid] != 0.0)
             e[tid] = a[tid] + d[tid];
         else 
             e[tid] = 0.0;
+        
         tid += blockDim.x * gridDim.x;
     }
 }
 
 /*
 1st arg row-size of vectorized each-matrix
-2nd arg wight-matrix
-3rd arg v-matrix
-4th arg g-matrix
+2nd arg wight-matrix    (a)
+3rd arg v-matrix        (b)
+4th arg gradient-matrix (c)
 5th arg learning rate
 6th arg deropout rate
 return tuple
@@ -2492,6 +2494,7 @@ momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         r = rand() % n;
         e[r] = 0.0;
     }
+    
 
     // free 
     cudaFree(dev_a);
@@ -2585,6 +2588,7 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         r = rand() % n;
         e[r] = 0.0;
     }
+
 
     // free 
     cudaFree(dev_a);

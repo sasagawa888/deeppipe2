@@ -931,7 +931,7 @@ defmodule Cumatrix do
   end
 
   def momentum({n, c, h, w, dt1}, {n, c, h, w, dt2}, {n, c, h, w, dt3}, lr, dr) do
-    result = momentum1(c * h * w, dt1, dt2, dt3, lr, dr)
+    result = momentum1(n * c * h * w, dt1, dt2, dt3, lr, dr)
 
     if !is_integer(result) do
       {v1, w1} = result

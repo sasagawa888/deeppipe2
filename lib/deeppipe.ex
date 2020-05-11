@@ -178,7 +178,7 @@ defmodule Deeppipe do
   def learning([{:filter, w, st, pad, ir, lr, dr, v} | rest], [
         {:filter, w1, _, _, _, _, _, _} | rest1
       ]) do
-    # IO.puts("LN filter")
+    #IO.puts("LN filter")
     w2 = CM.sgd(w, w1, lr, dr)
     # w2 |> CM.to_list() |> IO.inspect()
     [{:filter, w2, st, pad, ir, lr, dr, v} | learning(rest, rest1)]
@@ -204,11 +204,13 @@ defmodule Deeppipe do
         [{:weight, w1, _, _, _, _} | rest1],
         :momentum
       ) do
+    #IO.puts("LMom weight")
     {v1, w2} = CM.momentum(w, v, w1, lr, dr)
     [{:weight, w2, ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
   end
 
   def learning([{:bias, w, ir, lr, dr, v} | rest], [{:bias, w1, _, _, _} | rest1], :momentum) do
+    #IO.puts("LMom bias")
     {v1, w2} = CM.momentum(w, v, w1, lr, dr)
     [{:bias, w2, ir, lr, v1} | learning(rest, rest1, :momentum)]
   end
@@ -218,11 +220,13 @@ defmodule Deeppipe do
         [{:filter, w1, _, _, _, _, _, _} | rest1],
         :momentum
       ) do
+    #IO.puts("LMom filter")
     {v1, w2} = CM.momentum(w, v, w1, lr, dr)
     [{:filter, w2, st, pad, ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
   end
 
   def learning([network | rest], [_ | rest1], :momentum) do
+    #IO.puts("LMom else")
     [network | learning(rest, rest1, :momentum)]
   end
 
