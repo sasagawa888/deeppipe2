@@ -4,7 +4,7 @@ defmodule CIFAR do
   alias Cumatrix, as: CM
 
   # for CNN test
-  # CIFAR.sgd(400,500) 20epochs mini batch size 400
+  # CIFAR.momentum(400,500) 20epochs mini batch size 400
 
   defnetwork init_network1(_x) do
     _x
@@ -53,7 +53,7 @@ defmodule CIFAR do
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
-  # sgd/2 train network and save network temp.ex
+  # momentum/2 train network and save network temp.ex
   def momentum(m, n) do
     image = train_image(10000)
     onehot = train_label_onehot(10000)
@@ -63,7 +63,7 @@ defmodule CIFAR do
     DP.train(network, image, onehot, test_image, test_label, :cross, :momentum, m, n)
   end
 
-  # resgd/2 load network from temp.ex and restart training
+  # remomentum/2 load network from temp.ex and restart training
   def remomentum(m, n) do
     image = train_image(10000)
     onehot = train_label_onehot(10000)
