@@ -55,7 +55,7 @@ defmodule Test do
   # for CNN test for MNIST
   defnetwork init_network4(_x) do
     _x
-    # |> visualizer(1,1)
+    #|> visualizer(1,1)
     |> f(5, 5, 1, 12, 1, 1, 0.5, 0.0001)
     |> pooling(2)
     |> f(3, 3, 12, 12, 1, 1, 0.5, 0.0001)
@@ -63,7 +63,7 @@ defmodule Test do
     |> pooling(2)
     |> f(3, 3, 12, 12, 1, 0, 0.5, 0.0001)
     |> relu
-    # |> visualizer(1,1)
+    #|> visualizer(1,1)
     |> full
     |> w(300, 10, 0.1, 0.001)
     |> softmax

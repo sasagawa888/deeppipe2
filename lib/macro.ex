@@ -76,21 +76,21 @@ defmodule Network do
 
   def parse({:b, _, [x, ir]}, _) do
     quote do
-      {:bias, CM.new(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), 0.1, 0.0,
+      {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), 0.1, 0.0,
        CM.new(1, unquote(x))}
     end
   end
 
   def parse({:b, _, [x, ir, lr]}, _) do
     quote do
-      {:bias, CM.new(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr), 0.0,
+      {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr), 0.0,
        CM.new(1, unquote(x))}
     end
   end
 
   def parse({:b, _, [x, ir, lr, dr]}, _) do
     quote do
-      {:bias, CM.new(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr),
+      {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr),
        unquote(dr), CM.new(1, unquote(x))}
     end
   end
