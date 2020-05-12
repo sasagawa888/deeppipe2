@@ -389,7 +389,7 @@ element of mt1 - element of mt2*lr. and dropout with rate dr.
 - 10000<= N <11000 CUDA error   N-10000 is error code of CUDA.
 - 11000 < N  cuBLAS error  N-11000 is error code of cuBLAS.
 
-## Hradware 
+## Hardware 
 recommended  memory 8GB or moreover.
 
 recommended GTX960 GPU or moreover.
