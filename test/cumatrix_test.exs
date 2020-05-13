@@ -520,8 +520,7 @@ defmodule CumatrixTest do
         [[[1.0, 2.0], [3.0, 4.0]]]
       ])
 
-    IO.inspect("asdf")
-    # ???
+    #???
     assert Cumatrix.gradfilter(t13, f13, l13, 2, 0) |> Cumatrix.to_list() ==
              [
                [
