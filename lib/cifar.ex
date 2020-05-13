@@ -25,7 +25,7 @@ defmodule CIFAR do
     #|> analizer(8)
     |> relu
     #|> analizer(9)
-    |> pooling(2)
+    |> poolingt(2)
     |> full
     |> w(1024, 10, 0.3, 0.01)
     |> b(10, 0.3, 0.01)

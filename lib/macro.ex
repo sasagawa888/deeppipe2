@@ -229,7 +229,8 @@ defmodule Network do
   end
 
   def parse(x, _) do
-    :io.write(x)
-    raise "Syntax error in defnetwork"
+    IO.write("Syntax error in defnetwork  ")
+    IO.inspect(x)
+    raise ""
   end
 end
