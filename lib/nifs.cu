@@ -698,7 +698,7 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-__global__ void gradfilter1_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int loss_c, int loss_h, int loss_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+__global__ void gradfilter1_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int loss_c, int loss_h, int loss_w, int st_h, int st_w, int pad, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
     int n1,c1,c2,h1,w1,h2,w2,h3,w3;
@@ -745,20 +745,22 @@ __global__ void gradfilter1_kernel(float *a, float *b, float *c, int filt_n, int
 4th arg in_w of input tensor
 5th arg filt_n of filter tensor
 6th arg filt_c of filter tensor
-5th arg filt_h of filter tensor
-6th arg filt_w of filter tensor
-7th arg loss_h of loss tensor
-8th arg loss_w of loss tensor
-9th arg binary of filter tensor
-10th arg binary of loss tensor
-11th arg stride
-12th arg padding   
+7th arg filt_h of filter tensor
+8th arg filt_w of filter tensor
+9th arg loss_c of loss tensor
+10th arg loss_h of loss tensor
+11th arg loss_w of loss tensor
+12th arg binary of filter tensor
+13th arg binary of loss tensor
+14th arg stride hight
+15th arg stride width
+16th arg padding   
 */
 static ERL_NIF_TERM
 gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
     ERL_NIF_TERM  c_bin,d_bin;
-    int in_n,in_c,in_h,in_w,filt_n,filt_c,filt_h,filt_w,loss_c,loss_h,loss_w,st,pad,n1,n2,n3,n4,i,j,k,l,m;
+    int in_n,in_c,in_h,in_w,filt_n,filt_c,filt_h,filt_w,loss_c,loss_h,loss_w,st_h,st_w,pad,n1,n2,n3,n4,i,j,k,l,m;
     float *a,*b,*c,*d;
     float *dev_a, *dev_b, *dev_c;
     float elt;
@@ -777,8 +779,9 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[10], &loss_w)) return enif_make_int(env,11);
     if (!enif_inspect_binary(env, argv[11], &a_bin )) return enif_make_int(env,12);
     if (!enif_inspect_binary(env, argv[12], &b_bin )) return enif_make_int(env,13);
-    if (!enif_get_int(env, argv[13], &st)) return enif_make_int(env,14);
-    if (!enif_get_int(env, argv[14], &pad)) return enif_make_int(env,15);
+    if (!enif_get_int(env, argv[13], &st_h)) return enif_make_int(env,14);
+    if (!enif_get_int(env, argv[14], &st_w)) return enif_make_int(env,15);
+    if (!enif_get_int(env, argv[15], &pad)) return enif_make_int(env,16);
 
     n1 = in_n * in_c * in_h * in_w;
     n2 = in_n * loss_c * loss_h * loss_w;
@@ -805,7 +808,7 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
-    gradfilter1_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, loss_c, loss_h, loss_w, st, pad, in_c, in_h, in_w, in_n);
+    gradfilter1_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, loss_c, loss_h, loss_w, st_h, st_w, pad, in_c, in_h, in_w, in_n);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -843,7 +846,7 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-__global__ void gradfilter2_kernel(float *a, float *b1, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int loss_c, int loss_h, int loss_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+__global__ void gradfilter2_kernel(float *a, float *b1, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int loss_c, int loss_h, int loss_w, int st_h, int st_w, int pad, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
     int n1,c1,c2,h1,w1,h2,w2,h3,w3,loss_h1,loss_w1,j,k,l,k1,l1;
@@ -852,15 +855,15 @@ __global__ void gradfilter2_kernel(float *a, float *b1, float *b, float *c, int 
     {   
         n1 = tid;
         //dilated loss tensor size
-        loss_h1 = loss_h+(loss_h-1)*(st-1);
-        loss_w1 = loss_w+(loss_w-1)*(st-1);
+        loss_h1 = loss_h+(loss_h-1)*(st_h-1);
+        loss_w1 = loss_w+(loss_w-1)*(st_w-1);
         //dilate loss tensor.
         for(j=0;j<loss_c;j++){
             for(k=0;k<loss_h;k++){
                 for(l=0;l<loss_w;l++){
                     elt1 = b[IDX4C(n1,j,k,l,loss_c,loss_h,loss_w)];
-                    k1 = st*k;
-                    l1 = st*l;
+                    k1 = st_h*k;
+                    l1 = st_w*l;
                     b1[IDX4C(n1,j,k1,l1,loss_c,loss_h1,loss_w1)] = elt1;
                 }
             }
@@ -910,30 +913,30 @@ dilated stride=2
 */
 
 /*
-gradfilter2 is for stride >= 2. This one requires dilate 
+gradfilter2 is for stride >= 2. This one requires dilate
 1st arg in_n of input tensor
 2nd arg in_c of input tensor
 3rd arg in_h of input tensor
 4th arg in_w of input tensor
 5th arg filt_n of filter tensor
 6th arg filt_c of filter tensor
-5th arg filt_h of filter tensor
-6th arg filt_w of filter tensor
-7th arg loss_h of loss tensor
-8th arg loss_w of loss tensor
-9th arg binary of filter tensor
-10th arg binary of loss tensor
-11th arg stride
-12th arg padding   
-
-
+7th arg filt_h of filter tensor
+8th arg filt_w of filter tensor
+9th arg loss_c of loss tensor
+10th arg loss_h of loss tensor
+11th arg loss_w of loss tensor
+12th arg binary of filter tensor
+13th arg binary of loss tensor
+14th arg stride hight
+15th arg stride width
+16th arg padding  
 
 */
 static ERL_NIF_TERM
 gradfilter2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
     ERL_NIF_TERM  c_bin,d_bin;
-    int in_n,in_c,in_h,in_w,filt_n,filt_c,filt_h,filt_w,loss_c,loss_h,loss_w,st,pad,n1,n2,n3,n4,n5,i,j,k,l,m;
+    int in_n,in_c,in_h,in_w,filt_n,filt_c,filt_h,filt_w,loss_c,loss_h,loss_w,st_h,st_w,pad,n1,n2,n3,n4,n5,i,j,k,l,m;
     float *a,*b,*b1,*c,*d;
     float *dev_a, *dev_b, *dev_b1, *dev_c;
     float elt;
@@ -952,14 +955,15 @@ gradfilter2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[10], &loss_w)) return enif_make_int(env,11);
     if (!enif_inspect_binary(env, argv[11], &a_bin )) return enif_make_int(env,12);
     if (!enif_inspect_binary(env, argv[12], &b_bin )) return enif_make_int(env,13);
-    if (!enif_get_int(env, argv[13], &st)) return enif_make_int(env,14);
-    if (!enif_get_int(env, argv[14], &pad)) return enif_make_int(env,15);
+    if (!enif_get_int(env, argv[13], &st_h)) return enif_make_int(env,14);
+    if (!enif_get_int(env, argv[14], &st_w)) return enif_make_int(env,15);
+    if (!enif_get_int(env, argv[15], &pad)) return enif_make_int(env,16);
 
     n1 = in_n * in_c * in_h * in_w;
     n2 = in_n * loss_c * loss_h * loss_w;
     n3 = in_n * filt_n * filt_c * filt_h * filt_w;
     n4 = filt_n * filt_c * filt_h * filt_w;
-    n5 = in_n * loss_c * (loss_h+(loss_h-1)*(st-1)) * (loss_w+(loss_w-1)*(st-1));  // dilated loss tensor size  
+    n5 = in_n * loss_c * (loss_h+(loss_h-1)*(st_h-1)) * (loss_w+(loss_w-1)*(st_w-1));  // dilated loss tensor size  
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     b1 = (float *) enif_alloc(n5 * sizeof(float)); // dilate loss tensor area
@@ -988,7 +992,7 @@ gradfilter2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_b1, b1, n5 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
-    gradfilter2_kernel << <1, in_n>> >(dev_a, dev_b1, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, loss_c, loss_h, loss_w, st, pad, in_c, in_h, in_w, in_n);
+    gradfilter2_kernel << <1, in_n>> >(dev_a, dev_b1, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, loss_c, loss_h, loss_w, st_h, st_w, pad, in_c, in_h, in_w, in_n);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -2874,8 +2878,8 @@ static ErlNifFunc nif_funcs[] = {
   {"convolute1", 13, convolute1},
   {"deconvolute1", 13, deconvolute1},
   {"deconvolute2", 13, deconvolute2},
-  {"gradfilter1", 15, gradfilter1},
-  {"gradfilter2", 15, gradfilter2},
+  {"gradfilter1", 16, gradfilter1},
+  {"gradfilter2", 16, gradfilter2},
   {"full1", 5, full1},
   {"unfull1", 5, unfull1},
   {"sgd1", 5, sgd1},

@@ -166,12 +166,12 @@ defmodule Cumatrix do
     raise "NIF deconvolute2/13 not implemented"
   end
 
-  def gradfilter1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15) do
-    raise "NIF gradfilter1/15 not implemented"
+  def gradfilter1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) do
+    raise "NIF gradfilter1/16 not implemented"
   end
 
-  def gradfilter2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15) do
-    raise "NIF gradfilter2/15 not implemented"
+  def gradfilter2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) do
+    raise "NIF gradfilter2/16 not implemented"
   end
 
   def full1(_1, _2, _3, _4, _5) do
@@ -1086,9 +1086,9 @@ defmodule Cumatrix do
   # 3rd arg loss tensor
   # 4th arg stride
   # 5th arg padding
-  def gradfilter({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, _}, {n1, c3, h3, w3, dt3}, st, pad) do
-    if st == 1 do
-      result = gradfilter1(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st, pad)
+  def gradfilter({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, _}, {n1, c3, h3, w3, dt3}, st_h, st_w, pad) do
+    if st_h == 1 && st_w == 1 do
+      result = gradfilter1(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st_h, st_w, pad)
 
       if !is_integer(result) do
         {n2, c2, h2, w2, result}
@@ -1096,7 +1096,7 @@ defmodule Cumatrix do
         error("gradfilter1", result)
       end
     else
-      result = gradfilter2(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st, pad)
+      result = gradfilter2(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st_h, st_w, pad)
 
       if !is_integer(result) do
         {n2, c2, h2, w2, result}

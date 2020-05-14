@@ -82,7 +82,7 @@ defmodule CumatrixTest do
     assert Cumatrix.deconvolute(t2, f1, 1, 1, 0) |> Cumatrix.to_list() ==
              [[[[2.0, 7.0, 6.0], [10.0, 30.0, 22.0], [12.0, 31.0, 20.0]]]]
 
-    assert Cumatrix.gradfilter(t1, f1, t2, 1, 0) |> Cumatrix.to_list() ==
+    assert Cumatrix.gradfilter(t1, f1, t2, 1, 1, 0) |> Cumatrix.to_list() ==
              [[[[49.0, 63.0], [91.0, 105.0]]]]
 
     t3 =
@@ -315,7 +315,7 @@ defmodule CumatrixTest do
 
     l8 = Cumatrix.new([[[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]])
 
-    assert Cumatrix.gradfilter(t8, f8, l8, 1, 0) |> Cumatrix.to_list() ==
+    assert Cumatrix.gradfilter(t8, f8, l8, 1, 1, 0) |> Cumatrix.to_list() ==
              [
                [
                  [[37.0, 47.0], [67.0, 77.0]],
@@ -354,7 +354,7 @@ defmodule CumatrixTest do
         [[[1.0, -2.0], [3.0, 4.0]], [[5.0, 6.0], [-7.0, 8.0]]]
       ])
 
-    assert Cumatrix.gradfilter(t9, f9, l9, 1, 0) |> Cumatrix.to_list() ==
+    assert Cumatrix.gradfilter(t9, f9, l9, 1, 1, 0) |> Cumatrix.to_list() ==
              [
                [
                  [[13.0, 26.0], [35.0, 36.0]],
@@ -408,7 +408,7 @@ defmodule CumatrixTest do
     assert Cumatrix.deconvolute(l11, f11, 1, 1, 1) |> Cumatrix.to_list() ==
              [[[[26.0, 36.0, 46.0], [66.0, 76.0, 86.0], [106.0, 116.0, 126.0]]]]
 
-    assert Cumatrix.gradfilter(t11, f11, l11, 1, 1) |> Cumatrix.to_list() ==
+    assert Cumatrix.gradfilter(t11, f11, l11, 1, 1, 1) |> Cumatrix.to_list() ==
              [[[[696.0, 642.0], [480.0, 426.0]]]]
 
     t12 =
@@ -467,7 +467,7 @@ defmodule CumatrixTest do
         [[[1.0, -2.0], [3.0, 4.0]], [[5.0, 6.0], [-7.0, 8.0]]]
       ])
 
-    assert Cumatrix.gradfilter(t12, f12, l12, 2, 0) |> Cumatrix.to_list() ==
+    assert Cumatrix.gradfilter(t12, f12, l12, 2, 2, 0) |> Cumatrix.to_list() ==
              [
                [
                  [
@@ -521,7 +521,7 @@ defmodule CumatrixTest do
       ])
 
     #???
-    assert Cumatrix.gradfilter(t13, f13, l13, 2, 0) |> Cumatrix.to_list() ==
+    assert Cumatrix.gradfilter(t13, f13, l13, 2, 2, 0) |> Cumatrix.to_list() ==
              [
                [
                  [
