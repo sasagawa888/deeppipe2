@@ -9,26 +9,26 @@ defmodule CIFAR do
   defnetwork init_network1(_x) do
     _x
     #|> analizer(1)
-    |> f(3, 3, 3, 8, {1,1}, 1, 0.3, 0.01)
+    |> f(3, 3, 3, 8, {1,1}, 1, 0.3, 0.001)
     #|> analizer(2)
     |> relu
     #|> analizer(3)
-    |> f(3, 3, 8, 8, {1,1}, 1, 0.3, 0.01)
+    |> f(3, 3, 8, 8, {1,1}, 1, 0.3, 0.001)
     #|> analizer(4)
     |> pooling(2,2)
     #|> analizer(5)
-    |> f(3, 3, 8, 16, {1,1}, 1, 0.3, 0.01)
+    |> f(3, 3, 8, 16, {1,1}, 1, 0.3, 0.001)
     #|> analizer(6)
     |> relu
     #|> analizer(7)
-    |> f(3, 3, 16, 16, {1,1}, 1, 0.3, 0.01)
+    |> f(3, 3, 16, 16, {1,1}, 1, 0.3, 0.001)
     #|> analizer(8)
     |> relu
     #|> analizer(9)
     |> pooling(2,2)
     |> full
-    |> w(1024, 10, 0.3, 0.01)
-    |> b(10, 0.3, 0.01)
+    |> w(1024, 10, 0.3, 0.001)
+    |> b(10, 0.3, 0.001)
     |> softmax
   end
 
@@ -73,6 +73,28 @@ defmodule CIFAR do
     #test_label = train_label(300)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :momentum, m, n)
   end
+
+  # adagrad/2 train network and save network temp.ex
+  def adagrad(m, n) do
+    image = train_image(10000)
+    onehot = train_label_onehot(10000)
+    test_image = test_image(300)
+    test_label = test_label(300)
+    network = init_network1(0)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
+  end
+
+  # adagrad/2 load network from temp.ex and restart training
+  def readagrad(m, n) do
+    image = train_image(10000)
+    onehot = train_label_onehot(10000)
+    test_image = test_image(300)
+    test_label = test_label(300)
+    #test_image = train_image(300)
+    #test_label = train_label(300)
+    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
+  end
+
 
 
   # transfer from train-label to onehot list
