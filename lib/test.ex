@@ -47,15 +47,15 @@ defmodule Test do
   # for CNN test for MNIST
   defnetwork init_network4(_x) do
     _x
-    #|> visualizer(1,1)
-    |> f(5, 5, 1, 12, {1,1}, 1, 0.5, 0.0001)
-    |> pooling(2,2)
-    |> f(3, 3, 12, 12, {1,1}, 1, 0.5, 0.0001)
-    |> f(2, 2, 12, 12, {1,1}, 1, 0.5, 0.0001)
-    |> pooling(2,2)
-    |> f(3, 3, 12, 12, {1,1}, 0, 0.5, 0.0001)
+    # |> visualizer(1,1)
+    |> f(5, 5, 1, 12, {1, 1}, 1, 0.5, 0.0001)
+    |> pooling(2, 2)
+    |> f(3, 3, 12, 12, {1, 1}, 1, 0.5, 0.0001)
+    |> f(2, 2, 12, 12, {1, 1}, 1, 0.5, 0.0001)
+    |> pooling(2, 2)
+    |> f(3, 3, 12, 12, {1, 1}, 0, 0.5, 0.0001)
     |> relu
-    #|> visualizer(1,1)
+    # |> visualizer(1,1)
     |> full
     |> w(300, 10, 0.1, 0.001)
     |> softmax
@@ -64,8 +64,8 @@ defmodule Test do
   # convolution filter (2,2) 1ch, stride=2
   defnetwork init_network5(_x) do
     _x
-    |> f(2, 2, 1, 1, {2,2})
-    |> f(2, 2, 1, 1, {2,2})
+    |> f(2, 2, 1, 1, {2, 2})
+    |> f(2, 2, 1, 1, {2, 2})
     |> full
     |> w(49, 10)
     |> softmax
@@ -74,7 +74,7 @@ defmodule Test do
   # convolution filter (4,4) 1ch, stride=1, padding=1
   defnetwork init_network6(_x) do
     _x
-    |> f(4, 4, 1, 1, {1,1})
+    |> f(4, 4, 1, 1, {1, 1})
     |> full
     |> w(625, 300)
     |> b(300)

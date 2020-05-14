@@ -153,41 +153,42 @@ defmodule Network do
     end
   end
 
-  def parse({:f, _, [x, y, c, n, {h,w}]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}]}, _) do
     quote do
       {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1),
-       {unquote(h),unquote(w)}, 0, 0.1, 0.1, 0.0, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
-    end
-  end
-
-  def parse({:f, _, [x, y, c, n, {h,w}, pad]}, _) do
-    quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1),
-       {unquote(h),unquote(w)}, unquote(pad), 0.1, 0.1, 0.0,
+       {unquote(h), unquote(w)}, 0, 0.1, 0.1, 0.0,
        CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end
   end
 
-  def parse({:f, _, [x, y, c, n, {h,w}, pad, ir, lr]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}, pad]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(unquote(ir)),
-       {unquote(h),unquote(w)}, unquote(pad), unquote(ir), unquote(lr), 0.0,
+      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1),
+       {unquote(h), unquote(w)}, unquote(pad), 0.1, 0.1, 0.0,
        CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end
   end
 
-  def parse({:f, _, [x, y, c, n, {h,w}, pad, ir, lr, dr]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}, pad, ir, lr]}, _) do
     quote do
       {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(unquote(ir)),
-       {unquote(h),unquote(w)}, unquote(pad), unquote(ir), unquote(lr), unquote(dr),
+       {unquote(h), unquote(w)}, unquote(pad), unquote(ir), unquote(lr), 0.0,
+       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+    end
+  end
+
+  def parse({:f, _, [x, y, c, n, {h, w}, pad, ir, lr, dr]}, _) do
+    quote do
+      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(unquote(ir)),
+       {unquote(h), unquote(w)}, unquote(pad), unquote(ir), unquote(lr), unquote(dr),
        CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end
   end
 
   # pooling
-  def parse({:pooling, _, [h,w]}, _) do
+  def parse({:pooling, _, [h, w]}, _) do
     quote do
-      {:pooling, unquote(h),unquote(w)}
+      {:pooling, unquote(h), unquote(w)}
     end
   end
 

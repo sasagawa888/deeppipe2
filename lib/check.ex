@@ -6,22 +6,19 @@ defmodule Check do
   # for grad confirmation 
   defnetwork test_network0(_x) do
     _x
-    |> f(2, 2, 2, 2, {1,1}, 1)
-    |> f(2, 2, 2, 2, {1,1}, 1)
-    |> pooling(2,2)
+    |> f(2, 2, 2, 2, {1, 1}, 1)
+    |> f(2, 2, 2, 2, {1, 1}, 1)
+    |> pooling(2, 2)
     |> full
-    |> w(32,4)
+    |> w(32, 4)
     |> softmax
   end
-  
 
   def test() do
     data = CM.rand(2, 2, 6, 6)
 
     train =
-      [[0.0,1.0,0.0,0.0],
-       [0.0,0.0,1.0,0.0]
-      ]
+      [[0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]
       |> CM.new()
 
     network = test_network0(0)
@@ -84,23 +81,23 @@ defmodule Check do
 
   defnetwork test_network1(_x) do
     _x
-    |> f(2, 2, 1, 1, {1,1}, 1)
-    |> f(2, 2, 1, 1, {1,1}, 1)
-    |> pooling(2,2)
+    |> f(2, 2, 1, 1, {1, 1}, 1)
+    |> f(2, 2, 1, 1, {1, 1}, 1)
+    |> pooling(2, 2)
     |> full
     |> softmax
   end
 
   defnetwork test_network2(_x) do
     _x
-    |> f(2, 2, 1, 1, {2,2}, 0)
+    |> f(2, 2, 1, 1, {2, 2}, 0)
     |> full
     |> softmax
   end
 
   defnetwork test_network4(_x) do
     _x
-    |> f(2, 2, 2, 1, {1,1})
+    |> f(2, 2, 2, 1, {1, 1})
     |> full
     |> w(4, 8)
     |> softmax
@@ -108,7 +105,7 @@ defmodule Check do
 
   defnetwork test_network5(_x) do
     _x
-    |> f(2, 2, 2, 2, {1,1}, 1)
+    |> f(2, 2, 2, 2, {1, 1}, 1)
     |> full
     |> w(18, 4)
     |> softmax
@@ -116,12 +113,10 @@ defmodule Check do
 
   defnetwork test_network3(_x) do
     _x
-    |> f(2, 2, 2, 2, {1,1}, 1)
-    |> f(2, 2, 2, 1, {1,1}, 1)
-    |> pooling(2,2)
+    |> f(2, 2, 2, 2, {1, 1}, 1)
+    |> f(2, 2, 2, 1, {1, 1}, 1)
+    |> pooling(2, 2)
     |> full
     |> softmax
   end
-
-  
 end

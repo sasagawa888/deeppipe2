@@ -961,7 +961,7 @@ defmodule Cumatrix do
 
     if !is_integer(result) do
       {dth, dtw} = result
-      {{n,c, h, w, dth}, {n,c, h, w, dtw}}
+      {{n, c, h, w, dth}, {n, c, h, w, dtw}}
     else
       error("adagrad1", result)
     end
@@ -1047,7 +1047,7 @@ defmodule Cumatrix do
   def convolute({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, dt2}, st_h, st_w, pad) do
     oh = div(h1 + 2 * pad - h2, st_h) + 1
     ow = div(w1 + 2 * pad - w2, st_w) + 1
-    result = convolute1(n1, c1, h1, w1, n2, c2, h2, w2, dt1, dt2, st_h,st_w, pad)
+    result = convolute1(n1, c1, h1, w1, n2, c2, h2, w2, dt1, dt2, st_h, st_w, pad)
 
     if !is_integer(result) do
       {n1, n2, oh, ow, result}
@@ -1086,7 +1086,14 @@ defmodule Cumatrix do
   # 3rd arg loss tensor
   # 4th arg stride
   # 5th arg padding
-  def gradfilter({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, _}, {n1, c3, h3, w3, dt3}, st_h, st_w, pad) do
+  def gradfilter(
+        {n1, c1, h1, w1, dt1},
+        {n2, c2, h2, w2, _},
+        {n1, c3, h3, w3, dt3},
+        st_h,
+        st_w,
+        pad
+      ) do
     if st_h == 1 && st_w == 1 do
       result = gradfilter1(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st_h, st_w, pad)
 

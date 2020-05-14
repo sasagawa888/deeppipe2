@@ -122,7 +122,7 @@ element
 - full    convert from image of CNN to matrix for DNN.
 
 for debug
-- analizer(n)  calculate max min avarage of data and display n max min avarage
+- analizer(n)  calculate max min average of data and display n max min average
 - visualizer(n,c)  display a data(n th, c channel) as graphics 
  
 
@@ -130,7 +130,7 @@ for debug
 
 ### data structure
 #### network
-[{:weight,w,ir,lr,v},{:bias,b,ir,lr},{:function,name}, ...]
+[{:weight,w,ir,lr,dr,v},{:bias,b,ir,lr,dr},{:function,name},{:filter,w,{st_h,st_w},pad,ir,lr,dr,v} ...]
 ##### weight
 {:weight,w,ir,lr,dp,v} w is matrix, ir is rate for initial random number,lr is learning rate, dp is dropout rate, v is for momentum,adagrad,adam
 ##### bias
@@ -139,6 +139,8 @@ for debug
 {:function,name} name is function name within sigmoid tanh relu softmax
 ##### filter
 {:filter,w,{st_h,st_w},pad,ir,lr,dr,v}
+##### pooling
+{:pooling,st_,st_w}
 
 
 ### module macros
