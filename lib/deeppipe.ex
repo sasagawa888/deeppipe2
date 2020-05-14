@@ -38,15 +38,15 @@ defmodule Deeppipe do
     forward(x1, rest, [x1 | res])
   end
 
-  def forward(x, [{:filter, w, st, pad, _, _, _, _} | rest], res) do
+  def forward(x, [{:filter, w, {h,_}, pad, _, _, _, _} | rest], res) do
     # IO.puts("FD filter")
-    x1 = CM.convolute(x, w, st, pad)
+    x1 = CM.convolute(x, w, h, pad)
     forward(x1, rest, [x1 | res])
   end
 
-  def forward(x, [{:pooling, st} | rest], [_ | res]) do
+  def forward(x, [{:pooling, h, _} | rest], [_ | res]) do
     # IO.puts("FD pooling")
-    {x1, x2} = CM.pooling(x, st)
+    {x1, x2} = CM.pooling(x, h)
     forward(x1, rest, [x1, x2 | res])
   end
 
@@ -116,17 +116,17 @@ defmodule Deeppipe do
     backward(l1, rest, us, [{:weight, w1, ir, lr, dr, v} | res])
   end
 
-  defp backward(l, [{:filter, w, st, pad, ir, lr, dr, v} | rest], [u | us], res) do
+  defp backward(l, [{:filter, w, {st_h,st_w}, pad, ir, lr, dr, v} | rest], [u | us], res) do
     # IO.puts("BK filter")
-    w1 = CM.gradfilter(u, w, l, st, pad)
-    l1 = CM.deconvolute(l, w, st, pad)
-    backward(l1, rest, us, [{:filter, w1, st, pad, ir, lr, dr, v} | res])
+    w1 = CM.gradfilter(u, w, l, st_h, pad)
+    l1 = CM.deconvolute(l, w, st_h, pad)
+    backward(l1, rest, us, [{:filter, w1, {st_h,st_w}, pad, ir, lr, dr, v} | res])
   end
 
-  defp backward(l, [{:pooling, st} | rest], [u | us], res) do
+  defp backward(l, [{:pooling, h, w} | rest], [u | us], res) do
     # IO.puts("BK pooling")
-    l1 = CM.unpooling(u, l, st)
-    backward(l1, rest, us, [{:pooling, st} | res])
+    l1 = CM.unpooling(u, l, h)
+    backward(l1, rest, us, [{:pooling, h, w} | res])
   end
 
   defp backward(l, [{:full} | rest], [u | us], res) do
@@ -175,13 +175,13 @@ defmodule Deeppipe do
     [{:bias, w2, ir, lr, dr, v} | learning(rest, rest1)]
   end
 
-  def learning([{:filter, w, st, pad, ir, lr, dr, v} | rest], [
+  def learning([{:filter, w, {st_h,st_w}, pad, ir, lr, dr, v} | rest], [
         {:filter, w1, _, _, _, _, _, _} | rest1
       ]) do
     #IO.puts("LN filter")
     w2 = CM.sgd(w, w1, lr, dr)
     # w2 |> CM.to_list() |> IO.inspect()
-    [{:filter, w2, st, pad, ir, lr, dr, v} | learning(rest, rest1)]
+    [{:filter, w2, {st_h,st_w}, pad, ir, lr, dr, v} | learning(rest, rest1)]
   end
 
   def learning([network | rest], [_ | rest1]) do
@@ -216,13 +216,13 @@ defmodule Deeppipe do
   end
 
   def learning(
-        [{:filter, w, st, pad, ir, lr, dr, v} | rest],
+        [{:filter, w, {st_h,st_w}, pad, ir, lr, dr, v} | rest],
         [{:filter, w1, _, _, _, _, _, _} | rest1],
         :momentum
       ) do
     #IO.puts("LMom filter")
     {v1, w2} = CM.momentum(w, v, w1, lr, dr)
-    [{:filter, w2, st, pad, ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
+    [{:filter, w2, {st_h,st_w}, pad, ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
   end
 
   def learning([network | rest], [_ | rest1], :momentum) do
@@ -250,12 +250,12 @@ defmodule Deeppipe do
   end
 
   def learning(
-        [{:filter, w, st, pad, ir, lr, dr, h} | rest],
+        [{:filter, w, {st_h,st_w}, pad, ir, lr, dr, h} | rest],
         [{:filter, w1, _, _, _, _, _, _} | rest1],
         :adagrad
       ) do
     {h1, w2} = CM.adagrad(w, h, w1, lr, dr)
-    [{:filter, w2, st, pad, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
+    [{:filter, w2, {st_h,st_w}, pad, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
   def learning([network | rest], [_ | rest1], :adagrad) do
@@ -418,8 +418,8 @@ defmodule Deeppipe do
     [{:bias, CM.to_list(w), ir, lr, dr, CM.to_list(v)} | save1(rest)]
   end
 
-  def save1([{:filter, w, st, pad, ir, lr, dr, v} | rest]) do
-    [{:filter, CM.to_list(w), st, pad, ir, lr, dr, CM.to_list(v)} | save1(rest)]
+  def save1([{:filter, w, {st_h,st_w}, pad, ir, lr, dr, v} | rest]) do
+    [{:filter, CM.to_list(w), {st_h,st_w}, pad, ir, lr, dr, CM.to_list(v)} | save1(rest)]
   end
 
   def save1([{:function, name} | rest]) do
@@ -446,8 +446,8 @@ defmodule Deeppipe do
     [{:bias, CM.new(w), ir, lr, dr, CM.new(v)} | load1(rest)]
   end
 
-  def load1([{:filter, w, st, pad, ir, lr, dr, v} | rest]) do
-    [{:filter, CM.new(w), st, pad, ir, lr, dr, CM.new(v)} | load1(rest)]
+  def load1([{:filter, w, {st_h,st_w}, pad, ir, lr, dr, v} | rest]) do
+    [{:filter, CM.new(w), {st_h,st_w}, pad, ir, lr, dr, CM.new(v)} | load1(rest)]
   end
 
   def load1([{:function, name} | rest]) do
@@ -548,12 +548,12 @@ defmodule Deeppipe do
     ])
   end
 
-  def numerical_gradient1(x, [{:filter, w, st, pad, ir, lr, dr, v} | rest], t, before, res) do
+  def numerical_gradient1(x, [{:filter, w, {st_h,st_w}, pad, ir, lr, dr, v} | rest], t, before, res) do
     # IO.puts("ngrad filter")
-    w1 = numerical_gradient_filter(x, w, t, before, {:filter, w, st, pad, ir, lr, dr, v}, rest)
+    w1 = numerical_gradient_filter(x, w, t, before, {:filter, w, {st_h,st_w}, pad, ir, lr, dr, v}, rest)
 
-    numerical_gradient1(x, rest, t, [{:filter, w, st, pad, ir, lr, dr, v} | before], [
-      {:filter, w1, st, pad, ir, lr, dr, v} | res
+    numerical_gradient1(x, rest, t, [{:filter, w, {st_h,st_w}, pad, ir, lr, dr, v} | before], [
+      {:filter, w1, {st_h,st_w}, pad, ir, lr, dr, v} | res
     ])
   end
 
@@ -639,13 +639,13 @@ defmodule Deeppipe do
         h,
         w,
         before,
-        {:filter, m, st, pad, ir, lr, dr, v},
+        {:filter, m, {st_h,st_w}, pad, ir, lr, dr, v},
         rest
       ) do
     delta = 0.0001
     m1 = CM.add_diff(m, n, c, h, w, delta)
-    network0 = Enum.reverse(before) ++ [{:filter, m, st, pad, ir, lr, dr, v}] ++ rest
-    network1 = Enum.reverse(before) ++ [{:filter, m1, st, pad, ir, lr, dr, v}] ++ rest
+    network0 = Enum.reverse(before) ++ [{:filter, m, {st_h,st_w}, pad, ir, lr, dr, v}] ++ rest
+    network1 = Enum.reverse(before) ++ [{:filter, m1, {st_h,st_w}, pad, ir, lr, dr, v}] ++ rest
     [y0 | _] = forward(x, network0, [])
     [y1 | _] = forward(x, network1, [])
     (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / delta
