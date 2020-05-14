@@ -371,7 +371,7 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
   
-__global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int st, int pad1, int pad, int in_c, int in_h, int in_w, int n)
+__global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int st_h, int st_w, int pad1, int pad, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
     int n1,c1,c2,h1,w1,h2,w2,oh,ow,oh1,ow1,start_h1,end_h1,start_w1,end_w1;
@@ -380,10 +380,10 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, in
     {   
         n1 = tid;
         // pad1 = filt_h -1,  pad is original padding size
-        oh = (in_h+2*pad1-filt_h)/st + 1;
-        ow = (in_w+2*pad1-filt_w)/st + 1;
-        oh1 = (in_h+2*(pad1-pad)-filt_h)/st + 1;
-        ow1 = (in_w+2*(pad1-pad)-filt_w)/st + 1;
+        oh = (in_h+2*pad1-filt_h)/st_h + 1;
+        ow = (in_w+2*pad1-filt_w)/st_w + 1;
+        oh1 = (in_h+2*(pad1-pad)-filt_h)/st_h + 1;
+        ow1 = (in_w+2*(pad1-pad)-filt_w)/st_w + 1;
         
         //full convolute. stride=1 always
         for(c2=0;c2<filt_c;c2++){
@@ -425,8 +425,9 @@ __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, in
 8th arg filt_w of filter tensor
 9th arg binary of input loss tensor
 10th arg binary of filter tensor
-11th arg stride
-12th arg padding   
+11th arg stride hight
+12th arg stride width
+13th arg padding   
 
 memo
 ex padding = 1
@@ -442,7 +443,7 @@ static ERL_NIF_TERM
 deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
     ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w, filt_n,filt_c,filt_h,filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k,l;
+    int in_n,in_c,in_h,in_w, filt_n,filt_c,filt_h,filt_w, st_h,st_w,pad, pad1, n1, n2, n3, oh, ow, i,j,k,l;
     float *a,*b, *b1, *c;
     float *dev_a, *dev_b, *dev_c;
   
@@ -457,16 +458,17 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[7], &filt_w)) return enif_make_int(env,8);
     if (!enif_inspect_binary(env, argv[8], &a_bin )) return enif_make_int(env,9);
     if (!enif_inspect_binary(env, argv[9], &b_bin )) return enif_make_int(env,10);
-    if (!enif_get_int(env, argv[10], &st)) return enif_make_int(env,11);
-    if (!enif_get_int(env, argv[11], &pad)) return enif_make_int(env,12);
+    if (!enif_get_int(env, argv[10], &st_h)) return enif_make_int(env,11);
+    if (!enif_get_int(env, argv[11], &st_w)) return enif_make_int(env,12);
+    if (!enif_get_int(env, argv[12], &pad)) return enif_make_int(env,13);
 
     
 
     n1 = in_n * in_c * in_h * in_w;
     n2 = filt_n * filt_c * filt_h * filt_w;
     pad1 = filt_h - 1;
-    oh = (in_h+2*(pad1-pad)-filt_h)/st + 1;
-    ow = (in_w+2*(pad1-pad)-filt_w)/st + 1;
+    oh = (in_h+2*(pad1-pad)-filt_h)/st_h + 1;
+    ow = (in_w+2*(pad1-pad)-filt_w)/st_w + 1;
     n3 = in_n * filt_c * oh * ow;  // channel of filter generate same channel input tensor
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -510,7 +512,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
-    deconvolute1_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st, pad1, pad, in_c, in_h, in_w, in_n);
+    deconvolute1_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad1, pad, in_c, in_h, in_w, in_n);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -526,7 +528,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-__global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int filt_n, int filt_c,int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int loss_h, int loss_w, int n)
+__global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int filt_n, int filt_c,int filt_h, int filt_w, int st_h, int st_w, int pad, int in_c, int in_h, int in_w, int loss_h, int loss_w, int n)
 {
     int tid = threadIdx.x;
     int n1,c1,c2,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
@@ -544,8 +546,8 @@ __global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int
             for(k=0;k<loss_h;k++){
                 for(l=0;l<loss_w;l++){
                     elt1 = a[IDX4C(n1,j,k,l,in_c,loss_h,loss_w)];
-                    k1 = st*k;
-                    l1 = st*l;
+                    k1 = st_h*k;
+                    l1 = st_w*l;
                     a1[IDX4C(n1,j,k1,l1,in_c,in_h,in_w)] = elt1;
                 }
             }
@@ -607,14 +609,15 @@ dilated stride=2
 8th arg filt_w of filter tensor
 9th arg binary of input loss tensor
 10th arg binary of filter tensor
-11th arg stride
-12th arg padding   
+11th arg stride hight
+12th arg stride width
+13th arg padding   
 */
 static ERL_NIF_TERM
 deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
     ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w,filt_n,filt_c,filt_h, filt_w, st,pad, pad1, n1, n2, n3, oh, ow, i,j,k,l, loss_h, loss_w;
+    int in_n,in_c,in_h,in_w,filt_n,filt_c,filt_h, filt_w, st_h, st_w,pad, pad1, n1, n2, n3, oh, ow, i,j,k,l, loss_h, loss_w;
     float *a, *a1, *b, *b1, *c;
     float *dev_a, *dev_a1, *dev_b, *dev_c;
 
@@ -630,13 +633,14 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[7], &filt_w)) return enif_make_int(env,8);
     if (!enif_inspect_binary(env, argv[8], &a_bin )) return enif_make_int(env,9);
     if (!enif_inspect_binary(env, argv[9], &b_bin )) return enif_make_int(env,10);
-    if (!enif_get_int(env, argv[10], &st)) return enif_make_int(env,11);
-    if (!enif_get_int(env, argv[11], &pad)) return enif_make_int(env,12);
+    if (!enif_get_int(env, argv[10], &st_h)) return enif_make_int(env,11);
+    if (!enif_get_int(env, argv[11], &st_w)) return enif_make_int(env,12);
+    if (!enif_get_int(env, argv[12], &pad)) return enif_make_int(env,13);
 
         
     // size for dilate
-    in_h = loss_h + (loss_h - 1)*(st - 1);
-    in_w = loss_w + (loss_w - 1)*(st - 1);
+    in_h = loss_h + (loss_h - 1)*(st_h - 1);
+    in_w = loss_w + (loss_w - 1)*(st_w - 1);
 
     n1 = in_n * in_c * in_h * in_w;  //loss tensor size 
     n2 = filt_n * filt_c * filt_h * filt_w;  //filter tensor size
@@ -677,7 +681,7 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_b, b1, n2 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
-    deconvolute2_kernel << <1, in_n>> >(dev_a1, dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st, pad1, in_c, in_h, in_w, loss_h, loss_w, in_n);
+    deconvolute2_kernel << <1, in_n>> >(dev_a1, dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad1, in_c, in_h, in_w, loss_h, loss_w, in_n);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -2868,8 +2872,8 @@ static ErlNifFunc nif_funcs[] = {
   {"pooling1", 7, pooling1},
   {"unpooling1", 8, unpooling1},
   {"convolute1", 13, convolute1},
-  {"deconvolute1", 12, deconvolute1},
-  {"deconvolute2", 12, deconvolute2},
+  {"deconvolute1", 13, deconvolute1},
+  {"deconvolute2", 13, deconvolute2},
   {"gradfilter1", 15, gradfilter1},
   {"gradfilter2", 15, gradfilter2},
   {"full1", 5, full1},
