@@ -2580,9 +2580,9 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     adagrad_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, dev_d, dev_e, lr, n);
   
-    // copy to host c from GPU dev_c
-    CHECK(cudaMemcpy(c, dev_d, n * sizeof(float), cudaMemcpyDeviceToHost));
-    CHECK(cudaMemcpy(c, dev_e, n * sizeof(float), cudaMemcpyDeviceToHost));
+    // copy to host d,e from GPU dev_d,dev_e
+    CHECK(cudaMemcpy(d, dev_d, n * sizeof(float), cudaMemcpyDeviceToHost));
+    CHECK(cudaMemcpy(e, dev_e, n * sizeof(float), cudaMemcpyDeviceToHost));
 
     // dropout
     randfloat = (double)(rand() % 100) / 100.0;
@@ -2590,7 +2590,6 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         r = rand() % n;
         e[r] = 0.0;
     }
-
 
     // free 
     cudaFree(dev_a);
