@@ -125,6 +125,23 @@ defmodule Test do
     |> softmax
   end
 
+  # for CNN test for Fashion-MNIST
+  defnetwork init_network9(_x) do
+    _x
+    # |> visualizer(1,1)
+    |> f(5, 5, 1, 12, {1, 1}, 1, 0.1, 0.001)
+    |> pooling(2, 2)
+    |> f(3, 3, 12, 12, {1, 1}, 1, 0.1, 0.001)
+    |> f(2, 2, 12, 12, {1, 1}, 1, 0.1, 0.001)
+    |> pooling(2, 2)
+    |> f(3, 3, 12, 12, {1, 1}, 0, 0.1, 0.001)
+    |> relu
+    # |> visualizer(1,1)
+    |> full
+    |> w(300, 10, 0.1, 0.001)
+    |> softmax
+  end
+
   def sgd(m, n) do
     image = MNIST.train_image(60000, :flatten)
     onehot = MNIST.train_label_onehot(60000)
@@ -217,7 +234,7 @@ defmodule Test do
   def fashion(m, n) do
     image = Fashon.train_image(3000, :structure)
     onehot = Fashon.train_label_onehot(3000)
-    network = init_network4(0)
+    network = init_network9(0)
     test_image = Fashon.test_image(1000, :structure)
     test_label = Fashon.test_label(1000)
     DP.train(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
