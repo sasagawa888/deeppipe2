@@ -117,8 +117,13 @@ element
 - f(r,c,i,o,{st_h,st_w}) filter matrix. st_h and st_w are stride size od hight and width.
 - f(r,c,i,o,{st_h,st_w},pad) filter matrix. pad is padding size. 
 - f(r,c,i,o,{st_h,st_w},pad,ir,lr) filter matrix. ir is rate for initial val, lr is learning rate.
+- f(r,c,i,o,{st_h,st_w},pad,ir,lr,dr) filter matrix. dr is dropout rate.
 - pooling(st_h,st_w) st_h and st_w are pooling size.
 - full    convert from image of CNN to matrix for DNN.
+
+for debug
+- analizer(n)  calculate max min avarage of data and display n max min avarage
+- visualizer(n,c)  display a data(n th, c channel) as graphics 
  
 
 ## specification:
@@ -131,35 +136,14 @@ element
 ##### bias
 {:bias,b,ir,lr,dp,v} b is row vector
 ##### function
-{:function,name} name is function name within sigmoid tanh relu
+{:function,name} name is function name within sigmoid tanh relu softmax
+##### filter
+{:filter,w,{st_h,st_w},pad,ir,lr,dr,v}
+
 
 ### module macros
 defnetwork is macros to describe network
 argument must have under bar to avoid warning message
-
-##### w(m,n)
-weight matrix size(m,n). elements are Gaussian distribution random float
-##### w(m,n,,ir,lr,dr)
-ir is rate for random number. (default is 0.1)
-lr is learning rate (default is 0.1)
-dr is dropout rate %(0.0~100.0) (default is 0.0)
-
-##### b(n)
-bias row_vector size(n). elements are all zero
-
-#### b(n,ir,lr)
-ir is rate for random number. (default is 0.1)
-lr is learning rate (default is 0.1)
-
-#### function
-sigmoid,tanh,relu,softmax
-
-#### filter(convolution)
-{:filter,w,st,pad,ir,lr,dp,v}
-
-#### pooling
-{:pooling,st}
-
 
 
 ## module Deeppipe
