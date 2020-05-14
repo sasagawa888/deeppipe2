@@ -147,11 +147,11 @@ defmodule Cumatrix do
   end
 
   def pooling1(_1, _2, _3, _4, _5, _6, _7) do
-    raise "NIF pooling1/6 not implemented"
+    raise "NIF pooling1/7 not implemented"
   end
 
-  def unpooling1(_1, _2, _3, _4, _5, _6, _7) do
-    raise "NIF unpooling1/7 not implemented"
+  def unpooling1(_1, _2, _3, _4, _5, _6, _7, _8) do
+    raise "NIF unpooling1/8 not implemented"
   end
 
   def convolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) do
@@ -1032,12 +1032,12 @@ defmodule Cumatrix do
     end
   end
 
-  def unpooling({n1, c1, h1, w1, d1}, {n1, c1, h1, w1, d2}, st) do
-    result = unpooling1(n1, c1, h1, w1, d1, d2, st)
+  def unpooling({n1, c1, h1, w1, d1}, {n1, c1, h1, w1, d2}, st_h, st_w) do
+    result = unpooling1(n1, c1, h1, w1, d1, d2, st_h, st_w)
 
     if !is_integer(result) do
-      h2 = h1 * st
-      w2 = w1 * st
+      h2 = h1 * st_h
+      w2 = w1 * st_w
       {n1, c1, h2, w2, result}
     else
       error("unpooling1", result)

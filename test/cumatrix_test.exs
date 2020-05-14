@@ -95,7 +95,7 @@ defmodule CumatrixTest do
     assert f |> Cumatrix.to_list() == [[[[7.0, 6.0], [7.0, 9.0]]]]
     assert b |> Cumatrix.to_list() == [[[[1.0e3, 1003.0], [2001.0, 2003.0]]]]
 
-    assert Cumatrix.unpooling(b, t4, 2) |> Cumatrix.to_list() ==
+    assert Cumatrix.unpooling(b, t4, 2, 2) |> Cumatrix.to_list() ==
              Cumatrix.new([
                [
                  [

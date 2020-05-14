@@ -123,10 +123,10 @@ defmodule Deeppipe do
     backward(l1, rest, us, [{:filter, w1, {st_h,st_w}, pad, ir, lr, dr, v} | res])
   end
 
-  defp backward(l, [{:pooling, h, w} | rest], [u | us], res) do
+  defp backward(l, [{:pooling, st_h, st_w} | rest], [u | us], res) do
     # IO.puts("BK pooling")
-    l1 = CM.unpooling(u, l, h)
-    backward(l1, rest, us, [{:pooling, h, w} | res])
+    l1 = CM.unpooling(u, l, st_h, st_w)
+    backward(l1, rest, us, [{:pooling, st_h, st_w} | res])
   end
 
   defp backward(l, [{:full} | rest], [u | us], res) do
