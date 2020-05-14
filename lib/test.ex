@@ -48,12 +48,12 @@ defmodule Test do
   defnetwork init_network4(_x) do
     _x
     # |> visualizer(1,1)
-    |> f(5, 5, 1, 12, {1, 1}, 1, 0.5, 0.0001)
+    |> f(5, 5, 1, 12, {1, 1}, 1, 0.1, 0.001)
     |> pooling(2, 2)
-    |> f(3, 3, 12, 12, {1, 1}, 1, 0.5, 0.0001)
-    |> f(2, 2, 12, 12, {1, 1}, 1, 0.5, 0.0001)
+    |> f(3, 3, 12, 12, {1, 1}, 1, 0.1, 0.001)
+    |> f(2, 2, 12, 12, {1, 1}, 1, 0.1, 0.001)
     |> pooling(2, 2)
-    |> f(3, 3, 12, 12, {1, 1}, 0, 0.5, 0.0001)
+    |> f(3, 3, 12, 12, {1, 1}, 0, 0.1, 0.001)
     |> relu
     # |> visualizer(1,1)
     |> full
@@ -158,7 +158,7 @@ defmodule Test do
     network = init_network4(0)
     test_image = MNIST.test_image(1000, :structure)
     test_label = MNIST.test_label(1000)
-    DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
 
   def recnn(m, n) do
@@ -166,7 +166,7 @@ defmodule Test do
     onehot = MNIST.train_label_onehot(3000)
     test_image = MNIST.test_image(1000, :structure)
     test_label = MNIST.test_label(1000)
-    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
+    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
 
   def st(m, n) do
@@ -220,7 +220,7 @@ defmodule Test do
     network = init_network4(0)
     test_image = Fashon.test_image(1000, :structure)
     test_label = Fashon.test_label(1000)
-    DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
 
   def refashion(m, n) do
@@ -228,6 +228,6 @@ defmodule Test do
     onehot = Fashon.train_label_onehot(3000)
     test_image = Fashon.test_image(1000, :structure)
     test_label = Fashon.test_label(1000)
-    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
+    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
 end
