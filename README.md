@@ -109,12 +109,13 @@ element
 - b(n) bias row vector size n.  initial val is randam * 0.1, default learning late 0.1 
 - b(n,ir,lr) ir is initial rate to multiple randam, lr is learning rate.
 - activate function  leru sigmoid tanh softmax
-- f(r,c) filter matrix row-size is r col-size is c. channel is 1, initial val random * 0.1, default learning late 0.1
-- f(r,c,n)  filter matrix. n channel.
-- f(r,c,n,st) filter matrix. st is stride size.
-- f(r,c,n,st,pad) filter matrix. st is stride size. pad is padding size. 
-- f(r,c,n,st,pad,ir,lr) filter matrix. ir is rate for initial val, lr is learning rate.
-- pooling(n) n is pooling size.
+- f(r,c) filter matrix row-size is r col-size is c. input and output channel is 1, initial val random * 0.1, default learning late 0.1
+- f(r,c,i)  filter matrix. i input channel.
+- f(r,c,i,o) filter matrix. o output channel
+- f(r,c,i,o,{st_h,st_w}) filter matrix. st_h and st_w are stride size od hight and width.
+- f(r,c,i,o,{st_h,st_w},pad) filter matrix. pad is padding size. 
+- f(r,c,i,o,{st_h,st_w},pad,ir,lr) filter matrix. ir is rate for initial val, lr is learning rate.
+- pooling(st_h,st_w) st_h and st_w are pooling size.
 - full    convert from image of CNN to matrix for DNN.
  
 
@@ -325,18 +326,19 @@ Now testing.
 # for CNN test for MNIST
   defnetwork init_network4(_x) do
     _x
-    |> f(5, 5, 1, 12, 1, 1, 0.5, 0.0001)
-    |> pooling(2)
-    |> f(3, 3, 12, 12, 1, 1, 0.5, 0.0001)
-    |> f(2, 2, 12, 12, 1, 1, 0.5, 0.0001)
-    |> pooling(2)
-    |> f(3, 3, 12, 12, 1, 0, 0.5, 0.0001)
+    #|> visualizer(1,1)
+    |> f(5, 5, 1, 12, {1,1}, 1, 0.5, 0.0001)
+    |> pooling(2,2)
+    |> f(3, 3, 12, 12, {1,1}, 1, 0.5, 0.0001)
+    |> f(2, 2, 12, 12, {1,1}, 1, 0.5, 0.0001)
+    |> pooling(2,2)
+    |> f(3, 3, 12, 12, {1,1}, 0, 0.5, 0.0001)
     |> relu
+    #|> visualizer(1,1)
     |> full
     |> w(300, 10, 0.1, 0.001)
     |> softmax
   end
-
 
 ```
 
