@@ -154,8 +154,8 @@ defmodule Cumatrix do
     raise "NIF unpooling1/8 not implemented"
   end
 
-  def convolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) do
-    raise "NIF convolute1/12 not implemented"
+  def convolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
+    raise "NIF convolute1/13 not implemented"
   end
 
   def deconvolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) do
@@ -1044,10 +1044,10 @@ defmodule Cumatrix do
     end
   end
 
-  def convolute({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, dt2}, st, pad) do
-    oh = div(h1 + 2 * pad - h2, st) + 1
-    ow = div(w1 + 2 * pad - w2, st) + 1
-    result = convolute1(n1, c1, h1, w1, n2, c2, h2, w2, dt1, dt2, st, pad)
+  def convolute({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, dt2}, st_h, st_w, pad) do
+    oh = div(h1 + 2 * pad - h2, st_h) + 1
+    ow = div(w1 + 2 * pad - w2, st_w) + 1
+    result = convolute1(n1, c1, h1, w1, n2, c2, h2, w2, dt1, dt2, st_h,st_w, pad)
 
     if !is_integer(result) do
       {n1, n2, oh, ow, result}

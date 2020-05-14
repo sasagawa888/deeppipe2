@@ -261,7 +261,7 @@ unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
   
-__global__ void convolute_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int st, int pad, int in_c, int in_h, int in_w, int n)
+__global__ void convolute_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int st_h, int st_w, int pad, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
     int n1,c1,c2,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
@@ -270,15 +270,15 @@ __global__ void convolute_kernel(float *a, float *b, float *c, int filt_n, int f
     if(tid < n)
     {   
         n1 = tid;
-        oh = (in_h+2*pad-filt_h)/st + 1;
-        ow = (in_w+2*pad-filt_w)/st + 1;
+        oh = (in_h+2*pad-filt_h)/st_h + 1;
+        ow = (in_w+2*pad-filt_w)/st_w + 1;
         for(c2=0;c2<filt_n;c2++){
             for(w2=0;w2<ow;w2++){
                 for(h2=0;h2<oh;h2++){
                     sum = 0.0;
-                    start_h1 = st*h2-pad;
+                    start_h1 = st_h*h2-pad;
                     end_h1 = start_h1 + filt_h;
-                    start_w1 = st*w2-pad;
+                    start_w1 = st_w*w2-pad;
                     end_w1 = start_w1 + filt_w;
                     for(c1=0;c1<in_c;c1++){
                         for(h1=start_h1;h1<end_h1;h1++){
@@ -316,7 +316,7 @@ static ERL_NIF_TERM
 convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
     ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w, filt_n,filt_c,filt_h,filt_w, st,pad, n1, n2, n3, oh, ow;
+    int in_n,in_c,in_h,in_w, filt_n,filt_c,filt_h,filt_w, st_h,st_w,pad, n1, n2, n3, oh, ow;
     float *a,*b, *c;
     float *dev_a, *dev_b, *dev_c;
   
@@ -331,14 +331,15 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[7], &filt_w)) return enif_make_int(env,8);
     if (!enif_inspect_binary(env, argv[8], &a_bin )) return enif_make_int(env,9);
     if (!enif_inspect_binary(env, argv[9], &b_bin )) return enif_make_int(env,10);
-    if (!enif_get_int(env, argv[10], &st)) return enif_make_int(env,11);
-    if (!enif_get_int(env, argv[11], &pad)) return enif_make_int(env,12);
+    if (!enif_get_int(env, argv[10], &st_h)) return enif_make_int(env,11);
+    if (!enif_get_int(env, argv[11], &st_w)) return enif_make_int(env,12);
+    if (!enif_get_int(env, argv[12], &pad)) return enif_make_int(env,13);
 
     
     n1 = in_n * in_c * in_h * in_w;
     n2 = filt_n * filt_c * filt_h * filt_w;
-    oh = (in_h+2*pad-filt_h)/st + 1;
-    ow = (in_w+2*pad-filt_w)/st + 1;
+    oh = (in_h+2*pad-filt_h)/st_h + 1;
+    ow = (in_w+2*pad-filt_w)/st_w + 1;
     n3 = in_n * filt_n * oh * ow;  // n of filter generate n channel
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -356,7 +357,7 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
-    convolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st, pad, in_c, in_h, in_w, in_n);
+    convolute_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad, in_c, in_h, in_w, in_n);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -2866,7 +2867,7 @@ static ErlNifFunc nif_funcs[] = {
   {"accuracy1", 4, accuracy1},
   {"pooling1", 7, pooling1},
   {"unpooling1", 8, unpooling1},
-  {"convolute1", 12, convolute1},
+  {"convolute1", 13, convolute1},
   {"deconvolute1", 12, deconvolute1},
   {"deconvolute2", 12, deconvolute2},
   {"gradfilter1", 15, gradfilter1},

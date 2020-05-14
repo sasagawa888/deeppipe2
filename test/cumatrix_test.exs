@@ -73,9 +73,9 @@ defmodule CumatrixTest do
     f1 = Cumatrix.new([[[[1.0, 2.0], [3.0, 4.0]]]])
     t2 = Cumatrix.new([[[[2.0, 3.0], [4.0, 5.0]]]])
 
-    assert Cumatrix.convolute(t1, f1, 1, 0) == Cumatrix.new([[[[37.0, 47.0], [67.0, 77.0]]]])
+    assert Cumatrix.convolute(t1, f1, 1, 1, 0) == Cumatrix.new([[[[37.0, 47.0], [67.0, 77.0]]]])
 
-    assert Cumatrix.convolute(t1, f1, 1, 0) |> Cumatrix.to_list() == [
+    assert Cumatrix.convolute(t1, f1, 1, 1, 0) |> Cumatrix.to_list() == [
              [[[37.0, 47.0], [67.0, 77.0]]]
            ]
 
@@ -128,11 +128,11 @@ defmodule CumatrixTest do
     f5 = Cumatrix.new([[[[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]]]])
     l5 = Cumatrix.new([[[[0.1, 0.2], [0.3, 0.4]]]])
 
-    assert Cumatrix.convolute(t5, f5, 1, 0) |> Cumatrix.to_list() == [
+    assert Cumatrix.convolute(t5, f5, 1, 1, 0) |> Cumatrix.to_list() == [
              [[[60.0, 68.0], [84.0, 92.0]]]
            ]
 
-    assert Cumatrix.convolute(t5, f5, 1, 1) |> Cumatrix.to_list() ==
+    assert Cumatrix.convolute(t5, f5, 1, 1, 1) |> Cumatrix.to_list() ==
              [
                [
                  [
@@ -327,7 +327,7 @@ defmodule CumatrixTest do
                ]
              ]
 
-    assert Cumatrix.convolute(t8, f8, 1, 0) |> Cumatrix.to_list() ==
+    assert Cumatrix.convolute(t8, f8, 1, 1, 0) |> Cumatrix.to_list() ==
              [[[[60.0, 68.0], [84.0, 92.0]], [[60.0, 68.0], [84.0, 92.0]]]]
 
     t9 =
@@ -377,7 +377,7 @@ defmodule CumatrixTest do
         [[[1.0, 1.0], [1.0, 1.0]]]
       ])
 
-    assert Cumatrix.convolute(t10, f10, 1, 0) |> Cumatrix.to_list() ==
+    assert Cumatrix.convolute(t10, f10, 1, 1, 0) |> Cumatrix.to_list() ==
              [[[[12.0, 16.0], [24.0, 28.0]]], [[[2.0, 6.0], [-2.0, 2.0]]]]
 
     t11 =

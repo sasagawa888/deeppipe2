@@ -38,9 +38,9 @@ defmodule Deeppipe do
     forward(x1, rest, [x1 | res])
   end
 
-  def forward(x, [{:filter, w, {h,_}, pad, _, _, _, _} | rest], res) do
+  def forward(x, [{:filter, w, {st_h,st_w}, pad, _, _, _, _} | rest], res) do
     # IO.puts("FD filter")
-    x1 = CM.convolute(x, w, h, pad)
+    x1 = CM.convolute(x, w, st_h, st_w, pad)
     forward(x1, rest, [x1 | res])
   end
 

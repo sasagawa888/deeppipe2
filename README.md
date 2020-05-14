@@ -362,18 +362,18 @@ ls is list that express 4-dimension or 3-dimension data
 - Cumatrix.to_list(tensor)
 tensor is 3-dimension or 4-dimension
 
-- Cumatrix.pooling(tensor,st)
-pooling with stride st. size of H and W must be less 1000. max 999*999. return tuple {tensor-for-forward,tensor-for-backward}
+- Cumatrix.pooling(tensor,st_h,st_w)
+pooling with stride st_w st_w. size of H and W must be less 1000. max 999*999. return tuple {tensor-for-forward,tensor-for-backward}
 
-- Cumatrix.unpooing(ts1,ts2,st)
+- Cumatrix.unpooing(ts1,ts2,st_h,st_w)
 unpooling with stride st.
 ts1 is sparse tensor that save index of max element. ts2 is loss tensor.
 
-- Cumatrix.convolute(ts1,ts2,st,pad)
-convolution with input-tensor(ts1), filter-tensor(ts2), stride(st), padding(pad)
+- Cumatrix.convolute(ts1,ts2,st_h,st_w,pad)
+convolution with input-tensor(ts1), filter-tensor(ts2), stride(st_h,st_w), padding(pad)
 
-- Cumatrix.deconvolute(ts1,ts2,st,pad)
-deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st), padding(pad)
+- Cumatrix.deconvolute(ts1,ts2,st_h,st_w,pad)
+deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st_h,st_w), padding(pad)
 
 - Cumatrix.gradfilter(ts1,ts2,ts3,st,pad)
 gradient by backpropagation. ts1 is input-tesor, ts2 is filter-tensor, ts3 is loss-tensor, st is stride size, pad is padding size.
