@@ -106,8 +106,10 @@ element
 
 - w(r,c)  weight matrix row-size is r col-size is c. initial val is random * 0.1, default learning late 0.1
 - w(r,c,ir,lr) ir is initial rate to multiple randam, lr is learning rate.
+- w(r,c,ir,lr,dr) dr is dropout rate.
 - b(n) bias row vector size n.  initial val is randam * 0.1, default learning late 0.1 
 - b(n,ir,lr) ir is initial rate to multiple randam, lr is learning rate.
+- b(n,ir,lr,dp) dr is dropout rate.
 - activate function  leru sigmoid tanh softmax
 - f(r,c) filter matrix row-size is r col-size is c. input and output channel is 1, initial val random * 0.1, default learning late 0.1
 - f(r,c,i)  filter matrix. i input channel.

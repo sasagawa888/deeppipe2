@@ -30,7 +30,7 @@
     }                                                 \
 }
 
-__global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, int in_h, int in_w, int n)
+__global__ void pooling_kernel(float *a, float *b, float *c, int st_h, int st_w, int in_c, int in_h, int in_w, int n)
 {
     int tid = threadIdx.x;
     int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1,max_h,max_w;
@@ -38,16 +38,16 @@ __global__ void pooling_kernel(float *a, float *b, float *c, int st, int in_c, i
     if(tid < n)
     {   
         n1 = tid;
-        in_h2 = in_h / st;
-        in_w2 = in_w / st;
+        in_h2 = in_h / st_h;
+        in_w2 = in_w / st_w;
         for(c1=0;c1<in_c;c1++){
             for(w2=0;w2<in_w2;w2++){
                 for(h2=0;h2<in_h2;h2++){
                     max = -999999999;
-                    start_h1 = st*h2;
-                    end_h1 = st*(h2+1);
-                    start_w1 = st*w2;
-                    end_w1 = st*(w2+1);
+                    start_h1 = st_h*h2;
+                    end_h1 = st_h*(h2+1);
+                    start_w1 = st_w*w2;
+                    end_w1 = st_w*(w2+1);
                     for(h1=start_h1;h1<end_h1;h1++){
                         for(w1=start_w1;w1<end_w1;w1++){
                             if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] >= max){
@@ -98,7 +98,7 @@ static ERL_NIF_TERM
 pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin,c_bin,tuple;
-    int in_n,in_c,in_h,in_w,st, n1, n2;
+    int in_n,in_c,in_h,in_w,st_h,st_w, n1, n2;
     float *a,*b, *c;
     float *dev_a, *dev_b, *dev_c;
   
@@ -108,10 +108,11 @@ pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
     if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
     if (!enif_inspect_binary(env, argv[4], &a_bin )) return enif_make_int(env,5);
-    if (!enif_get_int(env, argv[5], &st)) return enif_make_int(env,6);
+    if (!enif_get_int(env, argv[5], &st_h)) return enif_make_int(env,6);
+    if (!enif_get_int(env, argv[6], &st_w)) return enif_make_int(env,7);
 
     n1 = in_n * in_c * in_h * in_w;
-    n2 = in_n * in_c * (in_h / st) * (in_w / st);
+    n2 = in_n * in_c * (in_h / st_h) * (in_w / st_w);
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &b_bin);
     c = (float *) enif_make_new_binary(env,  n2 * sizeof(float), &c_bin);
@@ -127,7 +128,7 @@ pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n2 * sizeof(float), cudaMemcpyHostToDevice));
   
-    pooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st, in_c, in_h, in_w, in_n);
+    pooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st_h, st_w, in_c, in_h, in_w, in_n);
   
     // copy to host b,c from GPU dev_b,dev_c
     CHECK(cudaMemcpy(b, dev_b, n2 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -2863,7 +2864,7 @@ static ErlNifFunc nif_funcs[] = {
   {"momentum1", 6, momentum1},
   {"adagrad1", 6, adagrad1},
   {"accuracy1", 4, accuracy1},
-  {"pooling1", 6, pooling1},
+  {"pooling1", 7, pooling1},
   {"unpooling1", 7, unpooling1},
   {"convolute1", 12, convolute1},
   {"deconvolute1", 12, deconvolute1},

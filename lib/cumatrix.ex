@@ -146,7 +146,7 @@ defmodule Cumatrix do
     raise "NIF accuracy/4 not implemented"
   end
 
-  def pooling1(_1, _2, _3, _4, _5, _6) do
+  def pooling1(_1, _2, _3, _4, _5, _6, _7) do
     raise "NIF pooling1/6 not implemented"
   end
 
@@ -1015,16 +1015,16 @@ defmodule Cumatrix do
     x |> to_list() |> IO.inspect()
   end
 
-  def pooling({n, c, h, w, dt}, st) do
-    if rem(h, st) != 0 || rem(w, st) != 0 do
+  def pooling({n, c, h, w, dt}, st_h, st_w) do
+    if rem(h, st_h) != 0 || rem(w, st_w) != 0 do
       raise "pooling illegal argument " <> Integer.to_string(h) <> "," <> Integer.to_string(w)
     else
-      result = pooling1(n, c, h, w, dt, st)
+      result = pooling1(n, c, h, w, dt, st_h, st_w)
 
       if !is_integer(result) do
         {f, b} = result
-        h1 = div(h, st)
-        w1 = div(w, st)
+        h1 = div(h, st_h)
+        w1 = div(w, st_w)
         {{n, c, h1, w1, f}, {n, c, h1, w1, b}}
       else
         error("pooling1", result)

@@ -91,7 +91,7 @@ defmodule CumatrixTest do
       ])
 
     t4 = Cumatrix.new([[[[0.1, 0.2], [0.3, 0.4]]]])
-    {f, b} = Cumatrix.pooling(t3, 2)
+    {f, b} = Cumatrix.pooling(t3, 2, 2)
     assert f |> Cumatrix.to_list() == [[[[7.0, 6.0], [7.0, 9.0]]]]
     assert b |> Cumatrix.to_list() == [[[[1.0e3, 1003.0], [2001.0, 2003.0]]]]
 
