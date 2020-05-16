@@ -1,12 +1,14 @@
 defmodule Deeppipe2.MixProject do
   use Mix.Project
+  
 
   def project do
     [
       app: :deeppipe2,
-      version: "0.1.0",
+      version: "1.0.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
+      compilers: [:makecuda] ++ Mix.compilers,
       deps: deps()
     ]
   end
@@ -26,4 +28,14 @@ defmodule Deeppipe2.MixProject do
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
   end
+end
+
+
+defmodule Mix.Tasks.Compile.Makecuda do
+  use Mix.Task
+
+  def run(_) do
+    Mix.shell.cmd "make"
+    :ok
+  end 
 end
