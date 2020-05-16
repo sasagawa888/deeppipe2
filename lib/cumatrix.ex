@@ -1,7 +1,18 @@
-# test nvcc
 defmodule Cumatrix do
   @moduledoc """
-  Calculate matrix or tensor using CUDA and CUBLAS library
+  Calculate matrix or tensor using CUDA and CUBLAS library.
+  Caution, each element of matrix  must be float number.
+
+  tensor data structure is 4-dimensions tensor (N,C,H,W) or 3-dimension tensor (C,H,W)
+  N is mini batch size.
+  C is channel.
+  H is hight of image.
+  W is width of image.
+
+  error code
+  N<10000  bad argument error   N is argument number. 
+  10000<= N <11000 CUDA error   N-10000 is error code of CUDA.
+  11000 < N  cuBLAS error  N-11000 is error code of cuBLAS.
   """
 
   @on_load :load_nifs
@@ -207,6 +218,10 @@ defmodule Cumatrix do
   end
 
   # ----------------------------------------------------------------
+  @doc """
+  generate matrix  mt1*mt2 with cuBLAS. 
+  if mt1 or mt2  is float number. generate matrix that each element is s*elt(x,y)
+  """
   # c1 == r2 
   def mult({r1, c1, dt1}, {c1, c2, dt2}) do
     result = mult1(r1, c1, dt1, c1, c2, dt2)
@@ -284,6 +299,18 @@ defmodule Cumatrix do
     raise "mult illegal data type"
   end
 
+  @doc """
+  new(r,c) 
+  generate matrix with given row col size. Each elements are zero.
+
+  new(r,c,val)
+  generate matrix with given row col size. Each elements are val.
+
+  new(list)
+  generate matrix with given list. e.g. [[1,2],[3,4]].
+  ls is also list that express 4-dimension or 3-dimension data
+
+  """
   def new(r, c) do
     result = new1(r * c, 0.0)
 
@@ -388,6 +415,16 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  rand(r,c)
+  generate matrix with random (Box-muller).
+
+  rand(n,c,h,w)
+  generate 4 dimensions data.
+
+  rand(c,h,w)
+  generate 3 dimensions data.
+  """
   def rand(r, c) do
     result = rand1(r * c)
 
@@ -418,6 +455,11 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  generate matrix mt1+mt2.
+  if mt1 or mt2 is row vector, expand size to matrix. 
+  This function is for bias add in DL.
+  """
   def add({r1, c1, dt1}, {r1, c1, dt2}) do
     result = add1(r1 * c1, dt1, dt2)
 
@@ -485,6 +527,9 @@ defmodule Cumatrix do
     dt <> expand1(n - 1, dt)
   end
 
+  @doc """
+  generate matrix mt1-mt2.
+  """
   def sub({r1, c1, dt1}, {r1, c1, dt2}) do
     result = sub1(r1 * c1, dt1, dt2)
 
@@ -519,6 +564,9 @@ defmodule Cumatrix do
     raise "sub illegal data type"
   end
 
+  @doc """
+  generate Hadamard matrix.
+  """
   def emult({r1, c1, dt1}, {r1, c1, dt2}) do
     result = emult1(r1, c1, dt1, dt2)
 
@@ -533,6 +581,9 @@ defmodule Cumatrix do
     raise "emult ilegal data type"
   end
 
+  @doc """
+  pick up element of mt(r,c) index is one base
+  """
   def elt({r, c, dt}, x, y) do
     result = elt1(r, c, x - 1, y - 1, dt)
 
@@ -543,6 +594,9 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  elt(mt,x,y) := val. 
+  """
   def set({r, c, dt}, x, y, val) do
     result = set1(r, c, dt, x - 1, y - 1, val)
 
@@ -632,6 +686,9 @@ defmodule Cumatrix do
     raise "nth error"
   end
 
+  @doc """
+  generate transposed matrix
+  """
   def transpose({r, c, dt}) do
     result = transpose1(r, c, dt)
 
@@ -642,6 +699,9 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  generate ident matrix of size n.
+  """
   def ident(r) do
     if !is_number(r) || !is_number(r) || r <= 0 do
       raise "ident illegal size"
@@ -656,6 +716,9 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  apply fun to mt. fun is :sigmoid, :tanh, :relu :softmax
+  """
   def activate({r, c, dt}, :sigmoid) do
     result = activate_sigmoid(r * c, dt)
 
@@ -733,6 +796,9 @@ defmodule Cumatrix do
     raise "activate illegal argument"
   end
 
+  @doc """
+  for each element multiply differntial of mt2 and mt1. fun is :sigmoid :tanh, :relu.
+  """
   def diff({r, c, dt1}, {r, c, dt2}, :sigmoid) do
     result = differ_sigmoid(r * c, dt1, dt2)
 
@@ -800,6 +866,9 @@ defmodule Cumatrix do
     raise "differ illegal argument"
   end
 
+  @doc """
+  return tuple {rowsize,colsize}
+  """
   def size({r, c, _}) do
     {r, c}
   end
@@ -812,6 +881,10 @@ defmodule Cumatrix do
     {n, c, h, w}
   end
 
+  @doc """
+  caluculate average of row-vector and generate row-vector that each element is average.
+  For Deep-Learning.  
+  """
   def average({r, c, dt}) do
     result = average1(r, c, dt)
 
@@ -822,6 +895,9 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  return sum of elements
+  """
   def sum({r, c, dt}) do
     result = sum1(r, c, dt)
 
@@ -832,6 +908,11 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  return list that transformed from matrix
+  to_list(tensor)
+  tensor is 3-dimension or 4-dimension
+  """
   def to_list({r, c, dt}) do
     to_list1(r, c, dt) |> Enum.chunk_every(c)
   end
@@ -855,6 +936,9 @@ defmodule Cumatrix do
     Enum.chunk_every(ls, dim) |> Enum.map(fn x -> conv_dim(x, ds) end)
   end
 
+  @doc """
+  return float number. It is trace of matrix.
+  """
   def trace({r, c, dt}) do
     if r != c do
       raise "trace not square matrix"
@@ -869,6 +953,12 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  generate float that is average of loss. fun is :square or :cross.
+  :square means mean_square function, and :cross means cross_entropy function.
+  mt1 is calculated data matrix , mt2 is train data matrix.
+  each data is row vector.
+  """
   def loss({r1, c1, dt1}, {r1, c1, dt2}, :square) do
     result = mean_square(r1, c1, dt1, dt2)
 
@@ -889,6 +979,10 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  sgd(mt1,mt2,lr,dr)
+  element of mt1 - element of mt2*lr. and dropout with rate dr.
+  """
   def sgd({r1, c1, dt1}, {r1, c1, dt2}, lr, dr) do
     result = sgd1(r1 * c1, dt1, dt2, lr, dr)
 
@@ -923,6 +1017,15 @@ defmodule Cumatrix do
     raise "sgd illegal data type"
   end
 
+  @doc """
+  momentum(mt1,mt2,mt3,lr,dr)
+  for each element
+  v = 0.5 * mt2(x,y) - lr * mt3(x,y).
+  w = mt1 + v.
+  and dropout w with dr.
+  return tuple {v,w}
+  for learn/3 in DeepPipe2
+  """
   def momentum({r1, c1, dt1}, {r1, c1, dt2}, {r1, c1, dt3}, lr, dr) do
     result = momentum1(r1 * c1, dt1, dt2, dt3, lr, dr)
 
@@ -949,6 +1052,15 @@ defmodule Cumatrix do
     raise "momentum illegal argument"
   end
 
+  @doc """
+  adagrad(mt1,mt2,mt3,lr,dr)
+  for each element
+  h = mt2 + mt3*mt3.  
+  w = mt1 - lr * (1 / sqrt(h)) * mt2. 
+  and dropout w with dr.
+  return tuple(h,w)
+  for learn/3 in DeepPipe2
+  """
   def adagrad({r1, c1, dt1}, {r1, c1, dt2}, {r1, c1, dt3}, lr, dr) do
     result = adagrad1(r1 * c1, dt1, dt2, dt3, lr, dr)
 
@@ -975,6 +1087,24 @@ defmodule Cumatrix do
     raise "adagrad illegal argument"
   end
 
+  @doc """
+  accuracy(mt1,ls) 
+  return accuracy rate as float number.
+  mt1 is set of row-vector.Each row-vector is onehot.
+  ls is list each element is label integer number.
+
+  e.g.
+
+  iex(1)> a = Cumatrix.new([[0.0,0.0,1.0],[0.0,0.1,0.3]])
+  {2, 3,
+  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 205, 204, 204, 61, 0, 0, 128, 63, 154,
+   153, 153, 62>>}
+  iex(3)> Cumatrix.accuracy(a,[2,2])
+  1.0
+  iex(4)> Cumatrix.accuracy(a,[2,1])
+  0.5
+  iex(5)> 
+  """
   def accuracy({r1, c1, dt1}, ls) do
     if length(ls) != r1 do
       raise "accuracy illegal argument"
@@ -1015,10 +1145,17 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  print matrix mt
+  """
   def print(x) do
     x |> to_list() |> IO.inspect()
   end
 
+  @doc """
+  pooling(tensor,st_h,st_w)
+  pooling with stride st_w st_w. size of H and W must be less 1000. max 999*999. return tuple {tensor-for-forward,tensor-for-backward}
+  """
   def pooling({n, c, h, w, dt}, st_h, st_w) do
     if rem(h, st_h) != 0 || rem(w, st_w) != 0 do
       raise "pooling illegal argument " <> Integer.to_string(h) <> "," <> Integer.to_string(w)
@@ -1036,6 +1173,11 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  unpooing(ts1,ts2,st_h,st_w)
+  unpooling with stride st.
+  ts1 is sparse tensor that save index of max element. ts2 is loss tensor.
+  """
   def unpooling({n1, c1, h1, w1, d1}, {n1, c1, h1, w1, d2}, st_h, st_w) do
     result = unpooling1(n1, c1, h1, w1, d1, d2, st_h, st_w)
 
@@ -1048,6 +1190,10 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  convolute(ts1,ts2,st_h,st_w,pad)
+  convolution with input-tensor(ts1), filter-tensor(ts2), stride(st_h,st_w), padding(pad)
+  """
   def convolute({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, dt2}, st_h, st_w, pad) do
     oh = div(h1 + 2 * pad - h2, st_h) + 1
     ow = div(w1 + 2 * pad - w2, st_w) + 1
@@ -1061,6 +1207,8 @@ defmodule Cumatrix do
   end
 
   @doc """
+  deconvolute(ts1,ts2,st_h,st_w,pad)
+  deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st_h,st_w), padding(pad)
   1st arg loss-tensor
   2nd arg filter-tesnor
   """
@@ -1088,6 +1236,8 @@ defmodule Cumatrix do
   end
 
   @doc """
+  gradfilter(ts1,ts2,ts3,st_h,st_w,pad)
+  gradient by backpropagation. ts1 is input-tesor, ts2 is filter-tensor, ts3 is loss-tensor, st_h and st_w are stride size, pad is padding size.
   calculate gradient of filter.
   1st arg input tensor
   2nd arg filter tensor
@@ -1126,6 +1276,10 @@ defmodule Cumatrix do
     raise "gradfilter illegal data form"
   end
 
+  @doc """
+  full(ts) 
+  transfer from 4 DIM tensor to matrix.
+  """
   def full({n1, c1, h1, w1, dt1}) do
     result = full1(n1, c1, h1, w1, dt1)
 
@@ -1136,6 +1290,10 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  unfull(mt,h,w)
+  transfer from matrix to 4 DIM tensor. tensor(N,C,H,W). N is row size of matrix. C is 1.
+  """
   def unfull({r, _, dt1}, c, h, w) do
     result = unfull1(r, c, h, w, dt1)
 

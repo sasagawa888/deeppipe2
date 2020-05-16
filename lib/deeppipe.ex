@@ -91,13 +91,13 @@ defmodule Deeppipe do
     result
   end
 
-  #backward
-  #calculate grad with gackpropagation
-  #1st arg is loss matrix
-  #2nd arg is network list
-  #3rd arg is generated new network with calulated gradient
-  #var l is loss matrix
-  #var u is input data matrix or tesnro at each layer
+  # backward
+  # calculate grad with gackpropagation
+  # 1st arg is loss matrix
+  # 2nd arg is network list
+  # 3rd arg is generated new network with calulated gradient
+  # var l is loss matrix
+  # var u is input data matrix or tesnro at each layer
   defp backward(_, [], _, res) do
     res
   end
@@ -165,7 +165,7 @@ defmodule Deeppipe do
   2nd arg is network with gradient
   generate new network with leared weight and bias
   update method is sgd
-  
+
   learning/3
   added update method to 3rd arg
   update method is momentam, adagrad
@@ -353,7 +353,7 @@ defmodule Deeppipe do
 
   @doc """
   calculate accurace
-  """ 
+  """
   def accuracy(image, network, label) do
     [y | _] = forward(image, network, [])
     CM.accuracy(y, label)
