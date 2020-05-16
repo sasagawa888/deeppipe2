@@ -1,21 +1,30 @@
 defmodule Deeppipe do
   alias Cumatrix, as: CM
 
+  @moduledoc """
+  functions for Deep-Learning.
+
+  """
+
   # for debug
   def stop() do
     raise("stop")
   end
 
-  # garbage collection
+  @doc """
+  invoke garbage collection forcely.
+  """
   def gbc() do
     :erlang.garbage_collect()
   end
 
-  # forward
-  # return all middle data
-  # 1st arg is input data matrix
-  # 2nd arg is network list
-  # 3rd arg is generated middle layer result
+  @doc """
+  forward
+  return all middle data
+  1st arg is input data matrix
+  2nd arg is network list
+  3rd arg is generated middle layer result
+  """
   def forward(_, [], res) do
     res
   end
@@ -68,10 +77,12 @@ defmodule Deeppipe do
     forward(x, rest, res)
   end
 
-  # gradient with backpropagation
-  # 1st arg is input data matrix
-  # 2nd arg is network list
-  # 3rd arg is train matrix
+  @doc """
+  gradient with backpropagation
+  1st arg is input data matrix
+  2nd arg is network list
+  3rd arg is train matrix
+  """
   def gradient(x, network, t) do
     [x1 | x2] = forward(x, network, [x])
     loss = CM.sub(x1, t)
@@ -80,13 +91,13 @@ defmodule Deeppipe do
     result
   end
 
-  # backward
-  # calculate grad with gackpropagation
-  # 1st arg is loss matrix
-  # 2nd arg is network list
-  # 3rd arg is generated new network with calulated gradient
-  # l loss matrix
-  # u input data matrix at each layer
+  #backward
+  #calculate grad with gackpropagation
+  #1st arg is loss matrix
+  #2nd arg is network list
+  #3rd arg is generated new network with calulated gradient
+  #var l is loss matrix
+  #var u is input data matrix or tesnro at each layer
   defp backward(_, [], _, res) do
     res
   end
@@ -147,17 +158,18 @@ defmodule Deeppipe do
     backward(l, rest, us, [{:visualizer, n, c} | res])
   end
 
+  @doc """
   # ------- learning -------
-  # learning/2 
-  # 1st arg is old network list
-  # 2nd arg is network with gradient
-  # generate new network with leared weight and bias
-  # update method is sgd
-  #
-  # learning/3
-  # added update method to 3rd arg
-  # update method is momentam, adagrad
-
+  learning/2 
+  1st arg is old network list
+  2nd arg is network with gradient
+  generate new network with leared weight and bias
+  update method is sgd
+  
+  learning/3
+  added update method to 3rd arg
+  update method is momentam, adagrad
+  """
   # --------sgd----------
   def learning([], _) do
     []
@@ -262,19 +274,19 @@ defmodule Deeppipe do
     [network | learning(rest, rest1, :adagrad)]
   end
 
-  # ----------train-----------
-  # 1st arg network
-  # 2nd arg train image list
-  # 3rd arg train onehot list
-  # 4th arg test image list
-  # 5th arg test labeel list
-  # 6th arg loss function (;cross or :squre)
-  # 7th arg learning method
-  # 8th arg minibatch size
-  # 9th arg repeat number
+  @doc """
+  1st arg network
+  2nd arg train image list
+  3rd arg train onehot list
+  4th arg test image list
+  5th arg test labeel list
+  6th arg loss function (;cross or :squre)
+  7th arg learning method
+  8th arg minibatch size
+  9th arg repeat number
 
-  # automaticaly save network to temp.ex
-
+  automaticaly save network to temp.ex
+  """
   def train(network, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
     IO.puts("preparing data")
     train_image = tr_imag |> CM.new()
@@ -318,8 +330,10 @@ defmodule Deeppipe do
     train2(image, network2, train, loss_func, method, m, n - 1)
   end
 
-  # retrain
-  # load network from file and restart learning
+  @doc """
+  retrain
+  load network from file and restart learning
+  """
   def retrain(file, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
     IO.puts("preparing data")
     network = load(file)
@@ -337,15 +351,19 @@ defmodule Deeppipe do
     dict
   end
 
-  # calculate accurace 
+  @doc """
+  calculate accurace
+  """ 
   def accuracy(image, network, label) do
     [y | _] = forward(image, network, [])
     CM.accuracy(y, label)
   end
 
-  # select random data from image data and train data 
-  # size of m. range from 0 to n
-  # and generate tuple of two matrix
+  @doc """
+  select random data from image data and train data 
+  size of m. range from 0 to n
+  and generate tuple of two matrix
+  """
   def random_select(image, train, m, n) do
     random_select1(image, train, [], [], m, n)
   end
@@ -363,7 +381,10 @@ defmodule Deeppipe do
     random_select1(image, train, [image1 | res1], [train1 | res2], m - 1, n)
   end
 
+  @doc """
+  translate from number to onehot-list
   # e.g. to_onehot(1,9) => [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+  """
   def to_onehot(x, n) do
     to_onehot1(x, n, [])
   end
@@ -400,7 +421,9 @@ defmodule Deeppipe do
     Enum.map(x, fn z -> (z + bias) / div end)
   end
 
-  # save/load to file
+  @doc """
+  save network to file
+  """
   def save(file, network) do
     network1 = save1(network)
     File.write(file, inspect(network1, limit: :infinity))
@@ -430,6 +453,9 @@ defmodule Deeppipe do
     [network | save1(rest)]
   end
 
+  @doc """
+  load network from file
+  """
   def load(file) do
     Code.eval_file(file) |> elem(0) |> load1
   end
@@ -458,7 +484,9 @@ defmodule Deeppipe do
     [network | load1(rest)]
   end
 
-  # basic I/O
+  @doc """
+  display network
+  """
   def print(x) do
     cond do
       is_number(x) || is_atom(x) ->
@@ -517,11 +545,12 @@ defmodule Deeppipe do
     IO.puts("")
   end
 
-  # -----------------------------
-  # numerical gradient
-  # 1st arg input tensor
-  # 2nd arg network
-  # 3rd arg train tensor
+  @doc """
+  numerical gradient
+  1st arg input tensor
+  2nd arg network
+  3rd arg train matrix
+  """
   def numerical_gradient(x, network, t) do
     numerical_gradient1(x, network, t, [], [])
   end

@@ -1,132 +1,136 @@
 # test nvcc
 defmodule Cumatrix do
+  @moduledoc """
+  Calculate matrix or tensor using CUDA and CUBLAS library
+  """
+
   @on_load :load_nifs
 
   def load_nifs do
     :erlang.load_nif('./lib/nifs', 0)
   end
 
-  def new1(_a, _b) do
+  def new1(_1, _2) do
     raise "NIF new1/2 not implemented"
   end
 
-  def new2(_a, _b, _c) do
+  def new2(_1, _2, _3) do
     raise "NIF new2/3 not implemented"
   end
 
-  def new3(_a, _b, _c, _d) do
+  def new3(_1, _2, _3, _4) do
     raise "NIF new3/4 not implemented"
   end
 
-  def new4(_a, _b, _c, _d, _e) do
+  def new4(_1, _2, _3, _4, _5) do
     raise "NIF new4/5 not implemented"
   end
 
-  def rand1(_a) do
+  def rand1(_1) do
     raise "NIF rand1/1 not implemented"
   end
 
-  def mult1(_a, _b, _c, _d, _e, _f) do
+  def mult1(_1, _2, _3, _4, _5, _6) do
     raise "NIF mult/6 not implemented"
   end
 
-  def add1(_a, _b, _c) do
+  def add1(_1, _2, _3) do
     raise "NIF add1/3 not implemented"
   end
 
-  def sub1(_a, _b, _c) do
+  def sub1(_1, _2, _3) do
     raise "NIF sub1/3 not implemented"
   end
 
-  def emult1(_a, _b, _c, _d) do
+  def emult1(_1, _2, _3, _4) do
     raise "NIF emult1/4 not implemented"
   end
 
-  def transpose1(_a, _b, _c) do
+  def transpose1(_1, _2, _3) do
     raise "NIF transpose1/3 not implemented"
   end
 
-  def ident1(_a) do
+  def ident1(_1) do
     raise "NIF ident1/3 not implemented"
   end
 
-  def activate_sigmoid(_a, _b) do
+  def activate_sigmoid(_1, _2) do
     raise "NIF activate_sigmoid/2 not implemented"
   end
 
-  def activate_tanh(_a, _b) do
+  def activate_tanh(_1, _2) do
     raise "NIF activate_tanh/2 not implemented"
   end
 
-  def activate_relu(_a, _b) do
+  def activate_relu(_1, _2) do
     raise "NIF activate_relu/2 not implemented"
   end
 
-  def activate_softmax(_a, _b, _c) do
+  def activate_softmax(_1, _2, _3) do
     raise "NIF activate_softmax/3 not implemented"
   end
 
-  def differ_sigmoid(_a, _b, _c) do
+  def differ_sigmoid(_1, _2, _3) do
     raise "NIF differ_sigmoid/3 not implemented"
   end
 
-  def differ_tanh(_a, _b, _c) do
+  def differ_tanh(_1, _2, _3) do
     raise "NIF differ_tanh/3 not implemented"
   end
 
-  def differ_relu(_a, _b, _c) do
+  def differ_relu(_1, _2, _3) do
     raise "NIF differ_relu/3 not implemented"
   end
 
-  def smult1(_a, _b, _c) do
+  def smult1(_1, _2, _3) do
     raise "NIF smult1/3 not implemented"
   end
 
-  def trace1(_a, _b, _c) do
+  def trace1(_1, _2, _3) do
     raise "NIF trace1/3 not implemented"
   end
 
-  def mean_square(_a, _b, _c, _d) do
+  def mean_square(_1, _2, _3, _4) do
     raise "NIF mean_square/4 not implemented"
   end
 
-  def cross_entropy(_a, _b, _c, _d) do
+  def cross_entropy(_1, _2, _3, _4) do
     raise "NIF mean_square/4 not implemented"
   end
 
-  def elt1(_a, _b, _c, _d, _e) do
+  def elt1(_1, _2, _3, _4, _5) do
     raise "NIF elt1/5 not implemented"
   end
 
-  def set1(_a, _b, _c, _d, _e, _f) do
+  def set1(_1, _2, _3, _4, _5, _6) do
     raise "NIF set1/6 not implemented"
   end
 
-  def add_diff1(_a, _b, _c, _d, _e, _f) do
+  def add_diff1(_1, _2, _3, _4, _5, _6) do
     raise "NIF add_diff1/6 not implemented"
   end
 
-  def add_diff2(_a, _b, _c, _d, _e, _f, _g, _h, _i, _j) do
+  def add_diff2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) do
     raise "NIF add_diff2/10 not implemented"
   end
 
-  def average1(_a, _b, _c) do
+  def average1(_1, _2, _3) do
     raise "NIF average1/3 not implemented"
   end
 
-  def sum1(_a, _b, _c) do
+  def sum1(_1, _2, _3) do
     raise "NIF sum1/3 not implemented"
   end
 
-  def to_list1(_a, _b, _c) do
+  def to_list1(_1, _2, _3) do
     raise "NIF to_list1/3 not implemented"
   end
 
-  def to_list2(_a, _b, _c, _d) do
+  def to_list2(_1, _2, _3, _4) do
     raise "NIF to_list2/4 not implemented"
   end
 
-  def to_list3(_a, _b, _c, _d, _e) do
+  def to_list3(_1, _2, _3, _4, _5) do
     raise "NIF to_list3/5 not implemented"
   end
 
@@ -134,15 +138,15 @@ defmodule Cumatrix do
     raise "NIF sgd1/5 not implemented"
   end
 
-  def momentum1(_a, _b, _c, _d, _e, _f) do
+  def momentum1(_1, _2, _3, _4, _5, _6) do
     raise "NIF momentum1/6 not implemented"
   end
 
-  def adagrad1(_a, _b, _c, _d, _e, _f) do
+  def adagrad1(_1, _2, _3, _4, _5, _6) do
     raise "NIF adagrad1/6 not implemented"
   end
 
-  def accuracy1(_a, _b, _c, _d) do
+  def accuracy1(_1, _2, _3, _4) do
     raise "NIF accuracy/4 not implemented"
   end
 
@@ -1056,8 +1060,10 @@ defmodule Cumatrix do
     end
   end
 
-  # 1st arg loss-tensor
-  # 2nd arg filter-tesnor
+  @doc """
+  1st arg loss-tensor
+  2nd arg filter-tesnor
+  """
   def deconvolute({n, c1, oh, ow, dt1}, {n2, c2, h2, w2, dt2}, st_h, st_w, pad) do
     h1 = (oh - 1) * st_h - 2 * pad + h2
     w1 = (ow - 1) * st_w - 2 * pad + h2
@@ -1081,11 +1087,14 @@ defmodule Cumatrix do
     end
   end
 
-  # 1st arg input tensor
-  # 2nd arg filter tensor
-  # 3rd arg loss tensor
-  # 4th arg stride
-  # 5th arg padding
+  @doc """
+  calculate gradient of filter.
+  1st arg input tensor
+  2nd arg filter tensor
+  3rd arg loss tensor
+  4th arg stride
+  5th arg padding
+  """
   def gradfilter(
         {n1, c1, h1, w1, dt1},
         {n2, c2, h2, w2, _},
