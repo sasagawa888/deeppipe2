@@ -66,34 +66,34 @@ defmodule Network do
 
   # weight
   # cw mean constant weight for gradient check
-  def parse({:cw, _, [m]}, _) do
+  defp parse({:cw, _, [m]}, _) do
     quote do
       {:weight, CM.new(unquote(m)), 0.1, 0.1, 0.0, CM.new(1, 1)}
     end
   end
 
-  def parse({:w, _, [x, y]}, _) do
+  defp parse({:w, _, [x, y]}, _) do
     quote do
       {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1), 0.1, 0.11, 0.0,
        CM.new(unquote(x), unquote(y))}
     end
   end
 
-  def parse({:w, _, [x, y, ir]}, _) do
+  defp parse({:w, _, [x, y, ir]}, _) do
     quote do
       {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(ir), 0.1, 0.0,
        CM.new(unquote(x), unquote(y))}
     end
   end
 
-  def parse({:w, _, [x, y, ir, lr]}, _) do
+  defp parse({:w, _, [x, y, ir, lr]}, _) do
     quote do
       {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr),
        0.0, CM.new(unquote(x), unquote(y))}
     end
   end
 
-  def parse({:w, _, [x, y, ir, lr, dr]}, _) do
+  defp parse({:w, _, [x, y, ir, lr, dr]}, _) do
     quote do
       {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr),
        unquote(dr), CM.new(unquote(x), unquote(y))}
@@ -102,33 +102,33 @@ defmodule Network do
 
   # bias
   # cb means constant bias for gradient check
-  def parse({:cb, _, [m]}, _) do
+  defp parse({:cb, _, [m]}, _) do
     quote do
       {:bias, CM.new(unquote(m)), 0.1, 0.1, 0.0, CM.new(1, 1)}
     end
   end
 
-  def parse({:b, _, [x]}, _) do
+  defp parse({:b, _, [x]}, _) do
     quote do
       {:bias, CM.new(1, unquote(x)) |> CM.mult(0.1), 0.1, 0.1, 0.0, CM.new(1, unquote(x))}
     end
   end
 
-  def parse({:b, _, [x, ir]}, _) do
+  defp parse({:b, _, [x, ir]}, _) do
     quote do
       {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), 0.1, 0.0,
        CM.new(1, unquote(x))}
     end
   end
 
-  def parse({:b, _, [x, ir, lr]}, _) do
+  defp parse({:b, _, [x, ir, lr]}, _) do
     quote do
       {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr), 0.0,
        CM.new(1, unquote(x))}
     end
   end
 
-  def parse({:b, _, [x, ir, lr, dr]}, _) do
+  defp parse({:b, _, [x, ir, lr, dr]}, _) do
     quote do
       {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr),
        unquote(dr), CM.new(1, unquote(x))}
@@ -136,28 +136,28 @@ defmodule Network do
   end
 
   # sigmoid
-  def parse({:sigmoid, _, nil}, _) do
+  defp parse({:sigmoid, _, nil}, _) do
     quote do
       {:function, :sigmoid}
     end
   end
 
   # identity
-  def parse({:tanh, _, nil}, _) do
+  defp parse({:tanh, _, nil}, _) do
     quote do
       {:function, :tanh}
     end
   end
 
   # relu
-  def parse({:relu, _, nil}, _) do
+  defp parse({:relu, _, nil}, _) do
     quote do
       {:function, :relu}
     end
   end
 
   # softmax
-  def parse({:softmax, _, nil}, _) do
+  defp parse({:softmax, _, nil}, _) do
     quote do
       {:function, :softmax}
     end
@@ -165,35 +165,35 @@ defmodule Network do
 
   # filter
   # cf means constant filter for gradient check
-  def parse({:cf, _, [m]}, _) do
+  defp parse({:cf, _, [m]}, _) do
     quote do
       {:filter, CM.new(unquote(m)), 1, 0, 0.1, 0.1, CM.new(1, 3, 3)}
     end
   end
 
   # {:filter,filter-matrix,stride,padding,init_rate,learning_rate,dropout_rate,v}
-  def parse({:f, _, [x, y]}, _) do
+  defp parse({:f, _, [x, y]}, _) do
     quote do
       {:filter, CM.rand(1, 1, unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1, 0.0,
        CM.new(1, 1, unquote(x), unquote(y))}
     end
   end
 
-  def parse({:f, _, [x, y, c]}, _) do
+  defp parse({:f, _, [x, y, c]}, _) do
     quote do
       {:filter, CM.rand(1, unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1,
        0.0, CM.new(1, unquote(c), unquote(x), unquote(y))}
     end
   end
 
-  def parse({:f, _, [x, y, c, n]}, _) do
+  defp parse({:f, _, [x, y, c, n]}, _) do
     quote do
       {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0,
        0.0, 0.1, 0.1, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end
   end
 
-  def parse({:f, _, [x, y, c, n, {h, w}]}, _) do
+  defp parse({:f, _, [x, y, c, n, {h, w}]}, _) do
     quote do
       {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1),
        {unquote(h), unquote(w)}, 0, 0.1, 0.1, 0.0,
@@ -201,7 +201,7 @@ defmodule Network do
     end
   end
 
-  def parse({:f, _, [x, y, c, n, {h, w}, pad]}, _) do
+  defp parse({:f, _, [x, y, c, n, {h, w}, pad]}, _) do
     quote do
       {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1),
        {unquote(h), unquote(w)}, unquote(pad), 0.1, 0.1, 0.0,
@@ -209,7 +209,7 @@ defmodule Network do
     end
   end
 
-  def parse({:f, _, [x, y, c, n, {h, w}, pad, ir, lr]}, _) do
+  defp parse({:f, _, [x, y, c, n, {h, w}, pad, ir, lr]}, _) do
     quote do
       {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(unquote(ir)),
        {unquote(h), unquote(w)}, unquote(pad), unquote(ir), unquote(lr), 0.0,
@@ -217,7 +217,7 @@ defmodule Network do
     end
   end
 
-  def parse({:f, _, [x, y, c, n, {h, w}, pad, ir, lr, dr]}, _) do
+  defp parse({:f, _, [x, y, c, n, {h, w}, pad, ir, lr, dr]}, _) do
     quote do
       {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(unquote(ir)),
        {unquote(h), unquote(w)}, unquote(pad), unquote(ir), unquote(lr), unquote(dr),
@@ -226,50 +226,50 @@ defmodule Network do
   end
 
   # pooling
-  def parse({:pooling, _, [h, w]}, _) do
+  defp parse({:pooling, _, [h, w]}, _) do
     quote do
       {:pooling, unquote(h), unquote(w)}
     end
   end
 
   # flll connection
-  def parse({:full, _, nil}, _) do
+  defp parse({:full, _, nil}, _) do
     quote do
       {:full}
     end
   end
 
   # analizer for debug
-  def parse({:analizer, _, [x]}, _) do
+  defp parse({:analizer, _, [x]}, _) do
     quote do
       {:analizer, unquote(x)}
     end
   end
 
   # visualizer for debug
-  def parse({:visualizer, _, [n, c]}, _) do
+  defp parse({:visualizer, _, [n, c]}, _) do
     quote do
       {:visualizer, unquote(n), unquote(c)}
     end
   end
 
-  def parse({x, _, nil}, _) do
+  defp parse({x, _, nil}, _) do
     x
   end
 
-  def parse({:|>, _, exp}, arg) do
+  defp parse({:|>, _, exp}, arg) do
     parse(exp, arg)
   end
 
-  def parse([{arg, _, nil}, exp], arg) do
+  defp parse([{arg, _, nil}, exp], arg) do
     [parse(exp, arg)]
   end
 
-  def parse([exp1, exp2], arg) do
+  defp parse([exp1, exp2], arg) do
     Enum.reverse([parse(exp2, arg)] ++ Enum.reverse(parse(exp1, arg)))
   end
 
-  def parse(x, _) do
+  defp parse(x, _) do
     IO.write("Syntax error in defnetwork  ")
     IO.inspect(x)
     raise ""

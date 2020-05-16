@@ -306,6 +306,10 @@ defmodule Cumatrix do
   new(r,c,val)
   generate matrix with given row col size. Each elements are val.
 
+  new(n,c,h,w)
+  new(c,h,w)
+  generate tensor with given parameter.
+
   new(list)
   generate matrix with given list. e.g. [[1,2],[3,4]].
   ls is also list that express 4-dimension or 3-dimension data
@@ -456,6 +460,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  add(mt1,mt2)
   generate matrix mt1+mt2.
   if mt1 or mt2 is row vector, expand size to matrix. 
   This function is for bias add in DL.
@@ -528,7 +533,9 @@ defmodule Cumatrix do
   end
 
   @doc """
+  sub(mt1,mt2)
   generate matrix mt1-mt2.
+  It is possible to adapt tensor
   """
   def sub({r1, c1, dt1}, {r1, c1, dt2}) do
     result = sub1(r1 * c1, dt1, dt2)
@@ -565,6 +572,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  emult(mt1,mt2)
   generate Hadamard matrix.
   """
   def emult({r1, c1, dt1}, {r1, c1, dt2}) do
@@ -582,6 +590,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  elt(r,c,mt)
   pick up element of mt(r,c) index is one base
   """
   def elt({r, c, dt}, x, y) do
@@ -595,6 +604,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  set(mt,r,c,val)
   elt(mt,x,y) := val. 
   """
   def set({r, c, dt}, x, y, val) do
@@ -607,6 +617,10 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  add_diff(mt,r,c,val)
+  elt(mt,x,y) := elt(mt,x,y + val. 
+  """
   def add_diff({r, c, dt}, x, y, val) do
     result = add_diff1(r, c, dt, x - 1, y - 1, val)
 
@@ -657,23 +671,33 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  iex(1)> Cumatrix.reshape([1,2,3,4,5,6],[2,3])
+  [[1, 2, 3], [4, 5, 6]]
+  iex(2)> Cumatrix.reshape([1,2,3,4,5,6],[1,2,3])
+  [[[1, 2, 3], [4, 5, 6]]]
+  """
   def reshape(x, i) do
     flatten(x) |> reshape1(i)
   end
 
-  def reshape1(x, [_]) do
+  defp reshape1(x, [_]) do
     x
   end
 
-  def reshape1(x, [i | is]) do
+  defp reshape1(x, [i | is]) do
     reshape2(x, i) |> Enum.map(fn y -> reshape1(y, is) end)
   end
 
-  def reshape2(x, n) do
+  defp reshape2(x, n) do
     col = div(length(x), n)
     Enum.chunk_every(x, col)
   end
 
+  @doc """
+  iex(1)> Cumatrix.nth([1,2,3],2)
+  2
+  """
   def nth([x | _], 1) do
     x
   end
@@ -687,6 +711,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  transpose(mt)
   generate transposed matrix
   """
   def transpose({r, c, dt}) do
@@ -700,6 +725,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  ident(n)
   generate ident matrix of size n.
   """
   def ident(r) do
@@ -717,6 +743,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  activate(mt,fun)
   apply fun to mt. fun is :sigmoid, :tanh, :relu :softmax
   """
   def activate({r, c, dt}, :sigmoid) do
@@ -797,6 +824,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  diff(mt1,mt2,fun)
   for each element multiply differntial of mt2 and mt1. fun is :sigmoid :tanh, :relu.
   """
   def diff({r, c, dt1}, {r, c, dt2}, :sigmoid) do
@@ -867,6 +895,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  size(mt) or size(tensor)
   return tuple {rowsize,colsize}
   """
   def size({r, c, _}) do
@@ -882,6 +911,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  average(mt)
   caluculate average of row-vector and generate row-vector that each element is average.
   For Deep-Learning.  
   """
@@ -896,6 +926,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  sum(mt)
   return sum of elements
   """
   def sum({r, c, dt}) do
@@ -909,6 +940,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  to_list(mt)
   return list that transformed from matrix
   to_list(tensor)
   tensor is 3-dimension or 4-dimension
@@ -927,16 +959,17 @@ defmodule Cumatrix do
     |> conv_dim([n, c, h, w])
   end
 
-  def conv_dim(ls, [_]) do
+  defp conv_dim(ls, [_]) do
     ls
   end
 
-  def conv_dim(ls, [d | ds]) do
+  defp conv_dim(ls, [d | ds]) do
     dim = div(length(ls), d)
     Enum.chunk_every(ls, dim) |> Enum.map(fn x -> conv_dim(x, ds) end)
   end
 
   @doc """
+  trace(mt)
   return float number. It is trace of matrix.
   """
   def trace({r, c, dt}) do
@@ -954,6 +987,7 @@ defmodule Cumatrix do
   end
 
   @doc """
+  loss(mt1,mt2) mt1 is forwarded-matrix. mt2 is train-matrix.
   generate float that is average of loss. fun is :square or :cross.
   :square means mean_square function, and :cross means cross_entropy function.
   mt1 is calculated data matrix , mt2 is train data matrix.
@@ -1146,7 +1180,8 @@ defmodule Cumatrix do
   end
 
   @doc """
-  print matrix mt
+  print(mt) print(ts)
+  print matrix mt or tensor ts
   """
   def print(x) do
     x |> to_list() |> IO.inspect()
@@ -1320,6 +1355,10 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  is_near(mt1,mt2) is_near(ts1,ts2)
+  for debug
+  """
   def is_near({c, h, w, dt1}, {c, h, w, dt2}) do
     if is_near1(c * h * w, dt1, dt2) == 1 do
       true
@@ -1340,6 +1379,10 @@ defmodule Cumatrix do
     false
   end
 
+  @doc """
+  if_equal(mt1,mt2) is_equal(ts1,ts2)
+  for debug
+  """
   def is_equal({r, c, dt1}, {r, c, dt2}) do
     if is_equal1(r * c, dt1, dt2) == 1 do
       true
@@ -1368,6 +1411,11 @@ defmodule Cumatrix do
     false
   end
 
+  @doc """
+  analizer(mt,id) analizer(ts,id)
+  display id-number,max-element,min-element,average.
+  for debug.
+  """
   def analizer({n, c, h, w, dt}, id) do
     cond do
       analizer1(n * c * h * w, dt, id) == 9999 -> raise "analizer NAN"
@@ -1384,6 +1432,11 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  visualizer(ts,n,c)
+  display heatmap nth and c channel data.
+  It depends on Matrex.heatmap
+  """
   def visualizer(x, n, c) do
     x |> to_list() |> nth(n) |> nth(c) |> Matrex.new() |> Matrex.heatmap(:color256, [])
   end
@@ -1396,10 +1449,20 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  is_matrix(x)
+  if x is matrix return true
+  else return false
+  """
   def is_matrix(_) do
     false
   end
 
+  @doc """
+  is_tesnsor(x)
+  if x is tensor return true
+  else return false
+  """
   def is_tensor({n, c, h, w, dt}) do
     if is_integer(n) && is_integer(c) && is_integer(h) && is_integer(w) && is_binary(dt) do
       true

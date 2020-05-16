@@ -4,6 +4,19 @@ defmodule Deeppipe do
   @moduledoc """
   functions for Deep-Learning.
 
+  forward/3
+  gradient/3
+  learning/2 /3
+  train/9
+  retrain/9
+  acculacy/3
+  random_select/4
+  to_onehot/2
+  load/2
+  save/2
+  print/1
+  numerical_gradient/3 (for debug)
+
   """
 
   # for debug
@@ -504,35 +517,35 @@ defmodule Deeppipe do
     end
   end
 
-  def print1([]) do
+  defp print1([]) do
     true
   end
 
-  def print1([x | xs]) do
+  defp print1([x | xs]) do
     print2(x)
     print1(xs)
   end
 
-  def print2({:weight, w, _, _, _, _}) do
+  defp print2({:weight, w, _, _, _, _}) do
     IO.puts("weight")
     CM.print(w)
   end
 
-  def print2({:bias, w, _, _, _, _}) do
+  defp print2({:bias, w, _, _, _, _}) do
     IO.puts("bias")
     CM.print(w)
   end
 
-  def print2({:function, name}) do
+  defp print2({:function, name}) do
     :io.write(name)
   end
 
-  def print2({:filter, w, _, _, _, _, _, _}) do
+  defp print2({:filter, w, _, _, _, _, _, _}) do
     IO.puts("filter")
     CM.print(w)
   end
 
-  def print2(x) do
+  defp print2(x) do
     if CM.is_matrix(x) do
       CM.print(x)
     else
@@ -546,7 +559,8 @@ defmodule Deeppipe do
   end
 
   @doc """
-  numerical gradient
+  numerical_gradient(ts,network,train)
+  numerical gradient for debug
   1st arg input tensor
   2nd arg network
   3rd arg train matrix
@@ -555,11 +569,11 @@ defmodule Deeppipe do
     numerical_gradient1(x, network, t, [], [])
   end
 
-  def numerical_gradient1(_, [], _, _, res) do
+  defp numerical_gradient1(_, [], _, _, res) do
     Enum.reverse(res)
   end
 
-  def numerical_gradient1(x, [{:bias, w, ir, lr, dr, v} | rest], t, before, res) do
+  defp numerical_gradient1(x, [{:bias, w, ir, lr, dr, v} | rest], t, before, res) do
     # IO.puts("ngrad bias")
     w1 = numerical_gradient_bias(x, w, t, before, {:bias, w, ir, lr, dr, v}, rest)
 
@@ -568,7 +582,7 @@ defmodule Deeppipe do
     ])
   end
 
-  def numerical_gradient1(x, [{:weight, w, ir, lr, dr, v} | rest], t, before, res) do
+  defp numerical_gradient1(x, [{:weight, w, ir, lr, dr, v} | rest], t, before, res) do
     # IO.puts("ngrad wight")
     w1 = numerical_gradient_matrix(x, w, t, before, {:weight, w, ir, lr, dr, v}, rest)
 
@@ -577,7 +591,7 @@ defmodule Deeppipe do
     ])
   end
 
-  def numerical_gradient1(
+  defp numerical_gradient1(
         x,
         [{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest],
         t,
@@ -600,7 +614,7 @@ defmodule Deeppipe do
     ])
   end
 
-  def numerical_gradient1(x, [{:analizer, n} | rest], t, before, res) do
+  defp numerical_gradient1(x, [{:analizer, n} | rest], t, before, res) do
     # IO.puts("FD analizer")
     CM.analizer(x, n)
 
@@ -609,13 +623,13 @@ defmodule Deeppipe do
     ])
   end
 
-  def numerical_gradient1(x, [y | rest], t, before, res) do
+  defp numerical_gradient1(x, [y | rest], t, before, res) do
     # IO.puts("ngrad else")
     numerical_gradient1(x, rest, t, [y | before], [y | res])
   end
 
   # calc numerical gradient of bias
-  def numerical_gradient_bias(x, w, t, before, now, rest) do
+  defp numerical_gradient_bias(x, w, t, before, now, rest) do
     {_, c} = Cumatrix.size(w)
 
     for r1 <- 1..1 do
@@ -626,7 +640,7 @@ defmodule Deeppipe do
     |> CM.new()
   end
 
-  def numerical_gradient_bias1(x, t, r, c, before, {:bias, w, ir, lr, dr, v}, rest) do
+  defp numerical_gradient_bias1(x, t, r, c, before, {:bias, w, ir, lr, dr, v}, rest) do
     delta = 0.0001
     w1 = CM.add_diff(w, r, c, delta)
     network0 = Enum.reverse(before) ++ [{:bias, w, ir, lr, dr, v}] ++ rest
@@ -637,7 +651,7 @@ defmodule Deeppipe do
   end
 
   # calc numerical gradient of matrix
-  def numerical_gradient_matrix(x, w, t, before, now, rest) do
+  defp numerical_gradient_matrix(x, w, t, before, now, rest) do
     {r, c} = Cumatrix.size(w)
 
     for r1 <- 1..r do
@@ -648,7 +662,7 @@ defmodule Deeppipe do
     |> CM.new()
   end
 
-  def numerical_gradient_matrix1(x, t, r, c, before, {:weight, w, ir, lr, dr, v}, rest) do
+  defp numerical_gradient_matrix1(x, t, r, c, before, {:weight, w, ir, lr, dr, v}, rest) do
     delta = 0.0001
     w1 = CM.add_diff(w, r, c, delta)
     network0 = Enum.reverse(before) ++ [{:weight, w, ir, lr, dr, v}] ++ rest
@@ -659,7 +673,7 @@ defmodule Deeppipe do
   end
 
   # calc numerical gradient of filter
-  def numerical_gradient_filter(x, w, t, before, now, rest) do
+  defp numerical_gradient_filter(x, w, t, before, now, rest) do
     {n, c, h, w} = Cumatrix.size(w)
 
     for n1 <- 1..n do
@@ -674,7 +688,7 @@ defmodule Deeppipe do
     |> CM.new()
   end
 
-  def numerical_gradient_filter1(
+  defp numerical_gradient_filter1(
         x,
         t,
         n,
