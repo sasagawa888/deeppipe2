@@ -533,16 +533,16 @@ defmodule Cumatrix do
     raise "add illegal data type"
   end
 
-  def expand({r, c, dt}) do
+  defp expand({r, c, dt}) do
     dt1 = expand1(r, dt)
     transpose1(r, c, dt1)
   end
 
-  def expand1(0, _) do
+  defp expand1(0, _) do
     <<>>
   end
 
-  def expand1(n, dt) do
+  defp expand1(n, dt) do
     dt <> expand1(n - 1, dt)
   end
 
@@ -655,15 +655,14 @@ defmodule Cumatrix do
     end
   end
 
-  @doc """
-  iex(1)> Cumatrix.flatten([[1,2],[3,4]])
-  [1, 2, 3, 4]
-  """
-  def flatten([]) do
+
+  #iex(1)> Cumatrix.flatten([[1,2],[3,4]])
+  #[1, 2, 3, 4]
+  defp flatten([]) do
     []
   end
 
-  def flatten([l | ls]) do
+  defp flatten([l | ls]) do
     cond do
       is_number(l) -> [l | flatten(ls)]
       is_list(l) -> flatten(l) ++ flatten(ls)
@@ -671,12 +670,10 @@ defmodule Cumatrix do
     end
   end
 
-  @doc """
-  iex(1)>  Cumatrix.list_dim([[1,2],[3,4]])
-  2
-  iex(2)>  Cumatrix.list_dim([[[1,2],[2,3]]])      
-  3
-  """
+  #iex(1)>  Cumatrix.list_dim([[1,2],[3,4]])
+  #2
+  #iex(2)>  Cumatrix.list_dim([[[1,2],[2,3]]])      
+  #3
   defp list_dim([l | _]) do
     if is_list(l) do
       1 + list_dim(l)
