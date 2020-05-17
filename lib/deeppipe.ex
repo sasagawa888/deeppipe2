@@ -596,7 +596,6 @@ defmodule Deeppipe do
     Mix.shell().cmd("gzip -d mnist/train-labels-idx1-ubyte.gz")
     Mix.shell().cmd("gzip -d mnist/t10k-images-idx3-ubyte.gz")
     Mix.shell().cmd("gzip -d mnist/t10k-labels-idx1-ubyte.gz")
-    Mix.shell().cmd("rm mnist/*.gz")
     :ok
   end
 
@@ -636,7 +635,6 @@ defmodule Deeppipe do
     Mix.shell().cmd("gzip -d fashion/train-labels-idx1-ubyte.gz")
     Mix.shell().cmd("gzip -d fashion/t10k-images-idx3-ubyte.gz")
     Mix.shell().cmd("gzip -d fashion/t10k-labels-idx1-ubyte.gz")
-    Mix.shell().cmd("rm fashion/*.gz")
     :ok
   end
 
