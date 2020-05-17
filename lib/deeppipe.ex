@@ -567,76 +567,109 @@ defmodule Deeppipe do
   :iris    download iris dataset
   """
   def download(:mnist) do
-    Application.ensure_all_started :inets
+    Application.ensure_all_started(:inets)
     base_url = 'http://yann.lecun.com/exdb/mnist/'
-    {:ok, resp} = :httpc.request(:get, {base_url ++ 'train-images-idx3-ubyte.gz', []}, [], [body_format: :binary])
+
+    {:ok, resp} =
+      :httpc.request(:get, {base_url ++ 'train-images-idx3-ubyte.gz', []}, [],
+        body_format: :binary
+      )
+
     {{_, 200, 'OK'}, _headers, body} = resp
-    Mix.shell.cmd "mkdir mnist"
+    Mix.shell().cmd("mkdir mnist")
     File.write!("mnist/train-images-idx3-ubyte.gz", body)
-     {:ok, resp} = :httpc.request(:get, {base_url ++ 'train-labels-idx1-ubyte.gz', []}, [], [body_format: :binary])
+
+    {:ok, resp} =
+      :httpc.request(:get, {base_url ++ 'train-labels-idx1-ubyte.gz', []}, [],
+        body_format: :binary
+      )
+
     {{_, 200, 'OK'}, _headers, body} = resp
     File.write!("mnist/train-labels-idx1-ubyte.gz", body)
-     {:ok, resp} = :httpc.request(:get, {base_url ++ 't10k-images-idx3-ubyte.gz', []}, [], [body_format: :binary])
+
+    {:ok, resp} =
+      :httpc.request(:get, {base_url ++ 't10k-images-idx3-ubyte.gz', []}, [], body_format: :binary)
+
     {{_, 200, 'OK'}, _headers, body} = resp
     File.write!("mnist/t10k-images-idx3-ubyte.gz", body)
-     {:ok, resp} = :httpc.request(:get, {base_url ++ 't10k-labels-idx1-ubyte.gz', []}, [], [body_format: :binary])
+
+    {:ok, resp} =
+      :httpc.request(:get, {base_url ++ 't10k-labels-idx1-ubyte.gz', []}, [], body_format: :binary)
+
     {{_, 200, 'OK'}, _headers, body} = resp
     File.write!("mnist/t10k-labels-idx1-ubyte.gz", body)
-    Mix.shell.cmd "gzip -d mnist/train-images-idx3-ubyte.gz"
-    Mix.shell.cmd "gzip -d mnist/train-labels-idx1-ubyte.gz"
-    Mix.shell.cmd "gzip -d mnist/t10k-images-idx3-ubyte.gz"
-    Mix.shell.cmd "gzip -d mnist/t10k-labels-idx1-ubyte.gz"
-    Mix.shell.cmd "rm mnist/*.gz"
+    Mix.shell().cmd("gzip -d mnist/train-images-idx3-ubyte.gz")
+    Mix.shell().cmd("gzip -d mnist/train-labels-idx1-ubyte.gz")
+    Mix.shell().cmd("gzip -d mnist/t10k-images-idx3-ubyte.gz")
+    Mix.shell().cmd("gzip -d mnist/t10k-labels-idx1-ubyte.gz")
+    Mix.shell().cmd("rm mnist/*.gz")
     :ok
-  end 
+  end
 
   def download(:fashion) do
-    Application.ensure_all_started :inets
+    Application.ensure_all_started(:inets)
     base_url = 'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/'
-    {:ok, resp} = :httpc.request(:get, {base_url ++ 'train-images-idx3-ubyte.gz', []}, [], [body_format: :binary])
+
+    {:ok, resp} =
+      :httpc.request(:get, {base_url ++ 'train-images-idx3-ubyte.gz', []}, [],
+        body_format: :binary
+      )
+
     {{_, 200, 'OK'}, _headers, body} = resp
-    Mix.shell.cmd "mkdir fashion"
+    Mix.shell().cmd("mkdir fashion")
     File.write!("fashion/train-images-idx3-ubyte.gz", body)
-     {:ok, resp} = :httpc.request(:get, {base_url ++ 'train-labels-idx1-ubyte.gz', []}, [], [body_format: :binary])
+
+    {:ok, resp} =
+      :httpc.request(:get, {base_url ++ 'train-labels-idx1-ubyte.gz', []}, [],
+        body_format: :binary
+      )
+
     {{_, 200, 'OK'}, _headers, body} = resp
     File.write!("fashion/train-labels-idx1-ubyte.gz", body)
-     {:ok, resp} = :httpc.request(:get, {base_url ++ 't10k-images-idx3-ubyte.gz', []}, [], [body_format: :binary])
+
+    {:ok, resp} =
+      :httpc.request(:get, {base_url ++ 't10k-images-idx3-ubyte.gz', []}, [], body_format: :binary)
+
     {{_, 200, 'OK'}, _headers, body} = resp
     File.write!("fashion/t10k-images-idx3-ubyte.gz", body)
-     {:ok, resp} = :httpc.request(:get, {base_url ++ 't10k-labels-idx1-ubyte.gz', []}, [], [body_format: :binary])
+
+    {:ok, resp} =
+      :httpc.request(:get, {base_url ++ 't10k-labels-idx1-ubyte.gz', []}, [], body_format: :binary)
+
     {{_, 200, 'OK'}, _headers, body} = resp
     File.write!("fashion/t10k-labels-idx1-ubyte.gz", body)
-    Mix.shell.cmd "gzip -d fashion/train-images-idx3-ubyte.gz"
-    Mix.shell.cmd "gzip -d fashion/train-labels-idx1-ubyte.gz"
-    Mix.shell.cmd "gzip -d fashion/t10k-images-idx3-ubyte.gz"
-    Mix.shell.cmd "gzip -d fashion/t10k-labels-idx1-ubyte.gz"
-    Mix.shell.cmd "rm fashion/*.gz"
+    Mix.shell().cmd("gzip -d fashion/train-images-idx3-ubyte.gz")
+    Mix.shell().cmd("gzip -d fashion/train-labels-idx1-ubyte.gz")
+    Mix.shell().cmd("gzip -d fashion/t10k-images-idx3-ubyte.gz")
+    Mix.shell().cmd("gzip -d fashion/t10k-labels-idx1-ubyte.gz")
+    Mix.shell().cmd("rm fashion/*.gz")
     :ok
-  end 
+  end
 
   def download(:iris) do
-    Application.ensure_all_started :inets
+    Application.ensure_all_started(:inets)
     base_url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/'
-    {:ok, resp} = :httpc.request(:get, {base_url ++ 'iris.data', []}, [], [body_format: :binary])
+    {:ok, resp} = :httpc.request(:get, {base_url ++ 'iris.data', []}, [], body_format: :binary)
     {{_, 200, 'OK'}, _headers, body} = resp
-    Mix.shell.cmd "mkdir iris"
+    Mix.shell().cmd("mkdir iris")
     File.write!("iris/iris.data", body)
     :ok
-  end 
+  end
 
   def download(:cifar10) do
     IO.puts("wait few minutes")
-    Application.ensure_all_started :inets
+    Application.ensure_all_started(:inets)
     base_url = 'https://www.cs.toronto.edu/~kriz/'
-    {:ok, resp} = :httpc.request(:get, {base_url ++ 'cifar-10-binary.tar.gz', []}, [], [body_format: :binary])
+
+    {:ok, resp} =
+      :httpc.request(:get, {base_url ++ 'cifar-10-binary.tar.gz', []}, [], body_format: :binary)
+
     {{_, 200, 'OK'}, _headers, body} = resp
     File.write!("cifar-10-binary.tar.gz", body)
-    Mix.shell.cmd "tar xzvf cifar-10-binary.tar.gz"
-    Mix.shell.cmd "rm *.tar.gz"
+    Mix.shell().cmd("tar xzvf cifar-10-binary.tar.gz")
+    Mix.shell().cmd("rm *.tar.gz")
     :ok
-  end 
-
-
+  end
 
   @doc """
   numerical_gradient(ts,network,train)
@@ -672,12 +705,12 @@ defmodule Deeppipe do
   end
 
   defp numerical_gradient1(
-        x,
-        [{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest],
-        t,
-        before,
-        res
-      ) do
+         x,
+         [{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest],
+         t,
+         before,
+         res
+       ) do
     # IO.puts("ngrad filter")
     w1 =
       numerical_gradient_filter(
@@ -769,16 +802,16 @@ defmodule Deeppipe do
   end
 
   defp numerical_gradient_filter1(
-        x,
-        t,
-        n,
-        c,
-        h,
-        w,
-        before,
-        {:filter, m, {st_h, st_w}, pad, ir, lr, dr, v},
-        rest
-      ) do
+         x,
+         t,
+         n,
+         c,
+         h,
+         w,
+         before,
+         {:filter, m, {st_h, st_w}, pad, ir, lr, dr, v},
+         rest
+       ) do
     delta = 0.0001
     m1 = CM.add_diff(m, n, c, h, w, delta)
     network0 = Enum.reverse(before) ++ [{:filter, m, {st_h, st_w}, pad, ir, lr, dr, v}] ++ rest

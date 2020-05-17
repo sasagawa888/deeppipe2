@@ -73,7 +73,9 @@ defmodule MNIST do
   end
 
   def train_label() do
-    {:ok, <<0, 0, 8, 1, 0, 0, 234, 96, label::binary>>} = File.read("mnist/train-labels-idx1-ubyte")
+    {:ok, <<0, 0, 8, 1, 0, 0, 234, 96, label::binary>>} =
+      File.read("mnist/train-labels-idx1-ubyte")
+
     label |> String.to_charlist()
   end
 
