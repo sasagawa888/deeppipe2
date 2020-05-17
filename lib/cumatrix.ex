@@ -21,199 +21,199 @@ defmodule Cumatrix do
     :erlang.load_nif('./lib/nifs', 0)
   end
 
-  def new1(_1, _2) do
+  defp new1(_1, _2) do
     raise "NIF new1/2 not implemented"
   end
 
-  def new2(_1, _2, _3) do
+  defp new2(_1, _2, _3) do
     raise "NIF new2/3 not implemented"
   end
 
-  def new3(_1, _2, _3, _4) do
+  defp new3(_1, _2, _3, _4) do
     raise "NIF new3/4 not implemented"
   end
 
-  def new4(_1, _2, _3, _4, _5) do
+  defp new4(_1, _2, _3, _4, _5) do
     raise "NIF new4/5 not implemented"
   end
 
-  def rand1(_1) do
+  defp rand1(_1) do
     raise "NIF rand1/1 not implemented"
   end
 
-  def mult1(_1, _2, _3, _4, _5, _6) do
+  defp mult1(_1, _2, _3, _4, _5, _6) do
     raise "NIF mult/6 not implemented"
   end
 
-  def add1(_1, _2, _3) do
+  defp add1(_1, _2, _3) do
     raise "NIF add1/3 not implemented"
   end
 
-  def sub1(_1, _2, _3) do
+  defp sub1(_1, _2, _3) do
     raise "NIF sub1/3 not implemented"
   end
 
-  def emult1(_1, _2, _3, _4) do
+  defp emult1(_1, _2, _3, _4) do
     raise "NIF emult1/4 not implemented"
   end
 
-  def transpose1(_1, _2, _3) do
+  defp transpose1(_1, _2, _3) do
     raise "NIF transpose1/3 not implemented"
   end
 
-  def ident1(_1) do
+  defp ident1(_1) do
     raise "NIF ident1/3 not implemented"
   end
 
-  def activate_sigmoid(_1, _2) do
+  defp activate_sigmoid(_1, _2) do
     raise "NIF activate_sigmoid/2 not implemented"
   end
 
-  def activate_tanh(_1, _2) do
+  defp activate_tanh(_1, _2) do
     raise "NIF activate_tanh/2 not implemented"
   end
 
-  def activate_relu(_1, _2) do
+  defp activate_relu(_1, _2) do
     raise "NIF activate_relu/2 not implemented"
   end
 
-  def activate_softmax(_1, _2, _3) do
+  defp activate_softmax(_1, _2, _3) do
     raise "NIF activate_softmax/3 not implemented"
   end
 
-  def differ_sigmoid(_1, _2, _3) do
+  defp differ_sigmoid(_1, _2, _3) do
     raise "NIF differ_sigmoid/3 not implemented"
   end
 
-  def differ_tanh(_1, _2, _3) do
+  defp differ_tanh(_1, _2, _3) do
     raise "NIF differ_tanh/3 not implemented"
   end
 
-  def differ_relu(_1, _2, _3) do
+  defp differ_relu(_1, _2, _3) do
     raise "NIF differ_relu/3 not implemented"
   end
 
-  def smult1(_1, _2, _3) do
+  defp smult1(_1, _2, _3) do
     raise "NIF smult1/3 not implemented"
   end
 
-  def trace1(_1, _2, _3) do
+  defp trace1(_1, _2, _3) do
     raise "NIF trace1/3 not implemented"
   end
 
-  def mean_square(_1, _2, _3, _4) do
+  defp mean_square(_1, _2, _3, _4) do
     raise "NIF mean_square/4 not implemented"
   end
 
-  def cross_entropy(_1, _2, _3, _4) do
+  defp cross_entropy(_1, _2, _3, _4) do
     raise "NIF mean_square/4 not implemented"
   end
 
-  def elt1(_1, _2, _3, _4, _5) do
+  defp elt1(_1, _2, _3, _4, _5) do
     raise "NIF elt1/5 not implemented"
   end
 
-  def set1(_1, _2, _3, _4, _5, _6) do
+  defp set1(_1, _2, _3, _4, _5, _6) do
     raise "NIF set1/6 not implemented"
   end
 
-  def add_diff1(_1, _2, _3, _4, _5, _6) do
+  defp add_diff1(_1, _2, _3, _4, _5, _6) do
     raise "NIF add_diff1/6 not implemented"
   end
 
-  def add_diff2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) do
+  defp add_diff2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) do
     raise "NIF add_diff2/10 not implemented"
   end
 
-  def average1(_1, _2, _3) do
+  defp average1(_1, _2, _3) do
     raise "NIF average1/3 not implemented"
   end
 
-  def sum1(_1, _2, _3) do
+  defp sum1(_1, _2, _3) do
     raise "NIF sum1/3 not implemented"
   end
 
-  def to_list1(_1, _2, _3) do
+  defp to_list1(_1, _2, _3) do
     raise "NIF to_list1/3 not implemented"
   end
 
-  def to_list2(_1, _2, _3, _4) do
+  defp to_list2(_1, _2, _3, _4) do
     raise "NIF to_list2/4 not implemented"
   end
 
-  def to_list3(_1, _2, _3, _4, _5) do
+  defp to_list3(_1, _2, _3, _4, _5) do
     raise "NIF to_list3/5 not implemented"
   end
 
-  def sgd1(_1, _2, _3, _4, _5) do
+  defp sgd1(_1, _2, _3, _4, _5) do
     raise "NIF sgd1/5 not implemented"
   end
 
-  def momentum1(_1, _2, _3, _4, _5, _6) do
+  defp momentum1(_1, _2, _3, _4, _5, _6) do
     raise "NIF momentum1/6 not implemented"
   end
 
-  def adagrad1(_1, _2, _3, _4, _5, _6) do
+  defp adagrad1(_1, _2, _3, _4, _5, _6) do
     raise "NIF adagrad1/6 not implemented"
   end
 
-  def accuracy1(_1, _2, _3, _4) do
+  defp accuracy1(_1, _2, _3, _4) do
     raise "NIF accuracy/4 not implemented"
   end
 
-  def pooling1(_1, _2, _3, _4, _5, _6, _7) do
+  defp pooling1(_1, _2, _3, _4, _5, _6, _7) do
     raise "NIF pooling1/7 not implemented"
   end
 
-  def unpooling1(_1, _2, _3, _4, _5, _6, _7, _8) do
+  defp unpooling1(_1, _2, _3, _4, _5, _6, _7, _8) do
     raise "NIF unpooling1/8 not implemented"
   end
 
-  def convolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
+  defp convolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
     raise "NIF convolute1/13 not implemented"
   end
 
-  def deconvolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
+  defp deconvolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
     raise "NIF deconvolute1/13 not implemented"
   end
 
-  def deconvolute2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
+  defp deconvolute2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
     raise "NIF deconvolute2/13 not implemented"
   end
 
-  def gradfilter1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) do
+  defp gradfilter1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) do
     raise "NIF gradfilter1/16 not implemented"
   end
 
-  def gradfilter2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) do
+  defp gradfilter2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) do
     raise "NIF gradfilter2/16 not implemented"
   end
 
-  def full1(_1, _2, _3, _4, _5) do
+  defp full1(_1, _2, _3, _4, _5) do
     raise "NIF full1/5 not implemented"
   end
 
-  def unfull1(_1, _2, _3, _4, _5) do
+  defp unfull1(_1, _2, _3, _4, _5) do
     raise "NIF unfull1/5 not implemented"
   end
 
-  def random_select1(_1, _2, _3, _4, _5, _6, _7) do
+  defp random_select1(_1, _2, _3, _4, _5, _6, _7) do
     raise "NIF random_select1/7 not implemented"
   end
 
-  def random_select2(_1, _2, _3, _4, _5, _6, _7, _8, _9) do
+  defp random_select2(_1, _2, _3, _4, _5, _6, _7, _8, _9) do
     raise "NIF random_select1/9 not implemented"
   end
 
-  def is_near1(_1, _2, _3) do
+  defp is_near1(_1, _2, _3) do
     raise "NIF is_near1/3 not implemented"
   end
 
-  def is_equal1(_1, _2, _3) do
+  defp is_equal1(_1, _2, _3) do
     raise "NIF is_equal1/3 not implemented"
   end
 
-  def analizer1(_1, _2, _3) do
+  defp analizer1(_1, _2, _3) do
     raise "NIF analizer1/3 not implemented"
   end
 
@@ -302,18 +302,6 @@ defmodule Cumatrix do
   @doc """
   new(r,c) 
   generate matrix with given row col size. Each elements are zero.
-
-  new(r,c,val)
-  generate matrix with given row col size. Each elements are val.
-
-  new(n,c,h,w)
-  new(c,h,w)
-  generate tensor with given parameter.
-
-  new(list)
-  generate matrix with given list. e.g. [[1,2],[3,4]].
-  ls is also list that express 4-dimension or 3-dimension data
-
   """
   def new(r, c) do
     result = new1(r * c, 0.0)
@@ -325,6 +313,10 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  new(r,c,val)
+  generate matrix with given row col size. Each elements are val.
+  """
   def new(r, c, val) when is_float(val) do
     result = new1(r * c, val)
 
@@ -335,6 +327,10 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  new(c,h,w)
+  generate tensor with given size
+  """
   def new(c, h, w) when is_integer(w) do
     result = new1(c * h * w, 0.0)
 
@@ -345,6 +341,10 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  new(c,h,w,val)
+  generate matrix with given row col size. Each elements are val.
+  """
   def new(c, h, w, val) when is_float(val) do
     result = new1(c * h * w, val)
 
@@ -355,6 +355,10 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  new(n,c,h,w,val)
+  generate tensor with given size.
+  """
   def new(n, c, h, w) when is_integer(w) do
     result = new1(n * c * h * w, 0.0)
 
@@ -365,6 +369,10 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  new(n,c,h,w,val)
+  generate tensor with given size.Each elements are val.
+  """
   def new(n, c, h, w, val) when is_float(val) do
     result = new1(n * c * h * w, val)
 
@@ -375,7 +383,11 @@ defmodule Cumatrix do
     end
   end
 
-  # list to matrix
+  @doc """
+  new(list)
+  generate matrix with given list. e.g. [[1,2],[3,4]].
+  ls is also list that express 4-dimension or 3-dimension data
+  """
   def new(ls) when is_list(ls) do
     cond do
       list_dim(ls) == 2 ->
@@ -422,12 +434,6 @@ defmodule Cumatrix do
   @doc """
   rand(r,c)
   generate matrix with random (Box-muller).
-
-  rand(n,c,h,w)
-  generate 4 dimensions data.
-
-  rand(c,h,w)
-  generate 3 dimensions data.
   """
   def rand(r, c) do
     result = rand1(r * c)
@@ -439,6 +445,10 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  rand(c,h,w)
+  generate 3 dimensions data.
+  """
   def rand(c, h, w) do
     result = rand1(c * h * w)
 
@@ -449,6 +459,10 @@ defmodule Cumatrix do
     end
   end
 
+  @doc """
+  rand(n,c,h,w)
+  generate 4 dimensions data.
+  """
   def rand(n, c, h, w) do
     result = rand1(n * c * h * w)
 
@@ -663,7 +677,7 @@ defmodule Cumatrix do
   iex(2)>  Cumatrix.list_dim([[[1,2],[2,3]]])      
   3
   """
-  def list_dim([l | _]) do
+  defp list_dim([l | _]) do
     if is_list(l) do
       1 + list_dim(l)
     else
@@ -1047,7 +1061,7 @@ defmodule Cumatrix do
     end
   end
 
-  def sgd(_, _) do
+  def sgd(_, _, _, _) do
     raise "sgd illegal data type"
   end
 
@@ -1153,10 +1167,14 @@ defmodule Cumatrix do
     end
   end
 
-  def accurace(_, _) do
+  def accuracy(_, _) do
     raise "accuracy illegal argument"
   end
 
+  @doc """
+  random_select(mt1,mt2,n)
+  select same row data from matrix(mt1) and matrix(mt2)
+  """
   def random_select({r1, c1, dt1}, {r2, c2, dt2}, n) do
     result = random_select1(r1, c1, dt1, r2, c2, dt2, n)
 
@@ -1274,11 +1292,14 @@ defmodule Cumatrix do
   gradfilter(ts1,ts2,ts3,st_h,st_w,pad)
   gradient by backpropagation. ts1 is input-tesor, ts2 is filter-tensor, ts3 is loss-tensor, st_h and st_w are stride size, pad is padding size.
   calculate gradient of filter.
+  ```
   1st arg input tensor
   2nd arg filter tensor
   3rd arg loss tensor
-  4th arg stride
-  5th arg padding
+  4th arg stride_hight
+  5th arg stride_width
+  6th arg padding size
+  ```
   """
   def gradfilter(
         {n1, c1, h1, w1, dt1},
@@ -1307,7 +1328,7 @@ defmodule Cumatrix do
     end
   end
 
-  def gradfilter(_, _, _, _) do
+  def gradfilter(_, _, _, _, _, _) do
     raise "gradfilter illegal data form"
   end
 
@@ -1339,7 +1360,7 @@ defmodule Cumatrix do
     end
   end
 
-  def error(func, n) do
+  defp error(func, n) do
     cond do
       n < 10000 -> raise func <> " bad argument error" <> Integer.to_string(n)
       n >= 10000 && n < 11000 -> raise func <> "cuda error" <> Integer.to_string(n - 10000)

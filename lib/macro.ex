@@ -36,23 +36,24 @@ defmodule Network do
   - visualizer(n,c)  display a data(n th, c channel) as graphics 
 
 
-  ## specification:
-
-  ### data structure
-  #### network
+  data structure
+  ```
+  network
   [{:weight,w,ir,lr,dr,v},{:bias,b,ir,lr,dr},{:function,name},{:filter,w,{st_h,st_w},pad,ir,lr,dr,v} ...]
-  ##### weight
+  weight
   {:weight,w,ir,lr,dp,v} w is matrix, ir is rate for initial random number,lr is learning rate, dp is dropout rate, v is for momentum,adagrad,adam
-  ##### bias
+  bias
   {:bias,b,ir,lr,dp,v} b is row vector
-  ##### function
+  function
   {:function,name} name is function name within sigmoid tanh relu softmax
-  ##### filter
+  filter
   {:filter,w,{st_h,st_w},pad,ir,lr,dr,v}
-  ##### pooling
+  pooling
   {:pooling,st_,st_w}
+  ```
 
   """
+
   defmacro defnetwork(name, do: body) do
     {_, _, [{arg, _, _}]} = name
     body1 = parse(body, arg)

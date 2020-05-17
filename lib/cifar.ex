@@ -2,6 +2,10 @@ defmodule CIFAR do
   import Network
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
+  
+  @moduledoc """
+  test with CIFAR10 dataset
+  """
 
   # for CNN test
   # CIFAR.momentum(400,500) 20epochs mini batch size 400

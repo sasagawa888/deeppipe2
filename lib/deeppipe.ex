@@ -2,29 +2,22 @@ defmodule Deeppipe do
   alias Cumatrix, as: CM
 
   @moduledoc """
-  functions for Deep-Learning.
+  main module of DeepPipe2.
 
-  forward/3
-  gradient/3
-  learning/2 /3
-  train/9
-  retrain/9
-  acculacy/3
-  random_select/4
-  to_onehot/2
-  load/2
-  save/2
-  print/1
-  numerical_gradient/3 (for debug)
+  functions for Deep-Learning.
 
   """
 
-  # for debug
+  @doc """
+  for debug
+  forcely stop
+  """ 
   def stop() do
     raise("stop")
   end
 
   @doc """
+  for debug
   invoke garbage collection forcely.
   """
   def gbc() do
@@ -34,9 +27,11 @@ defmodule Deeppipe do
   @doc """
   forward
   return all middle data
+  ```
   1st arg is input data matrix
   2nd arg is network list
   3rd arg is generated middle layer result
+  ```
   """
   def forward(_, [], res) do
     res
@@ -92,9 +87,11 @@ defmodule Deeppipe do
 
   @doc """
   gradient with backpropagation
+  ```
   1st arg is input data matrix
   2nd arg is network list
   3rd arg is train matrix
+  ```
   """
   def gradient(x, network, t) do
     [x1 | x2] = forward(x, network, [x])
@@ -172,16 +169,12 @@ defmodule Deeppipe do
   end
 
   @doc """
-  # ------- learning -------
+  learning(network1,network2)
   learning/2 
   1st arg is old network list
   2nd arg is network with gradient
   generate new network with leared weight and bias
   update method is sgd
-
-  learning/3
-  added update method to 3rd arg
-  update method is momentam, adagrad
   """
   # --------sgd----------
   def learning([], _) do
@@ -215,6 +208,11 @@ defmodule Deeppipe do
     [network | learning(rest, rest1)]
   end
 
+  @doc """
+  learning(network1,network2,update_method)
+  learning/3
+  update method is :momentam, :adagrad, :sgd
+  """
   def learning(network1, network2, :sgd) do
     learning(network1, network2)
   end
@@ -288,6 +286,7 @@ defmodule Deeppipe do
   end
 
   @doc """
+  ```
   1st arg network
   2nd arg train image list
   3rd arg train onehot list
@@ -297,7 +296,7 @@ defmodule Deeppipe do
   7th arg learning method
   8th arg minibatch size
   9th arg repeat number
-
+  ```
   automaticaly save network to temp.ex
   """
   def train(network, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
@@ -316,7 +315,7 @@ defmodule Deeppipe do
     dict
   end
 
-  def train1(network, train_image, train_onehot, test_image, test_label, loss_func, method, m, n) do
+  defp train1(network, train_image, train_onehot, test_image, test_label, loss_func, method, m, n) do
     IO.puts("learning start")
     IO.puts("count down: loss:")
     network1 = train2(train_image, network, train_onehot, loss_func, method, m, n)
@@ -327,11 +326,11 @@ defmodule Deeppipe do
     save("temp.ex", network1)
   end
 
-  def train2(_, network, _, _, _, _, 0) do
+  defp train2(_, network, _, _, _, _, 0) do
     network
   end
 
-  def train2(image, network, train, loss_func, method, m, n) do
+  defp train2(image, network, train, loss_func, method, m, n) do
     {image1, train1} = CM.random_select(image, train, m)
     network1 = gradient(image1, network, train1)
     network2 = learning(network, network1, method)
@@ -396,40 +395,32 @@ defmodule Deeppipe do
 
   @doc """
   translate from number to onehot-list
-  # e.g. to_onehot(1,9) => [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+  iex(1)> Deeppipe.to_onehot(1,9)
+  [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   """
   def to_onehot(x, n) do
     to_onehot1(x, n, [])
   end
 
-  def to_onehot1(_, -1, res) do
+  defp to_onehot1(_, -1, res) do
     res
   end
 
-  def to_onehot1(x, x, res) do
+  defp to_onehot1(x, x, res) do
     to_onehot1(x, x - 1, [1.0 | res])
   end
 
-  def to_onehot1(x, c, res) do
+  defp to_onehot1(x, c, res) do
     to_onehot1(x, c - 1, [0.0 | res])
   end
 
-  def onehot_to_num([x]) do
-    onehot_to_num1(x, 0)
-  end
-
-  def onehot_to_num(x) do
-    onehot_to_num1(x, 0)
-  end
-
-  def onehot_to_num1([x | xs], n) do
-    if x == Enum.max([x | xs]) do
-      n
-    else
-      onehot_to_num1(xs, n + 1)
-    end
-  end
-
+  @doc """
+  normalize dataset element
+  normalize(x,bias,div)
+  x + bias / div
+  e.g. bias = -127, div = 255
+  0~255 => -0.5~0.5 
+  """
   def normalize(x, bias, div) do
     Enum.map(x, fn z -> (z + bias) / div end)
   end
@@ -442,27 +433,27 @@ defmodule Deeppipe do
     File.write(file, inspect(network1, limit: :infinity))
   end
 
-  def save1([]) do
+  defp save1([]) do
     []
   end
 
-  def save1([{:weight, w, ir, lr, dr, v} | rest]) do
+  defp save1([{:weight, w, ir, lr, dr, v} | rest]) do
     [{:weight, CM.to_list(w), ir, lr, dr, CM.to_list(v)} | save1(rest)]
   end
 
-  def save1([{:bias, w, ir, lr, dr, v} | rest]) do
+  defp save1([{:bias, w, ir, lr, dr, v} | rest]) do
     [{:bias, CM.to_list(w), ir, lr, dr, CM.to_list(v)} | save1(rest)]
   end
 
-  def save1([{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest]) do
+  defp save1([{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest]) do
     [{:filter, CM.to_list(w), {st_h, st_w}, pad, ir, lr, dr, CM.to_list(v)} | save1(rest)]
   end
 
-  def save1([{:function, name} | rest]) do
+  defp save1([{:function, name} | rest]) do
     [{:function, name} | save1(rest)]
   end
 
-  def save1([network | rest]) do
+  defp save1([network | rest]) do
     [network | save1(rest)]
   end
 
@@ -473,27 +464,27 @@ defmodule Deeppipe do
     Code.eval_file(file) |> elem(0) |> load1
   end
 
-  def load1([]) do
+  defp load1([]) do
     []
   end
 
-  def load1([{:weight, w, ir, lr, dr, v} | rest]) do
+  defp load1([{:weight, w, ir, lr, dr, v} | rest]) do
     [{:weight, CM.new(w), ir, lr, dr, CM.new(v)} | load1(rest)]
   end
 
-  def load1([{:bias, w, ir, lr, dr, v} | rest]) do
+  defp load1([{:bias, w, ir, lr, dr, v} | rest]) do
     [{:bias, CM.new(w), ir, lr, dr, CM.new(v)} | load1(rest)]
   end
 
-  def load1([{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest]) do
+  defp load1([{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest]) do
     [{:filter, CM.new(w), {st_h, st_w}, pad, ir, lr, dr, CM.new(v)} | load1(rest)]
   end
 
-  def load1([{:function, name} | rest]) do
+  defp load1([{:function, name} | rest]) do
     [{:function, name} | load1(rest)]
   end
 
-  def load1([network | rest]) do
+  defp load1([network | rest]) do
     [network | load1(rest)]
   end
 
@@ -554,6 +545,9 @@ defmodule Deeppipe do
     end
   end
 
+  @doc """
+  display newline
+  """
   def newline() do
     IO.puts("")
   end

@@ -3,6 +3,10 @@ defmodule Iris do
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
 
+  @moduledoc """
+  test with iris dataset
+  """
+
   defnetwork init_network0(_x) do
     _x
     |> w(4, 100)

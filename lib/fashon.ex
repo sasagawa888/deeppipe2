@@ -1,6 +1,10 @@
 defmodule Fashon do
   alias Deeppipe, as: DP
 
+   @moduledoc """
+   test with Fashion-MNIST dataset.
+   """
+
   # structure from flat vector to matrix(r,c) as 1 channel 
   def structure(x, r, c) do
     [structure1(x, r, c)]

@@ -1,4 +1,5 @@
 defmodule MNIST do
+  @moduledoc false
   alias Deeppipe, as: DP
 
   # structure from flat vector to matrix(r,c) as 1 channel 
