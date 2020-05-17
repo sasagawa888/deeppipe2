@@ -558,6 +558,75 @@ defmodule Deeppipe do
     IO.puts("")
   end
 
+  def download(:mnist) do
+    Application.ensure_all_started :inets
+    base_url = 'http://yann.lecun.com/exdb/mnist/'
+    {:ok, resp} = :httpc.request(:get, {base_url ++ 'train-images-idx3-ubyte.gz', []}, [], [body_format: :binary])
+    {{_, 200, 'OK'}, _headers, body} = resp
+    File.write!("train-images-idx3-ubyte.gz", body)
+     {:ok, resp} = :httpc.request(:get, {base_url ++ 'train-labels-idx1-ubyte.gz', []}, [], [body_format: :binary])
+    {{_, 200, 'OK'}, _headers, body} = resp
+    File.write!("train-labels-idx1-ubyte.gz", body)
+     {:ok, resp} = :httpc.request(:get, {base_url ++ 't10k-images-idx3-ubyte.gz', []}, [], [body_format: :binary])
+    {{_, 200, 'OK'}, _headers, body} = resp
+    File.write!("t10k-images-idx3-ubyte.gz", body)
+     {:ok, resp} = :httpc.request(:get, {base_url ++ 't10k-labels-idx1-ubyte.gz', []}, [], [body_format: :binary])
+    {{_, 200, 'OK'}, _headers, body} = resp
+    File.write!("t10k-labels-idx1-ubyte.gz", body)
+    Mix.shell.cmd "gzip -d train-images-idx3-ubyte.gz"
+    Mix.shell.cmd "gzip -d train-labels-idx1-ubyte.gz"
+    Mix.shell.cmd "gzip -d t10k-images-idx3-ubyte.gz"
+    Mix.shell.cmd "gzip -d t10k-labels-idx1-ubyte.gz"
+    Mix.shell.cmd "rm *.gz"
+    :ok
+  end 
+
+  def download(:fashion) do
+    Application.ensure_all_started :inets
+    base_url = 'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/'
+    {:ok, resp} = :httpc.request(:get, {base_url ++ 'train-images-idx3-ubyte.gz', []}, [], [body_format: :binary])
+    {{_, 200, 'OK'}, _headers, body} = resp
+    File.write!("ftrain-images-idx3-ubyte.gz", body)
+     {:ok, resp} = :httpc.request(:get, {base_url ++ 'train-labels-idx1-ubyte.gz', []}, [], [body_format: :binary])
+    {{_, 200, 'OK'}, _headers, body} = resp
+    File.write!("ftrain-labels-idx1-ubyte.gz", body)
+     {:ok, resp} = :httpc.request(:get, {base_url ++ 't10k-images-idx3-ubyte.gz', []}, [], [body_format: :binary])
+    {{_, 200, 'OK'}, _headers, body} = resp
+    File.write!("ft10k-images-idx3-ubyte.gz", body)
+     {:ok, resp} = :httpc.request(:get, {base_url ++ 't10k-labels-idx1-ubyte.gz', []}, [], [body_format: :binary])
+    {{_, 200, 'OK'}, _headers, body} = resp
+    File.write!("ft10k-labels-idx1-ubyte.gz", body)
+    Mix.shell.cmd "gzip -d ftrain-images-idx3-ubyte.gz"
+    Mix.shell.cmd "gzip -d ftrain-labels-idx1-ubyte.gz"
+    Mix.shell.cmd "gzip -d ft10k-images-idx3-ubyte.gz"
+    Mix.shell.cmd "gzip -d ft10k-labels-idx1-ubyte.gz"
+    Mix.shell.cmd "rm *.gz"
+    :ok
+  end 
+
+  def download(:iris) do
+    Application.ensure_all_started :inets
+    base_url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/'
+    {:ok, resp} = :httpc.request(:get, {base_url ++ 'iris.data', []}, [], [body_format: :binary])
+    {{_, 200, 'OK'}, _headers, body} = resp
+    File.write!("iris.data", body)
+    :ok
+  end 
+
+  def download(:cifar10) do
+    IO.puts("wait few minutes")
+    Application.ensure_all_started :inets
+    base_url = 'https://www.cs.toronto.edu/~kriz/'
+    {:ok, resp} = :httpc.request(:get, {base_url ++ 'cifar-10-binary.tar.gz', []}, [], [body_format: :binary])
+    {{_, 200, 'OK'}, _headers, body} = resp
+    File.write!("cifar-10-binary.tar.gz", body)
+    Mix.shell.cmd "tar xzvf cifar-10-binary.tar.gz"
+    Mix.shell.cmd "rm *.tar.gz"
+    :ok
+  end 
+
+
+
   @doc """
   numerical_gradient(ts,network,train)
   numerical gradient for debug

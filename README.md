@@ -7,17 +7,31 @@ Currently, I am improving to use CNN.
 DeepPipe2 requires GPU. Nvidia's GeForce is easy. The game PC turns into an AI experiment tool.
 
 ```
+(1)install CUDA
 If you have not yet installed CUDA, install it from the Nvidia website.
 https://developer.nvidia.com/cuda-downloads
 
+(2)make clone 
 Linux is recommended for OS. DeepPipe2 does not work on Windows.
 After installing CUDA, make a clone of DeepPipe2.
 git clone https://github.com/sasagawa888/deeppipe2.git
 
+(3)invoke Deeppipe2
 Change to the deeppipe2 directory with the CD command. 
 Start with iex -S mix. mix compiles CUDA code automatically.
-MNIST data and sample code are included. 
-Enter Test.sgd(100,100).
+
+(4)dwonload dataset
+iex(1)> Deeppipe.download(:mnist)
+Deeppipe will prepare MNIST dataset 
+Enter on iex.
+iex(2)> Test.sgd(100,100).
+
+
+When you test other dataset use Deeppipe.download(x)
+x is dataset name atom. 
+:fashion  (Fashion-MNIST)
+:cifar10  (CIFAR10)
+:iris     (IRIS)
 
 Network descriptions are Elixir-like pipeline operators. 
 See the test.ex file. The random number given to the weight matrix and bias affects learning.
@@ -25,10 +39,9 @@ The learning rate also has an effect. The default for each is 0.1.
 You can change it with w(300,100,0.2,0.5) in defnetwork.
 In this example, the multiple to the random number is 0.2 and the learning rate is 0.5.
 It is important to find these parameters in Deep-Learning.
-
-Please enjoy.
 ```
 
+Please enjoy.
 
 ## install
 require CUDA.
@@ -38,7 +51,6 @@ Make clone or download.
 on terminal 
 
 ```
-$make
 $iex -S mix
 
 ```
@@ -157,10 +169,9 @@ update method is sgd, momentam, adagrad
 Now testing.
 
 ```
-# for CNN test for MNIST
+# for CNN test for Fashion-MNIST
   defnetwork init_network4(_x) do
     _x
-    #|> visualizer(1,1)
     |> f(5, 5, 1, 12, {1,1}, 1, 0.5, 0.0001)
     |> pooling(2,2)
     |> f(3, 3, 12, 12, {1,1}, 1, 0.5, 0.0001)
@@ -168,7 +179,6 @@ Now testing.
     |> pooling(2,2)
     |> f(3, 3, 12, 12, {1,1}, 0, 0.5, 0.0001)
     |> relu
-    #|> visualizer(1,1)
     |> full
     |> w(300, 10, 0.1, 0.001)
     |> softmax

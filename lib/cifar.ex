@@ -106,7 +106,7 @@ defmodule CIFAR do
   end
 
   def train_label() do
-    {:ok, <<label, rest::binary>>} = File.read("data_batch_1.bin")
+    {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_1.bin")
     [label | train_label1(rest)]
   end
 
@@ -131,7 +131,7 @@ defmodule CIFAR do
   end
 
   def test_label() do
-    {:ok, <<label, rest::binary>>} = File.read("test_batch.bin")
+    {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/test_batch.bin")
     [label | train_label1(rest)]
   end
 
@@ -149,7 +149,7 @@ defmodule CIFAR do
   end
 
   def train_image() do
-    {:ok, bin} = File.read("data_batch_1.bin")
+    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_1.bin")
     train_image1(bin)
   end
 
@@ -158,7 +158,7 @@ defmodule CIFAR do
   end
 
   def test_image() do
-    {:ok, bin} = File.read("test_batch.bin")
+    {:ok, bin} = File.read("cifar-10-batches-bin/test_batch.bin")
     train_image1(bin)
   end
 
@@ -223,22 +223,22 @@ defmodule CIFAR do
   end
 
   def train_rgb(n) do
-    {:ok, bin} = File.read("data_batch_1.bin")
+    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_1.bin")
     train_rgb1(bin) |> CM.nth(n) |> composit() |> CM.reshape([32, 32])
   end
 
   def train_r(n) do
-    {:ok, bin} = File.read("data_batch_1.bin")
+    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_1.bin")
     train_rgb1(bin) |> CM.nth(n) |> CM.nth(1) |> CM.reshape([32, 32])
   end
 
   def train_g(n) do
-    {:ok, bin} = File.read("data_batch_1.bin")
+    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_1.bin")
     train_rgb1(bin) |> CM.nth(n) |> CM.nth(2) |> CM.reshape([32, 32])
   end
 
   def train_b(n) do
-    {:ok, bin} = File.read("data_batch_1.bin")
+    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_1.bin")
     train_rgb1(bin) |> CM.nth(n) |> CM.nth(3) |> CM.reshape([32, 32])
   end
 
