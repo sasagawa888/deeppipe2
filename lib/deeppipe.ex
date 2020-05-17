@@ -11,7 +11,7 @@ defmodule Deeppipe do
   @doc """
   for debug
   forcely stop
-  """ 
+  """
   def stop() do
     raise("stop")
   end

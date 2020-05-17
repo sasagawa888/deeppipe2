@@ -655,9 +655,8 @@ defmodule Cumatrix do
     end
   end
 
-
-  #iex(1)> Cumatrix.flatten([[1,2],[3,4]])
-  #[1, 2, 3, 4]
+  # iex(1)> Cumatrix.flatten([[1,2],[3,4]])
+  # [1, 2, 3, 4]
   defp flatten([]) do
     []
   end
@@ -670,10 +669,10 @@ defmodule Cumatrix do
     end
   end
 
-  #iex(1)>  Cumatrix.list_dim([[1,2],[3,4]])
-  #2
-  #iex(2)>  Cumatrix.list_dim([[[1,2],[2,3]]])      
-  #3
+  # iex(1)>  Cumatrix.list_dim([[1,2],[3,4]])
+  # 2
+  # iex(2)>  Cumatrix.list_dim([[[1,2],[2,3]]])      
+  # 3
   defp list_dim([l | _]) do
     if is_list(l) do
       1 + list_dim(l)

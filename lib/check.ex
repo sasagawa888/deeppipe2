@@ -3,12 +3,11 @@ defmodule Check do
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
 
+  @moduledoc """
+  gradient check 
 
- @moduledoc """
- gradient check 
-
- for debug
- """
+  for debug
+  """
   # for grad confirmation 
   defnetwork test_network0(_x) do
     _x

@@ -20,7 +20,7 @@ git clone https://github.com/sasagawa888/deeppipe2.git
 Change to the deeppipe2 directory with the CD command. 
 Start with iex -S mix. mix compiles CUDA code automatically.
 
-(4)dwonload dataset
+(4)download dataset
 iex(1)> Deeppipe.download(:mnist)
 Deeppipe will prepare MNIST dataset 
 Enter on iex.
@@ -116,7 +116,7 @@ see test.ex
 
 
 
-## module Deeppipe
+## module Deeppipe  main functions
 - forward/3
 
 ```

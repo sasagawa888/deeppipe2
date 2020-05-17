@@ -7,14 +7,23 @@ defmodule Deeppipe2.MixProject do
       version: "1.1.0",
       elixir: "~> 1.7",
       description: "Deep-Learning library with CUDA/CUBLAS",
-      start_permanent: Mix.env() == :prod,
       compilers: [:makecuda] ++ Mix.compilers(),
+      deps: deps(),
+
+      # Docs
+      name: "DeepPipe2",
+      source_url: "https://github.com/sasagawa888/deeppipe2",
+      start_permanent: Mix.env() == :prod,
+      docs: [
+        # The main page in the docs
+        #main: "DeepPipe2",
+        extras: ["README.md"]
+      ],
       package: [
         maintainers: ["Kenichi Sasagawa"],
         licenses: ["modified BSD"],
         links: %{"GitHub" => "https://github.com/sasagawa888/deeppipe2"}
-      ],
-      deps: deps()
+      ]
     ]
   end
 

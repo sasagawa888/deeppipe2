@@ -2,9 +2,9 @@ defmodule Test do
   import Network
   alias Deeppipe, as: DP
 
-    @moduledoc """
-    test code with MNIST dataset
-    """
+  @moduledoc """
+  test code with MNIST dataset
+  """
 
   # for DNN test sgd
   defnetwork init_network1(_x) do

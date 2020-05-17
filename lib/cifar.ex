@@ -2,7 +2,7 @@ defmodule CIFAR do
   import Network
   alias Deeppipe, as: DP
   alias Cumatrix, as: CM
-  
+
   @moduledoc """
   test with CIFAR10 dataset
   """
