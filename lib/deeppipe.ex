@@ -558,26 +558,35 @@ defmodule Deeppipe do
     IO.puts("")
   end
 
+  @doc """
+  download(x)
+  case x
+  :mnist   download and decompress MNIST dataset
+  :fashon  download and decompress Fashion-MNIST dataset
+  :cifar10 download and decompress CIFAR10 dataset
+  :iris    download iris dataset
+  """
   def download(:mnist) do
     Application.ensure_all_started :inets
     base_url = 'http://yann.lecun.com/exdb/mnist/'
     {:ok, resp} = :httpc.request(:get, {base_url ++ 'train-images-idx3-ubyte.gz', []}, [], [body_format: :binary])
     {{_, 200, 'OK'}, _headers, body} = resp
-    File.write!("train-images-idx3-ubyte.gz", body)
+    Mix.shell.cmd "mkdir mnist"
+    File.write!("mnist/train-images-idx3-ubyte.gz", body)
      {:ok, resp} = :httpc.request(:get, {base_url ++ 'train-labels-idx1-ubyte.gz', []}, [], [body_format: :binary])
     {{_, 200, 'OK'}, _headers, body} = resp
-    File.write!("train-labels-idx1-ubyte.gz", body)
+    File.write!("mnist/train-labels-idx1-ubyte.gz", body)
      {:ok, resp} = :httpc.request(:get, {base_url ++ 't10k-images-idx3-ubyte.gz', []}, [], [body_format: :binary])
     {{_, 200, 'OK'}, _headers, body} = resp
-    File.write!("t10k-images-idx3-ubyte.gz", body)
+    File.write!("mnist/t10k-images-idx3-ubyte.gz", body)
      {:ok, resp} = :httpc.request(:get, {base_url ++ 't10k-labels-idx1-ubyte.gz', []}, [], [body_format: :binary])
     {{_, 200, 'OK'}, _headers, body} = resp
-    File.write!("t10k-labels-idx1-ubyte.gz", body)
-    Mix.shell.cmd "gzip -d train-images-idx3-ubyte.gz"
-    Mix.shell.cmd "gzip -d train-labels-idx1-ubyte.gz"
-    Mix.shell.cmd "gzip -d t10k-images-idx3-ubyte.gz"
-    Mix.shell.cmd "gzip -d t10k-labels-idx1-ubyte.gz"
-    Mix.shell.cmd "rm *.gz"
+    File.write!("mnist/t10k-labels-idx1-ubyte.gz", body)
+    Mix.shell.cmd "gzip -d mnist/train-images-idx3-ubyte.gz"
+    Mix.shell.cmd "gzip -d mnist/train-labels-idx1-ubyte.gz"
+    Mix.shell.cmd "gzip -d mnist/t10k-images-idx3-ubyte.gz"
+    Mix.shell.cmd "gzip -d mnist/t10k-labels-idx1-ubyte.gz"
+    Mix.shell.cmd "rm mnist/*.gz"
     :ok
   end 
 
@@ -586,21 +595,22 @@ defmodule Deeppipe do
     base_url = 'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/'
     {:ok, resp} = :httpc.request(:get, {base_url ++ 'train-images-idx3-ubyte.gz', []}, [], [body_format: :binary])
     {{_, 200, 'OK'}, _headers, body} = resp
-    File.write!("ftrain-images-idx3-ubyte.gz", body)
+    Mix.shell.cmd "mkdir fashion"
+    File.write!("fashion/train-images-idx3-ubyte.gz", body)
      {:ok, resp} = :httpc.request(:get, {base_url ++ 'train-labels-idx1-ubyte.gz', []}, [], [body_format: :binary])
     {{_, 200, 'OK'}, _headers, body} = resp
-    File.write!("ftrain-labels-idx1-ubyte.gz", body)
+    File.write!("fashion/train-labels-idx1-ubyte.gz", body)
      {:ok, resp} = :httpc.request(:get, {base_url ++ 't10k-images-idx3-ubyte.gz', []}, [], [body_format: :binary])
     {{_, 200, 'OK'}, _headers, body} = resp
-    File.write!("ft10k-images-idx3-ubyte.gz", body)
+    File.write!("fashion/t10k-images-idx3-ubyte.gz", body)
      {:ok, resp} = :httpc.request(:get, {base_url ++ 't10k-labels-idx1-ubyte.gz', []}, [], [body_format: :binary])
     {{_, 200, 'OK'}, _headers, body} = resp
-    File.write!("ft10k-labels-idx1-ubyte.gz", body)
-    Mix.shell.cmd "gzip -d ftrain-images-idx3-ubyte.gz"
-    Mix.shell.cmd "gzip -d ftrain-labels-idx1-ubyte.gz"
-    Mix.shell.cmd "gzip -d ft10k-images-idx3-ubyte.gz"
-    Mix.shell.cmd "gzip -d ft10k-labels-idx1-ubyte.gz"
-    Mix.shell.cmd "rm *.gz"
+    File.write!("fashion/t10k-labels-idx1-ubyte.gz", body)
+    Mix.shell.cmd "gzip -d fashion/train-images-idx3-ubyte.gz"
+    Mix.shell.cmd "gzip -d fashion/train-labels-idx1-ubyte.gz"
+    Mix.shell.cmd "gzip -d fashion/t10k-images-idx3-ubyte.gz"
+    Mix.shell.cmd "gzip -d fashion/t10k-labels-idx1-ubyte.gz"
+    Mix.shell.cmd "rm fashion/*.gz"
     :ok
   end 
 
@@ -609,7 +619,8 @@ defmodule Deeppipe do
     base_url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/'
     {:ok, resp} = :httpc.request(:get, {base_url ++ 'iris.data', []}, [], [body_format: :binary])
     {{_, 200, 'OK'}, _headers, body} = resp
-    File.write!("iris.data", body)
+    Mix.shell.cmd "mkdir iris"
+    File.write!("iris/iris.data", body)
     :ok
   end 
 

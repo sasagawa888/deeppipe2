@@ -46,7 +46,7 @@ defmodule Iris do
   end
 
   def train_image() do
-    {_, x} = File.read("iris.data")
+    {_, x} = File.read("iris/iris.data")
 
     x
     |> String.split("\n")
@@ -63,7 +63,7 @@ defmodule Iris do
   end
 
   def train_label() do
-    {_, x} = File.read("iris.data")
+    {_, x} = File.read("iris/iris.data")
 
     x
     |> String.split("\n")

@@ -73,25 +73,25 @@ defmodule Fashon do
   end
 
   def train_label() do
-    {:ok, <<0, 0, 8, 1, 0, 0, 234, 96, label::binary>>} = File.read("ftrain-labels-idx1-ubyte")
+    {:ok, <<0, 0, 8, 1, 0, 0, 234, 96, label::binary>>} = File.read("fashion/train-labels-idx1-ubyte")
     label |> String.to_charlist()
   end
 
   def train_image() do
     {:ok, <<0, 0, 8, 3, 0, 0, 234, 96, 0, 0, 0, 28, 0, 0, 0, 28, image::binary>>} =
-      File.read("ftrain-images-idx3-ubyte")
+      File.read("fashion/train-images-idx3-ubyte")
 
     byte_to_list(image)
   end
 
   def test_label() do
-    {:ok, <<0, 0, 8, 1, 0, 0, 39, 16, label::binary>>} = File.read("ft10k-labels-idx1-ubyte")
+    {:ok, <<0, 0, 8, 1, 0, 0, 39, 16, label::binary>>} = File.read("fashion/t10k-labels-idx1-ubyte")
     label |> String.to_charlist()
   end
 
   def test_image() do
     {:ok, <<0, 0, 8, 3, 0, 0, 39, 16, 0, 0, 0, 28, 0, 0, 0, 28, image::binary>>} =
-      File.read("ft10k-images-idx3-ubyte")
+      File.read("fashion/t10k-images-idx3-ubyte")
 
     byte_to_list(image)
   end
