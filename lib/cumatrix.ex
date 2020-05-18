@@ -1,6 +1,7 @@
 defmodule Cumatrix do
   @moduledoc """
   Calculate matrix or tensor using CUDA and CUBLAS library.
+
   Caution, each element of matrix  must be float number.
 
   tensor data structure is 4-dimensions tensor (N,C,H,W) or 3-dimension tensor (C,H,W)

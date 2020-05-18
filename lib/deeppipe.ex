@@ -663,11 +663,6 @@ defmodule Deeppipe do
     :ok
   end
 
-  def compile() do
-    Mix.shell().cmd("make")
-    :ok
-  end
-
   @doc """
   numerical_gradient(ts,network,train)
   numerical gradient for debug
