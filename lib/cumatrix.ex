@@ -18,9 +18,17 @@ defmodule Cumatrix do
   @on_load :load_nifs
 
   def load_nifs do
-    :erlang.load_nif('./lib/nifs', 0)
+    priv_dir =
+      case :code.priv_dir(:deeppipe2) do
+        {:error, _} -> "priv"
+        path -> path
+      end 
+    
+    file = :filename.join(priv_dir,"nifs")
+    :erlang.load_nif(String.to_charlist(file), 0)
   end
 
+  
   defp new1(_1, _2) do
     raise "NIF new1/2 not implemented"
   end

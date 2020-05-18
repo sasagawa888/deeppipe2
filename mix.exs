@@ -4,10 +4,10 @@ defmodule Deeppipe2.MixProject do
   def project do
     [
       app: :deeppipe2,
-      version: "1.1.1",
+      version: "1.1.2",
       elixir: "~> 1.7",
       description: "Deep-Learning library with CUDA/CUBLAS",
-      compilers: [:makecuda] ++ Mix.compilers(),
+      compilers: [:elixir_make] ++ Mix.compilers(),
       deps: deps(),
 
       # Docs
@@ -44,18 +44,11 @@ defmodule Deeppipe2.MixProject do
   defp deps do
     [
       {:matrex, "~> 0.6"},
-      {:ex_doc, "~> 0.21", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.21", only: :dev, runtime: false},
+      {:elixir_make, "~> 0.4", runtime: false}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
   end
 end
 
-defmodule Mix.Tasks.Compile.Makecuda do
-  use Mix.Task
-
-  def run(_) do
-    Mix.shell().cmd("make")
-    :ok
-  end
-end
