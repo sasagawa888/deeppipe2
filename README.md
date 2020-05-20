@@ -23,7 +23,8 @@ Start with iex -S mix. mix compiles CUDA code automatically.
 (4)download dataset
 iex(1)> Deeppipe.download(:mnist)
 Deeppipe will prepare MNIST dataset 
-Enter on iex.
+
+(5)learning
 iex(2)> Test.sgd(100,100).
 
 
