@@ -1474,9 +1474,14 @@ defmodule Cumatrix do
   @doc """
   normalizer(ts)
   calculate average of nth data and sub each elemet the average.
+  when matrix , nothing to do
   """
   def normalizer({n,c,h,w,dt}) do
-    normalizer1(n,c,h,w,dt)
+    {n,c,h,w,normalizer1(n,c,h,w,dt)}
+  end 
+
+  def normalizer({r,c,dt}) do
+    {r,c,dt}
   end 
 
 

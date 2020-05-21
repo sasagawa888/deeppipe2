@@ -2856,7 +2856,7 @@ __global__ void normalizer_kernel(float *a, float *b, int in_c, int in_h, int in
         for(c1=0;c1<in_c;c1++){
             for(h1=0;h1<in_h;h1++){
                 for(w1=0;w1<in_w;w1++){
-                    a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] - average;
+                    b[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] - average;
                 }
             }
         }
@@ -2900,7 +2900,7 @@ normalizer1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   
     normalizer_kernel << <1, in_n>> >(dev_a, dev_b, in_c, in_h, in_w, in_n);
   
-    // copy to host b,c from GPU dev_b,dev_c
+    // copy to host b from GPU dev_b
     CHECK(cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost));
     
     // free 

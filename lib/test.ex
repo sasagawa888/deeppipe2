@@ -132,7 +132,7 @@ defmodule Test do
   # for CNN test for Fashion-MNIST
   defnetwork init_network9(_x) do
     _x
-    # |> visualizer(1,1)
+    |> analizer(1)
     |> f(5, 5, 1, 12, {1, 1}, 1, 0.1, 0.001)
     |> pooling(2, 2)
     |> f(3, 3, 12, 12, {1, 1}, 1, 0.1, 0.001)
@@ -245,7 +245,7 @@ defmodule Test do
   end
 
   def refashion(m, n) do
-    image = Fashon.train_image(3000, :structure)
+    image = Fashon.train_image(3000, :structure) 
     onehot = Fashon.train_label_onehot(3000)
     test_image = Fashon.test_image(1000, :structure)
     test_label = Fashon.test_label(1000)
