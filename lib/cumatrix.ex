@@ -226,6 +226,10 @@ defmodule Cumatrix do
     raise "NIF analizer1/3 not implemented"
   end
 
+  defp normalizer1(_1, _2, _3, _4, _5) do
+    raise "NIF normalizer1/3 not implemented"
+  end 
+
   # ----------------------------------------------------------------
   @doc """
   generate matrix  mt1*mt2 with cuBLAS. 
@@ -1467,6 +1471,15 @@ defmodule Cumatrix do
     x |> to_list() |> nth(n) |> nth(c) |> Matrex.new() |> Matrex.heatmap(:color256, [])
   end
 
+  @doc """
+  normalizer(ts)
+  calculate average of nth data and sub each elemet the average.
+  """
+  def normalizer({n,c,h,w,dt}) do
+    normalizer1(n,c,h,w,dt)
+  end 
+
+
   def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do
       true
@@ -1475,6 +1488,7 @@ defmodule Cumatrix do
     end
   end
 
+  
   @doc """
   is_matrix(x)
   if x is matrix return true

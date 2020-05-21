@@ -554,11 +554,13 @@ defmodule Deeppipe do
 
   @doc """
   download(x)
+  ```
   case x
   :mnist   download and decompress MNIST dataset
   :fashon  download and decompress Fashion-MNIST dataset
   :cifar10 download and decompress CIFAR10 dataset
   :iris    download iris dataset
+  ```
   """
   def download(:mnist) do
     Application.ensure_all_started(:inets)
@@ -602,12 +604,12 @@ defmodule Deeppipe do
   def download(:fashion) do
     Application.ensure_all_started(:inets)
     base_url = 'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/'
-
+    
     {:ok, resp} =
       :httpc.request(:get, {base_url ++ 'train-images-idx3-ubyte.gz', []}, [],
         body_format: :binary
       )
-
+    
     {{_, 200, 'OK'}, _headers, body} = resp
     Mix.shell().cmd("mkdir fashion")
     File.write!("fashion/train-images-idx3-ubyte.gz", body)
