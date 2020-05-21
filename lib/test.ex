@@ -132,7 +132,7 @@ defmodule Test do
   # for CNN test for Fashion-MNIST
   defnetwork init_network9(_x) do
     _x
-    |> analizer(1)
+    #|> analizer(1)
     |> f(5, 5, 1, 12, {1, 1}, 1, 0.1, 0.001)
     |> pooling(2, 2)
     |> f(3, 3, 12, 12, {1, 1}, 1, 0.1, 0.001)
@@ -140,7 +140,7 @@ defmodule Test do
     |> pooling(2, 2)
     |> f(3, 3, 12, 12, {1, 1}, 0, 0.1, 0.001)
     |> relu
-    # |> visualizer(1,1)
+    #|> visualizer(1,1)
     |> full
     |> w(300, 10, 0.1, 0.001)
     |> softmax

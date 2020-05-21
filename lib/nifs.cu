@@ -2835,33 +2835,7 @@ analizer1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-__global__ void normalizer_kernel(float *a, float *b, int in_c, int in_h, int in_w, int n)
-{
-    int tid = threadIdx.x;
-    int n1,c1,h1,w1,count;
-    float sum,average;
-    if(tid < n)
-    {   
-        n1 = tid;
-        sum = 0.0;
-        for(c1=0;c1<in_c;c1++){
-            for(h1=0;h1<in_h;h1++){
-                for(w1=0;w1<in_w;w1++){
-                    sum = sum + a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
-                }
-            }
-        }
-        count = in_c * in_h * in_w;
-        average = sum / (float)count;
-        for(c1=0;c1<in_c;c1++){
-            for(h1=0;h1<in_h;h1++){
-                for(w1=0;w1<in_w;w1++){
-                    b[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] - average;
-                }
-            }
-        }
-    }
-}
+
   
   /*
   1st arg in_n of tensor
@@ -2872,12 +2846,12 @@ __global__ void normalizer_kernel(float *a, float *b, int in_c, int in_h, int in
   
   */
 static ERL_NIF_TERM
-normalizer1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+standardize1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin;
-    int in_n,in_c,in_h,in_w,n1;
+    int in_n,in_c,in_h,in_w,n1,i,c1,h1,w1,count;
     float *a,*b;
-    float *dev_a, *dev_b;
+    float sum,average;
   
     DISP("normalizer1")
     if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
@@ -2890,23 +2864,27 @@ normalizer1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n1 * sizeof(float), &b_bin);
    
-    // Allocate for GPU
-    CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
-    CHECK(cudaMalloc((void**)&dev_b, n1 * sizeof(float)));
-  
-    // copy from host a,b to GPU dev_a, dev_b
-    CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(dev_b, b, n1 * sizeof(float), cudaMemcpyHostToDevice));
-  
-    normalizer_kernel << <1, in_n>> >(dev_a, dev_b, in_c, in_h, in_w, in_n);
-  
-    // copy to host b from GPU dev_b
-    CHECK(cudaMemcpy(b, dev_b, n1 * sizeof(float), cudaMemcpyDeviceToHost));
     
-    // free 
-    cudaFree(dev_a);
-	cudaFree(dev_b);
-
+    for(i=0;i<in_n;i++){
+        sum = 0.0;
+        for(c1=0;c1<in_c;c1++){
+            for(h1=0;h1<in_h;h1++){
+                for(w1=0;w1<in_w;w1++){
+                    sum = sum + a[IDX4C(i,c1,h1,w1,in_c,in_h,in_w)];
+                }
+            }
+        }
+        count = in_c * in_h * in_w;
+        average = sum / (float)count;
+        for(c1=0;c1<in_c;c1++){
+            for(h1=0;h1<in_h;h1++){
+                for(w1=0;w1<in_w;w1++){
+                    b[IDX4C(i,c1,h1,w1,in_c,in_h,in_w)] = a[IDX4C(i,c1,h1,w1,in_c,in_h,in_w)] - average;
+                }
+            }
+        }
+    }
+    
     return(b_bin);
 }
 
@@ -2965,7 +2943,7 @@ static ErlNifFunc nif_funcs[] = {
   {"is_near1", 3, is_near1},
   {"is_equal1", 3, is_equal1},
   {"analizer1", 3, analizer1},
-  {"normalizer1", 5, normalizer1}
+  {"standardize1", 5, standardize1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)

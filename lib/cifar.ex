@@ -80,7 +80,7 @@ defmodule CIFAR do
 
   # adagrad/2 train network and save network temp.ex
   def adagrad(m, n) do
-    image = train_image(10000) |> CM.normalizer()
+    image = train_image(10000) 
     onehot = train_label_onehot(10000)
     test_image = test_image(300)
     test_label = test_label(300)
@@ -90,7 +90,7 @@ defmodule CIFAR do
 
   # adagrad/2 load network from temp.ex and restart training
   def readagrad(m, n) do
-    image = train_image(10000) |> CM.normalizer()
+    image = train_image(10000) 
     onehot = train_label_onehot(10000)
     test_image = test_image(300)
     test_label = test_label(300)

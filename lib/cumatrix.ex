@@ -226,7 +226,7 @@ defmodule Cumatrix do
     raise "NIF analizer1/3 not implemented"
   end
 
-  defp normalizer1(_1, _2, _3, _4, _5) do
+  defp standardize1(_1, _2, _3, _4, _5) do
     raise "NIF normalizer1/3 not implemented"
   end 
 
@@ -1476,11 +1476,11 @@ defmodule Cumatrix do
   calculate average of nth data and sub each elemet the average.
   when matrix , nothing to do
   """
-  def normalizer({n,c,h,w,dt}) do
-    {n,c,h,w,normalizer1(n,c,h,w,dt)}
+  def standardize({n,c,h,w,dt}) do
+    {n,c,h,w,standardize1(n,c,h,w,dt)}
   end 
 
-  def normalizer({r,c,dt}) do
+  def standardize({r,c,dt}) do
     {r,c,dt}
   end 
 

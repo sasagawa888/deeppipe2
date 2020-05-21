@@ -301,9 +301,9 @@ defmodule Deeppipe do
   """
   def train(network, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
     IO.puts("preparing data")
-    train_image = tr_imag |> CM.new() #|> CM.normalizer() 
+    train_image = tr_imag |> CM.new() |> CM.standardize()
     train_onehot = tr_onehot |> CM.new()
-    test_image = ts_imag |> CM.new() #|> CM.normalizer()
+    test_image = ts_imag |> CM.new() |> CM.standardize()
 
     {time, dict} =
       :timer.tc(fn ->
