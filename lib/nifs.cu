@@ -2853,7 +2853,7 @@ standardize1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     float *a,*b;
     float sum,average;
   
-    DISP("normalizer1")
+    DISP("standardize1")
     if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
     if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
     if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
@@ -2866,15 +2866,17 @@ standardize1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
    
     
     for(i=0;i<in_n;i++){
+        sum = 0.0;
         for(c1=0;c1<in_c;c1++){
-            sum = 0.0;
             for(h1=0;h1<in_h;h1++){
                 for(w1=0;w1<in_w;w1++){
                     sum = sum + a[IDX4C(i,c1,h1,w1,in_c,in_h,in_w)];
                 }
             }
-            count = in_h * in_w;
-            average = sum / (float)count;
+        }
+        count = in_c * in_h * in_w;
+        average = sum / (float)count;
+        for(c1=0;c1<in_c;c1++){
             for(h1=0;h1<in_h;h1++){
                 for(w1=0;w1<in_w;w1++){
                     b[IDX4C(i,c1,h1,w1,in_c,in_h,in_w)] = a[IDX4C(i,c1,h1,w1,in_c,in_h,in_w)] - average;
