@@ -291,8 +291,8 @@ defmodule Deeppipe do
   2nd arg train image list
   3rd arg train onehot list
   4th arg test image list
-  5th arg test labeel list
-  6th arg loss function (;cross or :squre)
+  5th arg test label list
+  6th arg loss function (;cross or :square)
   7th arg learning method
   8th arg minibatch size
   9th arg repeat number
@@ -417,9 +417,11 @@ defmodule Deeppipe do
   @doc """
   normalize dataset element
   normalize(x,bias,div)
+  ```
   x + bias / div
   e.g. bias = -127, div = 255
   0~255 => -0.5~0.5 
+  ```
   """
   def normalize(x, bias, div) do
     Enum.map(x, fn z -> (z + bias) / div end)
@@ -604,12 +606,12 @@ defmodule Deeppipe do
   def download(:fashion) do
     Application.ensure_all_started(:inets)
     base_url = 'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/'
-    
+
     {:ok, resp} =
       :httpc.request(:get, {base_url ++ 'train-images-idx3-ubyte.gz', []}, [],
         body_format: :binary
       )
-    
+
     {{_, 200, 'OK'}, _headers, body} = resp
     Mix.shell().cmd("mkdir fashion")
     File.write!("fashion/train-images-idx3-ubyte.gz", body)

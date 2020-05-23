@@ -23,13 +23,12 @@ defmodule Cumatrix do
       case :code.priv_dir(:deeppipe2) do
         {:error, _} -> "priv"
         path -> path
-      end 
-    
-    file = :filename.join(priv_dir,"nifs")
+      end
+
+    file = :filename.join(priv_dir, "nifs")
     :erlang.load_nif(String.to_charlist(file), 0)
   end
 
-  
   defp new1(_1, _2) do
     raise "NIF new1/2 not implemented"
   end
@@ -228,7 +227,7 @@ defmodule Cumatrix do
 
   defp standardize1(_1, _2, _3, _4, _5) do
     raise "NIF normalizer1/3 not implemented"
-  end 
+  end
 
   # ----------------------------------------------------------------
   @doc """
@@ -1476,14 +1475,13 @@ defmodule Cumatrix do
   calculate average of nth data and sub each elemet the average.
   when matrix , nothing to do
   """
-  def standardize({n,c,h,w,dt}) do
-    {n,c,h,w,standardize1(n,c,h,w,dt)}
-  end 
+  def standardize({n, c, h, w, dt}) do
+    {n, c, h, w, standardize1(n, c, h, w, dt)}
+  end
 
-  def standardize({r,c,dt}) do
-    {r,c,dt}
-  end 
-
+  def standardize({r, c, dt}) do
+    {r, c, dt}
+  end
 
   def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do
@@ -1493,7 +1491,6 @@ defmodule Cumatrix do
     end
   end
 
-  
   @doc """
   is_matrix(x)
   if x is matrix return true

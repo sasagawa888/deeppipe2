@@ -2866,17 +2866,15 @@ standardize1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
    
     
     for(i=0;i<in_n;i++){
-        sum = 0.0;
         for(c1=0;c1<in_c;c1++){
+            sum = 0.0;
             for(h1=0;h1<in_h;h1++){
                 for(w1=0;w1<in_w;w1++){
                     sum = sum + a[IDX4C(i,c1,h1,w1,in_c,in_h,in_w)];
                 }
             }
-        }
-        count = in_c * in_h * in_w;
-        average = sum / (float)count;
-        for(c1=0;c1<in_c;c1++){
+            count = in_h * in_w;
+            average = sum / (float)count;
             for(h1=0;h1<in_h;h1++){
                 for(w1=0;w1<in_w;w1++){
                     b[IDX4C(i,c1,h1,w1,in_c,in_h,in_w)] = a[IDX4C(i,c1,h1,w1,in_c,in_h,in_w)] - average;

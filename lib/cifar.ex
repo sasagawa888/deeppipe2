@@ -12,27 +12,23 @@ defmodule CIFAR do
 
   defnetwork init_network1(_x) do
     _x
+    |> f(3, 3, 3, 32, {1, 1}, 1, 0.1, 0.001)
+    |> relu
+    |> f(3, 3, 32, 32, {1, 1}, 1, 0.1, 0.001)
+    |> pooling(2, 2)
+    |> f(3, 3, 32, 64, {1, 1}, 1, 0.1, 0.001)
+    |> relu
+    |> f(3, 3, 64, 64, {1, 1}, 1, 0.1, 0.001)
+    |> relu
+    |> pooling(2, 2)
     # |> analizer(1)
-    |> f(3, 3, 3, 8, {1, 1}, 1, 0.1, 0.0001)
+    |> f(3, 3, 64, 64, {1, 1}, 0, 0.1, 0.001)
+    |> f(3, 3, 64, 64, {1, 1}, 0, 0.1, 0.001)
+    |> f(3, 3, 64, 64, {1, 1}, 0, 0.1, 0.001)
     # |> analizer(2)
-    |> relu
-    # |> analizer(3)
-    |> f(3, 3, 8, 8, {1, 1}, 1, 0.1, 0.0001)
-    # |> analizer(4)
-    |> pooling(2, 2)
-    # |> analizer(5)
-    |> f(3, 3, 8, 16, {1, 1}, 1, 0.1, 0.0001)
-    # |> analizer(6)
-    |> relu
-    # |> analizer(7)
-    |> f(3, 3, 16, 16, {1, 1}, 1, 0.1, 0.0001)
-    # |> analizer(8)
-    |> relu
-    # |> analizer(9)
-    |> pooling(2, 2)
     |> full
-    |> w(1024, 10, 0.1, 0.0001)
-    |> b(10, 0.1, 0.0001)
+    |> w(256, 10, 0.1, 0.001)
+    |> b(10, 0.1, 0.001)
     |> softmax
   end
 
@@ -80,7 +76,7 @@ defmodule CIFAR do
 
   # adagrad/2 train network and save network temp.ex
   def adagrad(m, n) do
-    image = train_image(10000) 
+    image = train_image(10000)
     onehot = train_label_onehot(10000)
     test_image = test_image(300)
     test_label = test_label(300)
@@ -90,7 +86,7 @@ defmodule CIFAR do
 
   # adagrad/2 load network from temp.ex and restart training
   def readagrad(m, n) do
-    image = train_image(10000) 
+    image = train_image(10000)
     onehot = train_label_onehot(10000)
     test_image = test_image(300)
     test_label = test_label(300)

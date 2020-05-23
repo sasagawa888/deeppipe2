@@ -51,4 +51,3 @@ defmodule Deeppipe2.MixProject do
     ]
   end
 end
-

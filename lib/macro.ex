@@ -3,7 +3,7 @@ defmodule Network do
 
   @moduledoc """
   defnetwork is macros to describe network
-  
+
   argument must have under bar to avoid warning message
 
   ```
