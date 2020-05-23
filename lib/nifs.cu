@@ -2440,6 +2440,9 @@ __global__ void momentum_kernel(float *a, float *b, float *c, float *d, float *e
             else 
                 e[tid] = 0.0;
         }
+        else{
+            e[tid] = 0.0;
+        }
         tid += blockDim.x * gridDim.x;
     }
 }
