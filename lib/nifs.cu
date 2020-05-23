@@ -2434,11 +2434,12 @@ __global__ void momentum_kernel(float *a, float *b, float *c, float *d, float *e
     {   
         
         d[tid] = ((0.9 * b[tid]) - (lr * c[tid]));
-        if(a[tid] != 0.0)
-            e[tid] = a[tid] + d[tid];
-        else 
-            e[tid] = 0.0;
-        
+        if(c[tid != 0.0]){ //for dropout
+            if(a[tid] != 0.0)
+                e[tid] = a[tid] + d[tid];
+            else 
+                e[tid] = 0.0;
+        }
         tid += blockDim.x * gridDim.x;
     }
 }
