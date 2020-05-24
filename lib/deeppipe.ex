@@ -303,27 +303,27 @@ defmodule Deeppipe do
     IO.puts("preparing data")
     train_image = tr_imag |> CM.new() |> CM.standardize()
     train_onehot = tr_onehot |> CM.new()
-    test_image = ts_imag |> CM.new() |> CM.standardize()
 
-    {time, dict} =
+    {time, network1} =
       :timer.tc(fn ->
-        train1(network, train_image, train_onehot, test_image, ts_label, loss_func, method, m, n)
+        train1(network, train_image, train_onehot, loss_func, method, m, n)
       end)
 
-    IO.inspect("time: #{time / 1_000_000} second")
-    IO.inspect("-------------")
-    dict
-  end
-
-  defp train1(network, train_image, train_onehot, test_image, test_label, loss_func, method, m, n) do
-    IO.puts("learning start")
-    IO.puts("count down: loss:")
-    network1 = train2(train_image, network, train_onehot, loss_func, method, m, n)
-    correct = accuracy(test_image, network1, test_label)
+    correct = accuracy(ts_imag, network1, ts_label,m)
     IO.puts("learning end")
     IO.write("accuracy rate = ")
     IO.puts(correct)
+
+    IO.inspect("time: #{time / 1_000_000} second")
+    IO.inspect("-------------")
+  end
+
+  defp train1(network, train_image, train_onehot, loss_func, method, m, n) do
+    IO.puts("learning start")
+    IO.puts("count down: loss:")
+    network1 = train2(train_image, network, train_onehot, loss_func, method, m, n)
     save("temp.ex", network1)
+    network1
   end
 
   defp train2(_, network, _, _, _, _, 0) do
@@ -351,25 +351,44 @@ defmodule Deeppipe do
     network = load(file)
     train_image = tr_imag |> CM.new()
     train_onehot = tr_onehot |> CM.new()
-    test_image = ts_imag |> CM.new()
 
-    {time, dict} =
+    {time, network1} =
       :timer.tc(fn ->
-        train1(network, train_image, train_onehot, test_image, ts_label, loss_func, method, m, n)
+        train1(network, train_image, train_onehot, loss_func, method, m, n)
       end)
+
+    correct = accuracy(ts_imag, network1, ts_label,m)
+    IO.puts("learning end")
+    IO.write("accuracy rate = ")
+    IO.puts(correct)
 
     IO.inspect("time: #{time / 1_000_000} second")
     IO.inspect("-------------")
-    dict
   end
 
   @doc """
   calculate accuracy
+  1st arg  list of image
+  2nd arg  network
+  3rd arg  list of label
   """
-  def accuracy(image, network, label) do
-    [y | _] = forward(image, network, [])
-    CM.accuracy(y, label)
+  def accuracy(image, network, label, m) do
+    accuracy1(image,network,label,m,length(label),0)
   end
+
+  defp accuracy1([],_,[],_,total,correct) do
+    correct / total
+  end  
+  defp accuracy1(image, network,label,m,total,correct) do
+    n = min(length(label),m)
+    image1 = Enum.take(image,n) |> CM.new()
+    label1 = Enum.take(label,n)
+    [y | _] = forward(image1, network, [])
+    n1 = CM.correct(y,label1)
+    accuracy1(Enum.drop(image,n),network,Enum.drop(label,n),m,total,correct+n1)
+  end 
+
+
 
 
 

@@ -1,7 +1,6 @@
 defmodule Iris do
   import Network
   alias Deeppipe, as: DP
-  alias Cumatrix, as: CM
 
   @moduledoc """
   test with iris dataset
@@ -20,35 +19,18 @@ defmodule Iris do
     |> softmax
   end
 
+  
+
   def sgd(m, n) do
-    IO.puts("preparing data")
     image = train_image()
-    label = train_label_onehot()
+    onehot = train_label_onehot()
     network = init_network0(0)
-    IO.puts("ready")
-    network1 = sgd1(image, network, label, m, n)
-    image1 = image |> CM.new()
-    label1 = train_label()
-    correct = DP.accuracy(image1, network1, label1)
-    IO.write("accuracy rate = ")
-    IO.puts(correct)
-    IO.puts("end")
+    test_image = image
+    test_label = train_label()
+    DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
-  def sgd1(_, network, _, _, 0) do
-    network
-  end
-
-  def sgd1(image, network, train, m, n) do
-    {image1, train1} = DP.random_select(image, train, m, 150)
-    network1 = DP.gradient(image1, network, train1)
-    network2 = DP.learning(network, network1, :momentum)
-    [y | _] = DP.forward(image1, network2, [])
-    loss = CM.loss(y, train1, :cross)
-    IO.puts(loss)
-    sgd1(image, network2, train, m, n - 1)
-  end
-
+  
   def train_image() do
     {_, x} = File.read("iris/iris.data")
 
