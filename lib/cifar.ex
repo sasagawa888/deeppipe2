@@ -30,56 +30,16 @@ defmodule CIFAR do
     |> w(100, 10, 0.1, 0.01)
     |> b(10, 0.1, 0.01)
     |> softmax
-  end
+  end 
 
-  # sgd/2 train network and save network temp.ex
-  def sgd(m, n) do
-    image = train_image(10000)
-    onehot = train_label_onehot(10000)
-    test_image = test_image(300)
-    test_label = test_label(300)
-    network = init_network1(0)
-    DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
-  end
 
-  # resgd/2 load network from temp.ex and restart training
-  def resgd(m, n) do
-    image = train_image(10000)
-    onehot = train_label_onehot(10000)
-    test_image = test_image(300)
-    test_label = test_label(300)
-    # test_image = train_image(300)
-    # test_label = train_label(300)
-    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
-  end
-
-  # momentum/2 train network and save network temp.ex
-  def momentum(m, n) do
-    image = train_image(10000)
-    onehot = train_label_onehot(10000)
-    test_image = test_image(300)
-    test_label = test_label(300)
-    network = init_network1(0)
-    DP.train(network, image, onehot, test_image, test_label, :cross, :momentum, m, n)
-  end
-
-  # remomentum/2 load network from temp.ex and restart training
-  def remomentum(m, n) do
-    image = train_image(10000)
-    onehot = train_label_onehot(10000)
-    test_image = test_image(300)
-    test_label = test_label(300)
-    # test_image = train_image(300)
-    # test_label = train_label(300)
-    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :momentum, m, n)
-  end
 
   # adagrad/2 train network and save network temp.ex
   def adagrad(m, n) do
     image = train_image(10000)
     onehot = train_label_onehot(10000)
-    test_image = test_image(300)
-    test_label = test_label(300)
+    test_image = test_image(1000)
+    test_label = test_label(1000)
     network = init_network1(0)
     DP.train(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end

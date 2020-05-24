@@ -371,6 +371,7 @@ defmodule Deeppipe do
   1st arg  list of image
   2nd arg  network
   3rd arg  list of label
+  4th arg  mini batch size
   """
   def accuracy(image, network, label, m) do
     accuracy1(image,network,label,m,length(label),0)
