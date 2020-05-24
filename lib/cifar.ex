@@ -36,8 +36,8 @@ defmodule CIFAR do
 
   # adagrad/2 train network and save network temp.ex
   def adagrad(m, n) do
-    image = train_image(10000)
-    onehot = train_label_onehot(10000)
+    image = train_image()
+    onehot = train_label_onehot()
     test_image = test_image(1000)
     test_label = test_label(1000)
     network = init_network1(0)
@@ -46,27 +46,41 @@ defmodule CIFAR do
 
   # adagrad/2 load network from temp.ex and restart training
   def readagrad(m, n) do
-    image = train_image(10000)
-    onehot = train_label_onehot(10000)
-    test_image = test_image(300)
-    test_label = test_label(300)
-    # test_image = train_image(300)
-    # test_label = train_label(300)
+    image = train_image()
+    onehot = train_label_onehot()
+    test_image = test_image(1000)
+    test_label = test_label(1000)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
 
   # transfer from train-label to onehot list
-  def train_label_onehot(n) do
-    Enum.take(test_label(), n) |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
+  def train_label_onehot() do
+    test_label() |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
 
-  # transfer from test-label to onehot list
-  def test_label_onehot(n) do
-    Enum.take(test_label(), n) |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
-  end
 
   def train_label() do
+    train_label_batch1()
+  end 
+
+  def train_label_batch1() do
     {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_1.bin")
+    [label | train_label1(rest)]
+  end
+  def train_label_batch2() do
+    {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_2.bin")
+    [label | train_label1(rest)]
+  end
+  def train_label_batch3() do
+    {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_3.bin")
+    [label | train_label1(rest)]
+  end
+  def train_label_batch4() do
+    {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_4.bin")
+    [label | train_label1(rest)]
+  end
+  def train_label_batch5() do
+    {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_5.bin")
     [label | train_label1(rest)]
   end
 
@@ -104,12 +118,29 @@ defmodule CIFAR do
     train_label2(rest, n - 1)
   end
 
-  def train_image(n) do
-    train_image() |> Enum.take(n)
+ 
+  def train_image() do
+    train_image_batch1()
   end
 
-  def train_image() do
+  def train_image_batch1() do
     {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_1.bin")
+    train_image1(bin)
+  end
+  def train_image_batch2() do
+    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_2.bin")
+    train_image1(bin)
+  end
+  def train_image_batch3() do
+    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_3.bin")
+    train_image1(bin)
+  end
+  def train_image_batch4() do
+    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_4.bin")
+    train_image1(bin)
+  end
+  def train_image_batch5() do
+    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_5.bin")
     train_image1(bin)
   end
 
