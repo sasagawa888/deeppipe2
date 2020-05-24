@@ -2620,6 +2620,7 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 2nd arg col-size of matris
 3rd arg predicted matrix
 4th arg list of label. each element is integer
+return accuracy rate
 */
 
 static ERL_NIF_TERM
@@ -2658,6 +2659,52 @@ accuracy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     result = enif_make_double(env,rate);
     return(result);
 }
+
+/*
+1st arg row-size of matrix
+2nd arg col-size of matris
+3rd arg predicted matrix
+4th arg list of label. each element is integer
+return correct number
+*/
+
+static ERL_NIF_TERM
+correct1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  head,list,result;
+    int r1, c1, i, j, n, index,sum;
+    float *a;
+    float max;
+  
+    DISP("correct1")
+    if (!enif_get_int(env, argv[0], &r1)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &c1)) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
+
+    a = (float *) a_bin.data;
+    
+
+    // calculate correct number
+    sum = 0;
+    list = argv[3]; 
+    for(i=0;i<r1;i++){
+        max = 0.0;
+        enif_get_list_cell(env, list, &head, &list);
+        enif_get_int(env,head,&n);
+        for(j=0;j<c1;j++){
+            if(a[IDX2C(i,j,r1)] > max){
+                max = a[IDX2C(i,j,r1)];
+                index = j;
+            }
+        }
+        if(index == n)
+            sum++;
+    }
+
+    result = enif_make_double(env,(double)sum);
+    return(result);
+}
+
 
 
 static ERL_NIF_TERM
@@ -2932,6 +2979,7 @@ static ErlNifFunc nif_funcs[] = {
   {"momentum1", 6, momentum1},
   {"adagrad1", 6, adagrad1},
   {"accuracy1", 4, accuracy1},
+  {"correct1", 4, correct1},
   {"pooling1", 7, pooling1},
   {"unpooling1", 8, unpooling1},
   {"convolute1", 13, convolute1},

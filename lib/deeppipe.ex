@@ -364,12 +364,14 @@ defmodule Deeppipe do
   end
 
   @doc """
-  calculate accurace
+  calculate accuracy
   """
   def accuracy(image, network, label) do
     [y | _] = forward(image, network, [])
     CM.accuracy(y, label)
   end
+
+
 
   @doc """
   select random data from image data and train data 

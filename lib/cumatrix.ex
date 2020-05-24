@@ -169,6 +169,10 @@ defmodule Cumatrix do
     raise "NIF accuracy/4 not implemented"
   end
 
+  defp correct1(_1, _2, _3, _4) do
+    raise "NIF accuracy/4 not implemented"
+  end
+
   defp pooling1(_1, _2, _3, _4, _5, _6, _7) do
     raise "NIF pooling1/7 not implemented"
   end
@@ -1178,6 +1182,44 @@ defmodule Cumatrix do
   def accuracy(_, _) do
     raise "accuracy illegal argument"
   end
+
+  @doc """
+  correct(mt1,ls) 
+  return correct number as integer number.
+  mt1 is set of row-vector.Each row-vector is onehot.
+  ls is list each element is label integer number.
+
+  e.g.
+
+  iex(1)> a = Cumatrix.new([[0.0,0.0,1.0],[0.0,0.1,0.3]])
+  {2, 3,
+  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 205, 204, 204, 61, 0, 0, 128, 63, 154,
+   153, 153, 62>>}
+  iex(3)> Cumatrix.correct(a,[2,2])
+  2.0
+  iex(4)> Cumatrix.correct(a,[2,1])
+  1.0
+  iex(5)> 
+  """
+  def correct({r1, c1, dt1}, ls) do
+    if length(ls) != r1 do
+      raise "correct illegal argument"
+    else
+      result = correct1(r1, c1, dt1, ls)
+      if !is_integer(result) do
+        result
+      else
+        error("correct1", result)
+      end
+    end
+  end
+
+  def correct(_, _) do
+    raise "correct illegal argument"
+  end
+
+  
+
 
   @doc """
   random_select(mt1,mt2,n)
