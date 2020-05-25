@@ -366,6 +366,52 @@ defmodule Deeppipe do
     IO.inspect("-------------")
   end
 
+
+  @doc """
+  train for batch. not show accuracy, not show execute time
+  ```
+  1st arg network
+  2nd arg train image list
+  3rd arg train onehot list
+  4th arg loss function (;cross or :square)
+  5th arg learning method
+  6th arg minibatch size
+  7th arg repeat number
+  ```
+  automaticaly save network to temp.ex
+  """
+  def batch_train(network, tr_imag, tr_onehot, loss_func, method, m, n) do
+    IO.puts("batch process")
+    train_image = tr_imag |> CM.new() |> CM.standardize()
+    train_onehot = tr_onehot |> CM.new()
+
+    batch_train1(network, train_image, train_onehot, loss_func, method, m, n) 
+  end
+
+  defp batch_train1(network, train_image, train_onehot, loss_func, method, m, n) do
+    IO.puts("learning start")
+    IO.puts("count down: loss:")
+    network1 = batch_train2(train_image, network, train_onehot, loss_func, method, m, n)
+    save("temp.ex", network1)
+    network1
+  end
+
+  defp batch_train2(_, network, _, _, _, _, 0) do
+    network
+  end
+
+  defp batch_train2(image, network, train, loss_func, method, m, n) do
+    {image1, train1} = CM.random_select(image, train, m)
+    network1 = gradient(image1, network, train1)
+    network2 = learning(network, network1, method)
+    [y | _] = forward(image1, network2, [])
+    loss = CM.loss(y, train1, loss_func)
+    IO.write(n)
+    IO.write(" ")
+    IO.puts(loss)
+    train2(image, network2, train, loss_func, method, m, n - 1)
+  end
+
   @doc """
   calculate accuracy
   1st arg  list of image
