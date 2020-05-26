@@ -40,15 +40,16 @@ defmodule Network do
   data structure
   ```
   network
-  [{:weight,w,ir,lr,dr,v},{:bias,b,ir,lr,dr},{:function,name},{:filter,w,{st_h,st_w},pad,ir,lr,dr,v} ...]
+  [{:weight,w,ir,lr,dr,v},{:bias,b,ir,lr,dr,v},{:function,name},{:filter,w,{st_h,st_w},pad,ir,lr,dr,v} ...]
   weight
-  {:weight,w,ir,lr,dp,v} w is matrix, ir is rate for initial random number,lr is learning rate, dp is dropout rate, v is for momentum,adagrad,adam
+  {:weight,w,ir,lr,dp,v,mask} w is matrix, ir is rate for initial random number,
+  lr is learning rate, dp is dropout rate.
   bias
-  {:bias,b,ir,lr,dp,v} b is row vector
+  {:bias,b,ir,lr,dp,v,mask} b is row vector
   function
   {:function,name} name is function name within sigmoid tanh relu softmax
   filter
-  {:filter,w,{st_h,st_w},pad,ir,lr,dr,v}
+  {:filter,w,{st_h,st_w},pad,ir,lr,dr,v,mask}
   pooling
   {:pooling,st_,st_w}
   ```
@@ -76,7 +77,7 @@ defmodule Network do
 
   defp parse({:w, _, [x, y]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1), 0.1, 0.11, 0.0,
+      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1), 0.1, 0.1, 0.0,
        CM.new(unquote(x), unquote(y))}
     end
   end

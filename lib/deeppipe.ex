@@ -37,10 +37,17 @@ defmodule Deeppipe do
     res
   end
 
-  def forward(x, [{:weight, w, _, _, _, _} | rest], res) do
+  def forward(x, [{:weight, w, _, _, 0.0, _} | rest], res) do
     # IO.puts("FD weight")
     x1 = CM.mult(x, w)
     forward(x1, rest, [x1 | res])
+  end
+
+  def forward(x, [{:weight, w, _, _, dr, _} | rest], res) do
+    # IO.puts("FD weight")
+    w1 = CM.dropout(w,dr)
+    x1 = CM.mult(x, w1)
+    forward(x1, rest, [{x1,w1} | res])
   end
 
   def forward(x, [{:bias, b, _, _, _, _} | rest], res) do
@@ -129,11 +136,19 @@ defmodule Deeppipe do
     backward(l, rest, us, [{:bias, b1, ir, lr, dr, v} | res])
   end
 
-  defp backward(l, [{:weight, w, ir, lr, dr, v} | rest], [u | us], res) do
+  defp backward(l, [{:weight, w, ir, lr, 0.0, v} | rest], [u | us], res) do
     # IO.puts("BK weight")
     {n, _} = CM.size(l)
     w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n)
     l1 = CM.mult(l, CM.transpose(w))
+    backward(l1, rest, us, [{:weight, w1, ir, lr, 0.0, v} | res])
+  end
+
+  defp backward(l, [{:weight, w, ir, lr, dr, v} | rest], [{u,maskw} | us], res) do
+    # IO.puts("BK weight")
+    {n, _} = CM.size(l)
+    w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n) #require mask
+    l1 = CM.mult(l, CM.transpose(CM.emult(w,maskw)))
     backward(l1, rest, us, [{:weight, w1, ir, lr, dr, v} | res])
   end
 
