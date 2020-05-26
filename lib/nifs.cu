@@ -2405,16 +2405,12 @@ __global__ void sgd1_kernel(float *a, float *b, float *c, float lr, int n)
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	while (tid < n)
 	{
-        if(a[tid] != 0.0)
-            c[tid] = a[tid] - b[tid]*lr;
-        else 
-            c[tid] = 0.0;
+        c[tid] = a[tid] - b[tid]*lr;
 		tid += blockDim.x * gridDim.x;
 	}
 }
 /*
-w - g*lr |> dropout()
-for sgd
+w - g*lr
 w is weight matrix.
 g is gradient matrix.
 when element of w is zero result is zero. This means dropout.
@@ -2424,30 +2420,27 @@ return updated weight matrix.
 2nd arg is weight matrix or tensor
 3rd arg is gradient matrix or tensor
 4th arg is learning rate
-5th arg is dropout rate
 */
 static ERL_NIF_TERM
 sgd1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin, b_bin;
     ERL_NIF_TERM  c_bin;
-    int n,r;
+    int n;
     float *a,*b,*c,*dev_a, *dev_b, *dev_c;
-    float lr,dr,randfloat;
-    double learning_rate,dropout_rate;
+    float lr;
+    double learning_rate;
 
     DISP("sgd1")
     if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
     if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
     if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_int(env,3);
     if (!enif_get_double(env, argv[3], &learning_rate)) return enif_make_int(env,4);
-    if (!enif_get_double(env, argv[4], &dropout_rate)) return enif_make_int(env,5);
 
 
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
     lr = (float) learning_rate;
-    dr = (float) dropout_rate;
 
     	// Allocate for GPU
 	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
@@ -2464,13 +2457,6 @@ sgd1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 	// copy to host c from GPU dev_c
 	CHECK(cudaMemcpy(c, dev_c, n * sizeof(float), cudaMemcpyDeviceToHost));
 
-
-    // dropout
-    randfloat = (double)(rand() % 100) / 100.0;
-    if(dr != 0.0 && dr < randfloat){
-        r = rand() % n;
-        c[r] = 0.0;
-    }
 
     // free 
     cudaFree(dev_a);
@@ -2493,15 +2479,8 @@ __global__ void momentum_kernel(float *a, float *b, float *c, float *d, float *e
     {   
         
         d[tid] = ((0.9 * b[tid]) - (lr * c[tid]));
-        if(c[tid != 0.0]){ //for dropout
-            if(a[tid] != 0.0)
-                e[tid] = a[tid] + d[tid];
-            else 
-                e[tid] = 0.0;
-        }
-        else{
-            e[tid] = 0.0;
-        }
+        e[tid] = a[tid] + d[tid];
+        
         tid += blockDim.x * gridDim.x;
     }
 }
@@ -2512,18 +2491,18 @@ __global__ void momentum_kernel(float *a, float *b, float *c, float *d, float *e
 3rd arg v-matrix        (b)
 4th arg gradient-matrix (c)
 5th arg learning rate
-6th arg deropout rate
-return tuple
+
+return tuple {next_v-mattrix,weight_matrix}
 */
 static ERL_NIF_TERM
 momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin,c_bin;
     ERL_NIF_TERM  d_bin,e_bin,tuple;
-    int n,r;
+    int n;
     float *a,*b,*c,*d,*e;
     float *dev_a, *dev_b, *dev_c ,*dev_d, *dev_e;
-    float lr,dr,randfloat;
-    double learning_rate,dropout_rate;
+    float lr;
+    double learning_rate;
   
     DISP("momentum1")
     if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
@@ -2531,7 +2510,6 @@ momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_inspect_binary(env, argv[2], &b_bin )) return enif_make_int(env,3);
     if (!enif_inspect_binary(env, argv[3], &c_bin )) return enif_make_int(env,4);
     if (!enif_get_double(env, argv[4], &learning_rate)) return enif_make_int(env,5);
-    if (!enif_get_double(env, argv[5], &dropout_rate)) return enif_make_int(env,6);
 
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -2539,7 +2517,6 @@ momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     d = (float *) enif_make_new_binary(env, n * sizeof(float), &d_bin);
     e = (float *) enif_make_new_binary(env, n * sizeof(float), &e_bin);
     lr = (float) learning_rate;
-    dr = (float) dropout_rate;
     
   
     // Allocate for GPU
@@ -2562,14 +2539,7 @@ momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(d, dev_d, n * sizeof(float), cudaMemcpyDeviceToHost));
     CHECK(cudaMemcpy(e, dev_e, n * sizeof(float), cudaMemcpyDeviceToHost));
 
-    // dropout
-    randfloat = (double)(rand() % 100) / 100.0;
-    if(dr != 0.0 && dr < randfloat){
-        r = rand() % n;
-        e[r] = 0.0;
-    }
     
-
     // free 
     cudaFree(dev_a);
 	cudaFree(dev_b);
@@ -2607,18 +2577,17 @@ __global__ void adagrad_kernel(float *a, float *b, float *c, float *d, float *e,
 3rd arg h-matrix     (b_bin)
 4th arg grad-matrix  (c_bin)
 5th arg learning rate
-6th arg deropout rate
 return tuple {new-h,new-w}
 */
 static ERL_NIF_TERM
 adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin,c_bin;
     ERL_NIF_TERM  d_bin,e_bin,tuple;
-    int n,r;
+    int n;
     float *a,*b,*c,*d,*e;
     float *dev_a, *dev_b, *dev_c, *dev_d, *dev_e;
-    float lr,dr,randfloat;
-    double learning_rate,dropout_rate;
+    float lr;
+    double learning_rate;
     
     DISP("adagrad1")
     if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
@@ -2626,7 +2595,6 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_int(env,3);
     if (!enif_inspect_binary(env, argv[3], &c_bin)) return enif_make_int(env,4);
     if (!enif_get_double(env, argv[4], &learning_rate)) return enif_make_int(env,5);
-    if (!enif_get_double(env, argv[5], &dropout_rate)) return enif_make_int(env,6);
 
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
@@ -2634,7 +2602,6 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     d = (float *) enif_make_new_binary(env, n * sizeof(float), &d_bin);
     e = (float *) enif_make_new_binary(env, n * sizeof(float), &e_bin);
     lr = (float) learning_rate;
-    dr = (float) dropout_rate;
   
     // Allocate for GPU
     CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
@@ -2656,12 +2623,7 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(d, dev_d, n * sizeof(float), cudaMemcpyDeviceToHost));
     CHECK(cudaMemcpy(e, dev_e, n * sizeof(float), cudaMemcpyDeviceToHost));
 
-    // dropout
-    randfloat = (double)(rand() % 100) / 100.0;
-    if(dr != 0.0 && dr < randfloat){
-        r = rand() % n;
-        e[r] = 0.0;
-    }
+    
 
     // free 
     cudaFree(dev_a);
@@ -3036,9 +2998,9 @@ static ErlNifFunc nif_funcs[] = {
   {"to_list2", 4, to_list2},
   {"to_list3", 5, to_list3},
   {"dropout1", 2 , dropout1},
-  {"sgd1", 5, sgd1},
-  {"momentum1", 6, momentum1},
-  {"adagrad1", 6, adagrad1},
+  {"sgd1", 4, sgd1},
+  {"momentum1", 5, momentum1},
+  {"adagrad1", 5, adagrad1},
   {"accuracy1", 4, accuracy1},
   {"correct1", 4, correct1},
   {"pooling1", 7, pooling1},

@@ -157,16 +157,16 @@ defmodule Cumatrix do
     raise "NIF dropout1/2 not implemented"
   end
 
-  defp sgd1(_1, _2, _3, _4, _5) do
-    raise "NIF sgd1/5 not implemented"
+  defp sgd1(_1, _2, _3, _4) do
+    raise "NIF sgd1/4 not implemented"
   end
 
-  defp momentum1(_1, _2, _3, _4, _5, _6) do
-    raise "NIF momentum1/6 not implemented"
+  defp momentum1(_1, _2, _3, _4, _5) do
+    raise "NIF momentum1/5 not implemented"
   end
 
-  defp adagrad1(_1, _2, _3, _4, _5, _6) do
-    raise "NIF adagrad1/6 not implemented"
+  defp adagrad1(_1, _2, _3, _4, _5) do
+    raise "NIF adagrad1/5 not implemented"
   end
 
   defp accuracy1(_1, _2, _3, _4) do
@@ -1068,8 +1068,8 @@ defmodule Cumatrix do
   sgd(mt1,mt2,lr,dr)
   element of mt1 - element of mt2*lr. and dropout with rate dr.
   """
-  def sgd({r1, c1, dt1}, {r1, c1, dt2}, lr, dr) do
-    result = sgd1(r1 * c1, dt1, dt2, lr, dr)
+  def sgd({r1, c1, dt1}, {r1, c1, dt2}, lr) do
+    result = sgd1(r1 * c1, dt1, dt2, lr)
 
     if !is_integer(result) do
       {r1, c1, result}
@@ -1078,8 +1078,8 @@ defmodule Cumatrix do
     end
   end
 
-  def sgd({c1, h1, w1, dt1}, {c1, h1, w1, dt2}, lr, dr) do
-    result = sgd1(c1 * h1 * w1, dt1, dt2, lr, dr)
+  def sgd({c1, h1, w1, dt1}, {c1, h1, w1, dt2}, lr) do
+    result = sgd1(c1 * h1 * w1, dt1, dt2, lr)
 
     if !is_integer(result) do
       {c1, h1, w1, result}
@@ -1088,8 +1088,8 @@ defmodule Cumatrix do
     end
   end
 
-  def sgd({n1, c1, h1, w1, dt1}, {n1, c1, h1, w1, dt2}, lr, dr) do
-    result = sgd1(n1 * c1 * h1 * w1, dt1, dt2, lr, dr)
+  def sgd({n1, c1, h1, w1, dt1}, {n1, c1, h1, w1, dt2}, lr) do
+    result = sgd1(n1 * c1 * h1 * w1, dt1, dt2, lr)
 
     if !is_integer(result) do
       {n1, c1, h1, w1, result}
@@ -1103,16 +1103,15 @@ defmodule Cumatrix do
   end
 
   @doc """
-  momentum(mt1,mt2,mt3,lr,dr)
+  momentum(mt1,mt2,mt3,lr)
   for each element
   v = 0.5 * mt2(x,y) - lr * mt3(x,y).
   w = mt1 + v.
-  and dropout w with dr.
   return tuple {v,w}
   for learn/3 in DeepPipe2
   """
-  def momentum({r1, c1, dt1}, {r1, c1, dt2}, {r1, c1, dt3}, lr, dr) do
-    result = momentum1(r1 * c1, dt1, dt2, dt3, lr, dr)
+  def momentum({r1, c1, dt1}, {r1, c1, dt2}, {r1, c1, dt3}, lr) do
+    result = momentum1(r1 * c1, dt1, dt2, dt3, lr)
 
     if !is_integer(result) do
       {v1, w1} = result
@@ -1122,8 +1121,8 @@ defmodule Cumatrix do
     end
   end
 
-  def momentum({n, c, h, w, dt1}, {n, c, h, w, dt2}, {n, c, h, w, dt3}, lr, dr) do
-    result = momentum1(n * c * h * w, dt1, dt2, dt3, lr, dr)
+  def momentum({n, c, h, w, dt1}, {n, c, h, w, dt2}, {n, c, h, w, dt3}, lr) do
+    result = momentum1(n * c * h * w, dt1, dt2, dt3, lr)
 
     if !is_integer(result) do
       {v1, w1} = result
@@ -1133,12 +1132,12 @@ defmodule Cumatrix do
     end
   end
 
-  def momentum(_, _, _, _, _) do
+  def momentum(_, _, _, _) do
     raise "momentum illegal argument"
   end
 
   @doc """
-  adagrad(mt1,mt2,mt3,lr,dr)
+  adagrad(mt1,mt2,mt3,lr)
   for each element
   h = mt2 + mt3*mt3.  
   w = mt1 - lr * (1 / sqrt(h)) * mt2. 
@@ -1146,8 +1145,8 @@ defmodule Cumatrix do
   return tuple(h,w)
   for learn/3 in DeepPipe2
   """
-  def adagrad({r1, c1, dt1}, {r1, c1, dt2}, {r1, c1, dt3}, lr, dr) do
-    result = adagrad1(r1 * c1, dt1, dt2, dt3, lr, dr)
+  def adagrad({r1, c1, dt1}, {r1, c1, dt2}, {r1, c1, dt3}, lr) do
+    result = adagrad1(r1 * c1, dt1, dt2, dt3, lr)
 
     if !is_integer(result) do
       {dth, dtw} = result
@@ -1157,8 +1156,8 @@ defmodule Cumatrix do
     end
   end
 
-  def adagrad({n, c, h, w, dt1}, {n, c, h, w, dt2}, {n, c, h, w, dt3}, lr, dr) do
-    result = adagrad1(n * c * h * w, dt1, dt2, dt3, lr, dr)
+  def adagrad({n, c, h, w, dt1}, {n, c, h, w, dt2}, {n, c, h, w, dt3}, lr) do
+    result = adagrad1(n * c * h * w, dt1, dt2, dt3, lr)
 
     if !is_integer(result) do
       {dth, dtw} = result
@@ -1168,7 +1167,7 @@ defmodule Cumatrix do
     end
   end
 
-  def adagrad(_, _, _, _, _) do
+  def adagrad(_, _, _, _) do
     raise "adagrad illegal argument"
   end
 

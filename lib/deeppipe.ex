@@ -183,13 +183,13 @@ defmodule Deeppipe do
 
   def learning([{:weight, w, ir, lr, dr, v} | rest], [{:weight, w1, _, _, _, _} | rest1]) do
     # IO.puts("LN weight")
-    w2 = CM.sgd(w, w1, lr, dr)
+    w2 = CM.sgd(w, w1, lr)
     [{:weight, w2, ir, lr, dr, v} | learning(rest, rest1)]
   end
 
   def learning([{:bias, w, ir, lr, dr, v} | rest], [{:bias, w1, _, _, _, _} | rest1]) do
     # IO.puts("LN bias")
-    w2 = CM.sgd(w, w1, lr, dr)
+    w2 = CM.sgd(w, w1, lr)
     [{:bias, w2, ir, lr, dr, v} | learning(rest, rest1)]
   end
 
@@ -197,7 +197,7 @@ defmodule Deeppipe do
         {:filter, w1, _, _, _, _, _, _} | rest1
       ]) do
     # IO.puts("LN filter")
-    w2 = CM.sgd(w, w1, lr, dr)
+    w2 = CM.sgd(w, w1, lr)
     # w2 |> CM.to_list() |> IO.inspect()
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, v} | learning(rest, rest1)]
   end
@@ -228,14 +228,14 @@ defmodule Deeppipe do
         :momentum
       ) do
     # IO.puts("LMom weight")
-    {v1, w2} = CM.momentum(w, v, w1, lr, dr)
+    {v1, w2} = CM.momentum(w, v, w1, lr)
     [{:weight, w2, ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
   end
 
   def learning([{:bias, w, ir, lr, dr, v} | rest], [{:bias, w1, _, _, _} | rest1], :momentum) do
     # IO.puts("LMom bias")
-    {v1, w2} = CM.momentum(w, v, w1, lr, dr)
-    [{:bias, w2, ir, lr, v1} | learning(rest, rest1, :momentum)]
+    {v1, w2} = CM.momentum(w, v, w1, lr)
+    [{:bias, w2, ir, lr, dr,v1} | learning(rest, rest1, :momentum)]
   end
 
   def learning(
@@ -244,7 +244,7 @@ defmodule Deeppipe do
         :momentum
       ) do
     # IO.puts("LMom filter")
-    {v1, w2} = CM.momentum(w, v, w1, lr, dr)
+    {v1, w2} = CM.momentum(w, v, w1, lr)
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
   end
 
@@ -263,12 +263,12 @@ defmodule Deeppipe do
         [{:weight, w1, _, _, _, _} | rest1],
         :adagrad
       ) do
-    {h1, w2} = CM.adagrad(w, h, w1, lr, dr)
+    {h1, w2} = CM.adagrad(w, h, w1, lr)
     [{:weight, w2, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
   def learning([{:bias, w, ir, lr, dr, h} | rest], [{:bias, w1, _, _, _, _} | rest1], :adagrad) do
-    {h1, w2} = CM.adagrad(w, h, w1, lr, dr)
+    {h1, w2} = CM.adagrad(w, h, w1, lr)
     [{:bias, w2, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
@@ -277,7 +277,7 @@ defmodule Deeppipe do
         [{:filter, w1, _, _, _, _, _, _} | rest1],
         :adagrad
       ) do
-    {h1, w2} = CM.adagrad(w, h, w1, lr, dr)
+    {h1, w2} = CM.adagrad(w, h, w1, lr)
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
