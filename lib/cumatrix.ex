@@ -1176,9 +1176,9 @@ defmodule Cumatrix do
   end
 
   @doc """
-  1st arg original 
-  2nd arg new
-  3rd dropout
+  1st arg new-tensor
+  2nd arg original-tensor
+  3rd mask-matrix
 
   return tensor
   For eash element, when dropout==1 -> new, dropout==0 -> original

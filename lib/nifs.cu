@@ -2644,17 +2644,17 @@ __global__ void mask_kernel(float *a, float *b, float *c, float *d, int n)
     {   
 
         if(c[tid] != 0.0)
-            d[tid] = b[tid];
-        else 
             d[tid] = a[tid];
+        else 
+            d[tid] = b[tid];
         tid += blockDim.x * gridDim.x;
     }
 }
  
 /*
 1st arg row-size of vectorized each-matrix
-2nd arg original-matrix (a_bin)
-3rd arg new-matrix      (b_bin)
+2nd arg new-matrix (a_bin)
+3rd arg original-matrix      (b_bin)
 4th arg dropout-matrix  (c_bin)
 
 return new-matrix masked with dropout-matrix

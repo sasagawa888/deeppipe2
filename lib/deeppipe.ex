@@ -147,7 +147,7 @@ defmodule Deeppipe do
   defp backward(l, [{:weight, w, ir, lr, dr, v} | rest], [{u,maskw} | us], res) do
     # IO.puts("BK weight")
     {n, _} = CM.size(l)
-    w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n) #require mask
+    w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n) |> CM.mask(w,maskw)
     l1 = CM.mult(l, CM.transpose(CM.emult(w,maskw)))
     backward(l1, rest, us, [{:weight, w1, ir, lr, dr, v} | res])
   end
