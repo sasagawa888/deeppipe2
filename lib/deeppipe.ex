@@ -24,6 +24,16 @@ defmodule Deeppipe do
     :erlang.garbage_collect()
   end
 
+  # for dropout. push mask-tensor to input data as tuple.
+  # e.g.  [after-data,{befor-data,mask-tensor}|befors]
+  # backward with dropout require mask-tensor.
+  defp push(x,y,[]) do
+    [x,y]
+  end 
+  defp push(x,y,[z|zs]) do
+    [x,{z,y}|zs]
+  end 
+
   @doc """
   forward
   return all middle data
@@ -37,23 +47,28 @@ defmodule Deeppipe do
     res
   end
 
-  def forward(x, [{:weight, w, _, _, 0.0, _} | rest], res) do
-    # IO.puts("FD weight")
-    x1 = CM.mult(x, w)
-    forward(x1, rest, [x1 | res])
-  end
-
   def forward(x, [{:weight, w, _, _, dr, _} | rest], res) do
     # IO.puts("FD weight")
-    w1 = CM.dropout(w,dr)
-    x1 = CM.mult(x, w1)
-    forward(x1, rest, [{x1,w1} | res])
+    if dr == 0.0 do 
+      x1 = CM.mult(x, w)
+      forward(x1, rest, [x1 | res])
+    else
+      w1 = CM.dropout(w,dr)
+      x1 = CM.mult(x, w1) 
+      forward(x1, rest, push(x1,w1,res))
+    end 
   end
 
-  def forward(x, [{:bias, b, _, _, _, _} | rest], res) do
+  def forward(x, [{:bias, b, _, _, dr, _} | rest], res) do
     # IO.puts("FD bias")
-    x1 = CM.add(x, b)
-    forward(x1, rest, [x1 | res])
+    if dr == 0.0 do
+      x1 = CM.add(x, b)
+      forward(x1, rest, [x1 | res])
+    else
+      b1 = CM.dropout(b,dr)
+      x1 = CM.add(x, b1)
+      forward(x1, rest, push(x1,b1,res))
+    end 
   end
 
   def forward(x, [{:function, name} | rest], res) do
@@ -62,11 +77,18 @@ defmodule Deeppipe do
     forward(x1, rest, [x1 | res])
   end
 
-  def forward(x, [{:filter, w, {st_h, st_w}, pad, _, _, _, _} | rest], res) do
+  def forward(x, [{:filter, w, {st_h, st_w}, pad, _, _, dr, _} | rest], res) do
     # IO.puts("FD filter")
-    x1 = CM.convolute(x, w, st_h, st_w, pad)
-    forward(x1, rest, [x1 | res])
+    if dr == 0.0 do 
+      x1 = CM.convolute(x, w, st_h, st_w, pad)
+      forward(x1, rest, [x1 | res])
+    else 
+      w1 = CM.dropout(w,dr)
+      x1 = CM.convolute(x, CM.emult(w,w1), st_h, st_w, pad)
+      forward(x1, rest, push(x1,w1,res))
+    end 
   end
+
 
   def forward(x, [{:pooling, st_h, st_w} | rest], [_ | res]) do
     # IO.puts("FD pooling")
@@ -119,6 +141,38 @@ defmodule Deeppipe do
     res
   end
 
+  
+
+  defp backward(l, [{:weight, w, ir, lr, dr, v} | rest], [u | us], res) do
+    # IO.puts("BK weight")
+    if dr == 0.0 do 
+      {n, _} = CM.size(l)
+      w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n)
+      l1 = CM.mult(l, CM.transpose(w))
+      backward(l1, rest, us, [{:weight, w1, ir, lr, 0.0, v} | res])
+    else
+      {n, _} = CM.size(l)
+      {u1,mw} = u
+      w1 = CM.mult(CM.transpose(u1), l) |> CM.mult(1 / n) |> CM.mask(w,mw)
+      l1 = CM.mult(l, CM.transpose(CM.emult(w,mw)))
+      backward(l1, rest, us, [{:weight, w1, ir, lr, dr, v} | res])
+    end 
+  end
+
+
+  defp backward(l, [{:bias, b, ir, lr, dr, v} | rest], [u | us], res) do
+    # IO.puts("BK bias")
+    if dr == 0.0 do 
+      b1 = CM.average(l)
+      backward(l, rest, us, [{:bias, b1, ir, lr, 0.0, v} | res])
+    else
+      {_,mw} = u
+      b1 = CM.average(l) |> CM.mask(b,mw)
+      backward(l, rest, us, [{:bias, b1, ir, lr, dr, v} | res])
+    end 
+  end
+
+ 
   defp backward(l, [{:function, :softmax} | rest], [_ | us], res) do
     # IO.puts("BK softmax")
     backward(l, rest, us, [{:function, :softmax} | res])
@@ -130,34 +184,19 @@ defmodule Deeppipe do
     backward(l1, rest, us, [{:function, name} | res])
   end
 
-  defp backward(l, [{:bias, _, ir, lr, dr, v} | rest], [_ | us], res) do
-    # IO.puts("BK bias")
-    b1 = CM.average(l)
-    backward(l, rest, us, [{:bias, b1, ir, lr, dr, v} | res])
-  end
-
-  defp backward(l, [{:weight, w, ir, lr, 0.0, v} | rest], [u | us], res) do
-    # IO.puts("BK weight")
-    {n, _} = CM.size(l)
-    w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n)
-    l1 = CM.mult(l, CM.transpose(w))
-    backward(l1, rest, us, [{:weight, w1, ir, lr, 0.0, v} | res])
-  end
-
-  # when dropout is available
-  defp backward(l, [{:weight, w, ir, lr, dr, v} | rest], [{u,mw} | us], res) do
-    # IO.puts("BK weight")
-    {n, _} = CM.size(l)
-    w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n) |> CM.mask(w,mw)
-    l1 = CM.mult(l, CM.transpose(CM.emult(w,mw)))
-    backward(l1, rest, us, [{:weight, w1, ir, lr, dr, v} | res])
-  end
 
   defp backward(l, [{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest], [u | us], res) do
     # IO.puts("BK filter")
-    w1 = CM.gradfilter(u, w, l, st_h, st_w, pad)
-    l1 = CM.deconvolute(l, w, st_h, st_w, pad)
-    backward(l1, rest, us, [{:filter, w1, {st_h, st_w}, pad, ir, lr, dr, v} | res])
+    if dr == 0.0 do 
+      w1 = CM.gradfilter(u, w, l, st_h, st_w, pad)
+      l1 = CM.deconvolute(l, w, st_h, st_w, pad)
+      backward(l1, rest, us, [{:filter, w1, {st_h, st_w}, pad, ir, lr, 0.0, v} | res])
+    else 
+      {u1,mw} = u
+      w1 = CM.gradfilter(u1, w, l, st_h, st_w, pad) |> CM.mask(w,mw)
+      l1 = CM.deconvolute(l, CM.emult(w,mw), st_h, st_w, pad)
+      backward(l1, rest, us, [{:filter, w1, {st_h, st_w}, pad, ir, lr, dr, v} | res])
+    end 
   end
 
   defp backward(l, [{:pooling, st_h, st_w} | rest], [u | us], res) do
@@ -332,6 +371,7 @@ defmodule Deeppipe do
 
     IO.inspect("time: #{time / 1_000_000} second")
     IO.inspect("-------------")
+    :ok
   end
 
   defp train1(network, train_image, train_onehot, loss_func, method, m, n) do
@@ -380,6 +420,7 @@ defmodule Deeppipe do
 
     IO.inspect("time: #{time / 1_000_000} second")
     IO.inspect("-------------")
+    :ok
   end
 
 
