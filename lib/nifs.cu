@@ -2341,6 +2341,65 @@ to_list3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(list);
 }
 
+__global__ void dropout1_kernel(float *a, int n)
+{
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	while (tid < n)
+	{
+        a[tid] = 1.0;
+		tid += blockDim.x * gridDim.x;
+	}
+}
+
+/*
+1st arg size of mask tensor
+2nd arg rate of dropout
+
+return mask tensor
+element of mask tensor is basicaly 1.0.
+element of dropout rate is 0.0.
+when forward and backward, generate Hadamard product with mask tensor
+*/
+static ERL_NIF_TERM
+dropout1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ERL_NIF_TERM  a_bin;
+    int n,count,i,j;
+    float *a,*dev_a;
+    double dropout_rate;
+
+    DISP("dropout1")
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_get_double(env, argv[1], &dropout_rate)) return enif_make_int(env,2);
+
+    a = (float *) enif_make_new_binary(env, n * sizeof(float), &a_bin);
+
+    // Allocate for GPU
+	CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+
+    // copy from host a,b to GPU dev_a, dev_b
+	CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+
+	dropout1_kernel << <128, 128 >> >(dev_a, n);
+
+	// copy to host c from GPU dev_c
+	CHECK(cudaMemcpy(a, dev_a, n * sizeof(float), cudaMemcpyDeviceToHost));
+
+
+    // dropout
+    count = (int)(double(n)*dropout_rate);
+    for(i=0;i<count;i++){
+        j = rand() % n;
+        a[j] = 0.0;
+    }
+
+
+    // free 
+    cudaFree(dev_a);
+
+    return(a_bin);
+}
+
+
 __global__ void sgd1_kernel(float *a, float *b, float *c, float lr, int n)
 {
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -2415,7 +2474,7 @@ sgd1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     // free 
     cudaFree(dev_a);
-	cudaFree(dev_b);
+	cudaFree(dev_b);    
 	cudaFree(dev_c);
 
     return(c_bin);
@@ -2976,6 +3035,8 @@ static ErlNifFunc nif_funcs[] = {
   {"to_list1", 3, to_list1},
   {"to_list2", 4, to_list2},
   {"to_list3", 5, to_list3},
+  {"dropout1", 2 , dropout1},
+  {"sgd1", 5, sgd1},
   {"momentum1", 6, momentum1},
   {"adagrad1", 6, adagrad1},
   {"accuracy1", 4, accuracy1},
@@ -2989,7 +3050,6 @@ static ErlNifFunc nif_funcs[] = {
   {"gradfilter2", 16, gradfilter2},
   {"full1", 5, full1},
   {"unfull1", 5, unfull1},
-  {"sgd1", 5, sgd1},
   {"random_select1", 7, random_select1},
   {"random_select2", 9, random_select2},
   {"is_near1", 3, is_near1},

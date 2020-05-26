@@ -153,6 +153,10 @@ defmodule Cumatrix do
     raise "NIF to_list3/5 not implemented"
   end
 
+  defp dropout1(_1, _2) do
+    raise "NIF dropout1/2 not implemented"
+  end
+
   defp sgd1(_1, _2, _3, _4, _5) do
     raise "NIF sgd1/5 not implemented"
   end
@@ -1038,6 +1042,27 @@ defmodule Cumatrix do
       error("cross_entropy", result)
     end
   end
+
+  @doc """
+  generate mask matrix or tensor for dropout
+  """
+  def dropout({r,c,_},dr) do
+    result = dropout1(r*c,dr)
+    if !is_integer(result) do
+      {r,c,result}
+    else
+      error("dropout1", result)
+    end 
+  end 
+
+  def dropout({n,c,h,w,_},dr) do
+    result = dropout1(n*c*h*w,dr)
+    if !is_integer(result) do
+      {n,c,h,w,result}
+    else
+      error("dropout1", result)
+    end 
+  end 
 
   @doc """
   sgd(mt1,mt2,lr,dr)
