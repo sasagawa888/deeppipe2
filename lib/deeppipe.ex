@@ -350,22 +350,24 @@ defmodule Deeppipe do
   6th arg loss function (;cross or :square)
   7th arg learning method
   8th arg minibatch size
-  9th arg repeat number
+  9th arg epochs 
   ```
   automaticaly save network to temp.ex
   """
-  def train(network, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
+  def train(network, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, e) do
     IO.puts("preparing data")
     train_image = tr_imag |> CM.new() |> CM.standardize()
     train_onehot = tr_onehot |> CM.new()
+    n = div(length(tr_onehot),m)
 
     {time, network1} =
       :timer.tc(fn ->
-        train1(network, train_image, train_onehot, loss_func, method, m, n)
+        train1(network, train_image, train_onehot, loss_func, method, m, n, e, 1)
       end)
 
+    save("temp.ex", network1)
     correct = accuracy(ts_imag, network1, ts_label,m)
-    IO.puts("learning end")
+    IO.puts("\nlearning end")
     IO.write("accuracy rate = ")
     IO.puts(correct)
 
@@ -374,28 +376,25 @@ defmodule Deeppipe do
     :ok
   end
 
-  defp train1(network, train_image, train_onehot, loss_func, method, m, n) do
-    IO.puts("learning start")
-    IO.puts("count down: loss:")
-    network1 = train2(train_image, network, train_onehot, loss_func, method, m, n)
-    save("temp.ex", network1)
-    network1
+  defp train1(network,_,_,_,_,_,_,0,_) do network end 
+  defp train1(network, train_image, train_onehot, loss_func, method, m, n, e, c) do
+    IO.write("epoch ")
+    IO.puts(c)
+    network1 = train2(network, train_image, train_onehot, loss_func, method, m, n)
+    train1(network1, train_image, train_onehot, loss_func, method, m, n, e-1, c+1)
   end
 
-  defp train2(_, network, _, _, _, _, 0) do
+  defp train2(network,_, _, _, _, _, 0) do
+    newline()
     network
   end
 
-  defp train2(image, network, train, loss_func, method, m, n) do
-    {image1, train1} = CM.random_select(image, train, m)
-    network1 = gradient(image1, network, train1)
+  defp train2(network, train_image, train_onehot, loss_func, method, m, n) do
+    {train_image1, train_onehot1} = CM.random_select(train_image, train_onehot, m)
+    network1 = gradient(train_image1, network, train_onehot1)
     network2 = learning(network, network1, method)
-    [y | _] = forward(image1, network2, [])
-    loss = CM.loss(y, train1, loss_func)
-    IO.write(n)
-    IO.write(" ")
-    IO.puts(loss)
-    train2(image, network2, train, loss_func, method, m, n - 1)
+    IO.write(".")
+    train2(network2, train_image, train_onehot, loss_func, method, m, n - 1)
   end
 
   @doc """
@@ -410,7 +409,91 @@ defmodule Deeppipe do
 
     {time, network1} =
       :timer.tc(fn ->
-        train1(network, train_image, train_onehot, loss_func, method, m, n)
+        try1(network, train_image, train_onehot, loss_func, method, m, n)
+      end)
+
+    correct = accuracy(ts_imag, network1, ts_label,m)
+    IO.puts("learning end")
+    IO.write("accuracy rate = ")
+    IO.puts(correct)
+
+    IO.inspect("time: #{time / 1_000_000} second")
+    IO.inspect("-------------")
+    :ok
+  end
+
+
+  @doc """
+  ```
+  1st arg network
+  2nd arg train image list
+  3rd arg train onehot list
+  4th arg test image list
+  5th arg test label list
+  6th arg loss function (;cross or :square)
+  7th arg learning method
+  8th arg minibatch size
+  9th arg repeat number
+  ```
+  automaticaly save network to temp.ex
+  """
+  def try(network, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
+    IO.puts("preparing data")
+    train_image = tr_imag |> CM.new() |> CM.standardize()
+    train_onehot = tr_onehot |> CM.new()
+
+    {time, network1} =
+      :timer.tc(fn ->
+        try1(network, train_image, train_onehot, loss_func, method, m, n)
+      end)
+
+    correct = accuracy(ts_imag, network1, ts_label,m)
+    IO.puts("learning end")
+    IO.write("accuracy rate = ")
+    IO.puts(correct)
+
+    IO.inspect("time: #{time / 1_000_000} second")
+    IO.inspect("-------------")
+    :ok
+  end
+
+  defp try1(network, train_image, train_onehot, loss_func, method, m, n) do
+    IO.puts("learning start")
+    IO.puts("count down: loss:")
+    network1 = try2(train_image, network, train_onehot, loss_func, method, m, n)
+    save("temp.ex", network1)
+    network1
+  end
+
+  defp try2(_, network, _, _, _, _, 0) do
+    network
+  end
+
+  defp try2(image, network, train, loss_func, method, m, n) do
+    {image1, train1} = CM.random_select(image, train, m)
+    network1 = gradient(image1, network, train1)
+    network2 = learning(network, network1, method)
+    [y | _] = forward(image1, network2, [])
+    loss = CM.loss(y, train1, loss_func)
+    IO.write(n)
+    IO.write(" ")
+    IO.puts(loss)
+    try2(image, network2, train, loss_func, method, m, n - 1)
+  end
+
+  @doc """
+  retrain
+  load network from file and restart learning
+  """
+  def retry(file, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
+    IO.puts("preparing data")
+    network = load(file)
+    train_image = tr_imag |> CM.new()
+    train_onehot = tr_onehot |> CM.new()
+
+    {time, network1} =
+      :timer.tc(fn ->
+        try1(network, train_image, train_onehot, loss_func, method, m, n)
       end)
 
     correct = accuracy(ts_imag, network1, ts_label,m)
@@ -466,7 +549,7 @@ defmodule Deeppipe do
     IO.write(n)
     IO.write(" ")
     IO.puts(loss)
-    train2(image, network2, train, loss_func, method, m, n - 1)
+    try2(image, network2, train, loss_func, method, m, n - 1)
   end
 
   @doc """
