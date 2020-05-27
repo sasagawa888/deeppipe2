@@ -57,10 +57,10 @@ $iex -S mix
 ```
 
 ## example
-MNIST 100 mini batch size, 10 epochs.
+MNIST 100 mini batch size, 5 epochs.
 
 ```
-iex(1)> Test.sgd(100,10)
+iex(1)> Test.sgd(100,5)
 preparing data
 epoch 1
 ...
