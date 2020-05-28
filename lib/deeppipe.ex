@@ -357,30 +357,52 @@ defmodule Deeppipe do
 
     {time, network1} =
       :timer.tc(fn ->
-        train1(network, train_image, train_onehot, loss_func, method, m, n, e, 1)
+        train1(
+          network,
+          train_image,
+          train_onehot,
+          ts_imag,
+          ts_label,
+          loss_func,
+          method,
+          m,
+          n,
+          e,
+          1
+        )
       end)
 
     save("temp.ex", network1)
-    rate = accuracy(ts_imag, network1, ts_label, m)
-    IO.puts("\nlearning end")
-    IO.puts("accuracy rate = #{rate * 100}%")
-
     IO.puts("time: #{time / 1_000_000} second")
     :ok
   end
 
-  defp train1(network, _, _, _, _, _, _, 0, _) do
+  defp train1(network, _, _, _, _, _, _, _, _, 0, _) do
     network
   end
 
-  defp train1(network, train_image, train_onehot, loss_func, method, m, n, e, c) do
+  defp train1(
+         network,
+         train_image,
+         train_onehot,
+         ts_imag,
+         ts_label,
+         loss_func,
+         method,
+         m,
+         n,
+         e,
+         c
+       ) do
     IO.puts("\nepoch #{c}")
     network1 = train2(network, train_image, train_onehot, loss_func, method, m, n, n)
     {train_image1, train_onehot1} = CM.random_select(train_image, train_onehot, m)
     [y | _] = forward(train_image1, network1, [])
     loss = CM.loss(y, train_onehot1, loss_func)
     IO.puts("loss = #{loss}")
-    train1(network1, train_image, train_onehot, loss_func, method, m, n, e - 1, c + 1)
+    rate = accuracy(ts_imag, network1, ts_label, m)
+    IO.puts("accuracy rate = #{rate * 100}%")
+    train1(network1, train_image, train_onehot, ts_imag, ts_label, loss_func, method, m, n, e - 1, c + 1)
   end
 
   defp train2(network, _, _, _, _, _, 0, _) do
@@ -401,24 +423,32 @@ defmodule Deeppipe do
   retrain
   load network from file and restart learning
   """
-  def retrain(file, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
+  def retrain(file, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, e) do
     IO.puts("preparing data")
     network = load(file)
-    train_image = tr_imag |> CM.new()
+    train_image = tr_imag |> CM.new() |> CM.standardize()
     train_onehot = tr_onehot |> CM.new()
+    n = div(length(tr_onehot), m)
 
     {time, network1} =
       :timer.tc(fn ->
-        try1(network, train_image, train_onehot, loss_func, method, m, n)
+        train1(
+          network,
+          train_image,
+          train_onehot,
+          ts_imag,
+          ts_label,
+          loss_func,
+          method,
+          m,
+          n,
+          e,
+          1
+        )
       end)
 
-    correct = accuracy(ts_imag, network1, ts_label, m)
-    IO.puts("learning end")
-    IO.write("accuracy rate = ")
-    IO.puts(correct)
-
-    IO.inspect("time: #{time / 1_000_000} second")
-    IO.inspect("-------------")
+    save("temp.ex", network1)
+    IO.puts("time: #{time / 1_000_000} second")
     :ok
   end
 

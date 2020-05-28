@@ -133,16 +133,16 @@ defmodule Test do
   defnetwork init_network9(_x) do
     _x
     # |> analizer(1)
-    |> f(5, 5, 1, 12, {1, 1}, 1, 0.1, 0.001)
+    |> f(5, 5, 1, 12, {1, 1}, 1, 0.1, 0.0005)
     |> pooling(2, 2)
-    |> f(3, 3, 12, 12, {1, 1}, 1, 0.1, 0.001)
-    |> f(2, 2, 12, 12, {1, 1}, 1, 0.1, 0.001)
+    |> f(3, 3, 12, 12, {1, 1}, 1, 0.1, 0.0005)
+    |> f(2, 2, 12, 12, {1, 1}, 1, 0.1, 0.0005)
     |> pooling(2, 2)
-    |> f(3, 3, 12, 12, {1, 1}, 0, 0.1, 0.001)
+    |> f(3, 3, 12, 12, {1, 1}, 0, 0.1, 0.0005)
     |> relu
     # |> visualizer(1,1)
     |> full
-    |> w(300, 10, 0.1, 0.001)
+    |> w(300, 10, 0.1, 0.0005)
     |> softmax
   end
 
@@ -191,46 +191,46 @@ defmodule Test do
   end
 
   def st(m, n) do
-    image = MNIST.train_image(3000, :structure)
-    onehot = MNIST.train_label_onehot(3000)
+    image = MNIST.train_image(60000, :structure)
+    onehot = MNIST.train_label_onehot(60000)
     network = init_network5(0)
-    test_image = MNIST.test_image(1000, :structure)
-    test_label = MNIST.test_label(1000)
+    test_image = MNIST.test_image(10000, :structure)
+    test_label = MNIST.test_label(10000)
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
   def pad(m, n) do
-    image = MNIST.train_image(3000, :structure)
-    onehot = MNIST.train_label_onehot(3000)
+    image = MNIST.train_image(60000, :structure)
+    onehot = MNIST.train_label_onehot(60000)
     network = init_network6(0)
-    test_image = MNIST.test_image(1000, :structure)
-    test_label = MNIST.test_label(1000)
+    test_image = MNIST.test_image(10000, :structure)
+    test_label = MNIST.test_label(10000)
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
   def drop(m, n) do
-    image = MNIST.train_image(3000, :flatten)
-    onehot = MNIST.train_label_onehot(3000)
+    image = MNIST.train_image(60000, :flatten)
+    onehot = MNIST.train_label_onehot(60000)
     network = init_network7(0)
-    test_image = MNIST.test_image(1000, :flatten)
-    test_label = MNIST.test_label(1000)
+    test_image = MNIST.test_image(10000, :flatten)
+    test_label = MNIST.test_label(10000)
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
   def long(m, n) do
-    image = MNIST.train_image(3000, :flatten)
-    onehot = MNIST.train_label_onehot(3000)
+    image = MNIST.train_image(60000, :flatten)
+    onehot = MNIST.train_label_onehot(60000)
     network = init_network8(0)
-    test_image = MNIST.test_image(1000, :flatten)
-    test_label = MNIST.test_label(1000)
+    test_image = MNIST.test_image(10000, :flatten)
+    test_label = MNIST.test_label(10000)
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
   def resgd(m, n) do
-    image = MNIST.train_image(3000, :flatten)
-    onehot = MNIST.train_label_onehot(3000)
-    test_image = MNIST.test_image(1000, :flatten)
-    test_label = MNIST.test_label(1000)
+    image = MNIST.train_image(60000, :flatten)
+    onehot = MNIST.train_label_onehot(60000)
+    test_image = MNIST.test_image(10000, :flatten)
+    test_label = MNIST.test_label(10000)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
@@ -245,10 +245,12 @@ defmodule Test do
   end
 
   def refashion(m, n) do
-    image = Fashon.train_image(3000, :structure)
-    onehot = Fashon.train_label_onehot(3000)
-    test_image = Fashon.test_image(1000, :structure)
-    test_label = Fashon.test_label(1000)
+    image = Fashon.train_image(60000, :structure)
+    onehot = Fashon.train_label_onehot(60000)
+    # test_image = Fashon.train_image(10000, :structure)
+    # test_label = Fashon.train_label(10000)
+    test_image = Fashon.test_image(10000, :structure)
+    test_label = Fashon.test_label(10000)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
 end
