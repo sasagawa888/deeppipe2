@@ -66,7 +66,7 @@ MNIST 100 mini batch size, 2 epochs.
     |> w(300,100) |> b(100) |> relu
     |> w(100,10) |> b(10) |> softmax
   end
-  
+
 iex(1)> Test.sgd(100,2)
 preparing data
 
@@ -106,9 +106,16 @@ see test.ex
 ```
 # for DNN test
   defnetwork init_network1(_x) do
-    _x |> w(784,300) |> b(300) |> relu
-    |> w(300,100) |> b(100) |> relu
-    |> w(100,10) |> b(10) |> softmax
+    _x 
+    |> w(784,300) 
+    |> b(300) 
+    |> relu
+    |> w(300,100) 
+    |> b(100) 
+    |> relu
+    |> w(100,10) 
+    |> b(10) 
+    |> softmax
   end
 ```
 
@@ -156,7 +163,7 @@ update method is sgd, momentam, adagrad
 3rd arg train onehot list
 4th arg test image list
 5th arg test labeel list
-6th arg loss function (;cross or :squre)
+6th arg loss function (:cross or :square)
 7th arg minibatch size
 8th arg learning method
 9th arg epochs number
