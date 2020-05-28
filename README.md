@@ -189,7 +189,7 @@ Now testing.
     |> softmax
   end
 
-mini batch size 100, 1 epoch
+mini batch size 100, 3 epoch
 
 Test.cnn(100,3)
 preparing data

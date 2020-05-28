@@ -399,7 +399,7 @@ defmodule Deeppipe do
     {train_image1, train_onehot1} = CM.random_select(train_image, train_onehot, m)
     [y | _] = forward(train_image1, network1, [])
     loss = CM.loss(y, train_onehot1, loss_func)
-    IO.puts("loss = #{loss}")
+    IO.puts("random loss = #{loss}")
     rate = accuracy(ts_imag, network1, ts_label, m)
     IO.puts("accuracy rate = #{rate * 100}%")
     train1(network1, train_image, train_onehot, ts_imag, ts_label, loss_func, method, m, n, e - 1, c + 1)
