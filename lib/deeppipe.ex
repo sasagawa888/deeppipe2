@@ -27,12 +27,13 @@ defmodule Deeppipe do
   # for dropout. push mask-tensor to input data as tuple.
   # e.g.  [after-data,{befor-data,mask-tensor}|befors]
   # backward with dropout require mask-tensor.
-  defp push(x,y,[]) do
-    [x,y]
-  end 
-  defp push(x,y,[z|zs]) do
-    [x,{z,y}|zs]
-  end 
+  defp push(x, y, []) do
+    [x, y]
+  end
+
+  defp push(x, y, [z | zs]) do
+    [x, {z, y} | zs]
+  end
 
   @doc """
   forward
@@ -49,14 +50,14 @@ defmodule Deeppipe do
 
   def forward(x, [{:weight, w, _, _, dr, _} | rest], res) do
     # IO.puts("FD weight")
-    if dr == 0.0 do 
+    if dr == 0.0 do
       x1 = CM.mult(x, w)
       forward(x1, rest, [x1 | res])
     else
-      w1 = CM.dropout(w,dr)
-      x1 = CM.mult(x, w1) 
-      forward(x1, rest, push(x1,w1,res))
-    end 
+      w1 = CM.dropout(w, dr)
+      x1 = CM.mult(x, w1)
+      forward(x1, rest, push(x1, w1, res))
+    end
   end
 
   def forward(x, [{:bias, b, _, _, dr, _} | rest], res) do
@@ -65,10 +66,10 @@ defmodule Deeppipe do
       x1 = CM.add(x, b)
       forward(x1, rest, [x1 | res])
     else
-      b1 = CM.dropout(b,dr)
+      b1 = CM.dropout(b, dr)
       x1 = CM.add(x, b1)
-      forward(x1, rest, push(x1,b1,res))
-    end 
+      forward(x1, rest, push(x1, b1, res))
+    end
   end
 
   def forward(x, [{:function, name} | rest], res) do
@@ -79,16 +80,15 @@ defmodule Deeppipe do
 
   def forward(x, [{:filter, w, {st_h, st_w}, pad, _, _, dr, _} | rest], res) do
     # IO.puts("FD filter")
-    if dr == 0.0 do 
+    if dr == 0.0 do
       x1 = CM.convolute(x, w, st_h, st_w, pad)
       forward(x1, rest, [x1 | res])
-    else 
-      w1 = CM.dropout(w,dr)
-      x1 = CM.convolute(x, CM.emult(w,w1), st_h, st_w, pad)
-      forward(x1, rest, push(x1,w1,res))
-    end 
+    else
+      w1 = CM.dropout(w, dr)
+      x1 = CM.convolute(x, CM.emult(w, w1), st_h, st_w, pad)
+      forward(x1, rest, push(x1, w1, res))
+    end
   end
-
 
   def forward(x, [{:pooling, st_h, st_w} | rest], [_ | res]) do
     # IO.puts("FD pooling")
@@ -141,38 +141,34 @@ defmodule Deeppipe do
     res
   end
 
-  
-
   defp backward(l, [{:weight, w, ir, lr, dr, v} | rest], [u | us], res) do
     # IO.puts("BK weight")
-    if dr == 0.0 do 
+    if dr == 0.0 do
       {n, _} = CM.size(l)
       w1 = CM.mult(CM.transpose(u), l) |> CM.mult(1 / n)
       l1 = CM.mult(l, CM.transpose(w))
       backward(l1, rest, us, [{:weight, w1, ir, lr, 0.0, v} | res])
     else
       {n, _} = CM.size(l)
-      {u1,mw} = u
-      w1 = CM.mult(CM.transpose(u1), l) |> CM.mult(1 / n) |> CM.mask(w,mw)
-      l1 = CM.mult(l, CM.transpose(CM.emult(w,mw)))
+      {u1, mw} = u
+      w1 = CM.mult(CM.transpose(u1), l) |> CM.mult(1 / n) |> CM.mask(w, mw)
+      l1 = CM.mult(l, CM.transpose(CM.emult(w, mw)))
       backward(l1, rest, us, [{:weight, w1, ir, lr, dr, v} | res])
-    end 
+    end
   end
-
 
   defp backward(l, [{:bias, b, ir, lr, dr, v} | rest], [u | us], res) do
     # IO.puts("BK bias")
-    if dr == 0.0 do 
+    if dr == 0.0 do
       b1 = CM.average(l)
       backward(l, rest, us, [{:bias, b1, ir, lr, 0.0, v} | res])
     else
-      {_,mw} = u
-      b1 = CM.average(l) |> CM.mask(b,mw)
+      {_, mw} = u
+      b1 = CM.average(l) |> CM.mask(b, mw)
       backward(l, rest, us, [{:bias, b1, ir, lr, dr, v} | res])
-    end 
+    end
   end
 
- 
   defp backward(l, [{:function, :softmax} | rest], [_ | us], res) do
     # IO.puts("BK softmax")
     backward(l, rest, us, [{:function, :softmax} | res])
@@ -184,19 +180,18 @@ defmodule Deeppipe do
     backward(l1, rest, us, [{:function, name} | res])
   end
 
-
   defp backward(l, [{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest], [u | us], res) do
     # IO.puts("BK filter")
-    if dr == 0.0 do 
+    if dr == 0.0 do
       w1 = CM.gradfilter(u, w, l, st_h, st_w, pad)
       l1 = CM.deconvolute(l, w, st_h, st_w, pad)
       backward(l1, rest, us, [{:filter, w1, {st_h, st_w}, pad, ir, lr, 0.0, v} | res])
-    else 
-      {u1,mw} = u
-      w1 = CM.gradfilter(u1, w, l, st_h, st_w, pad) |> CM.mask(w,mw)
-      l1 = CM.deconvolute(l, CM.emult(w,mw), st_h, st_w, pad)
+    else
+      {u1, mw} = u
+      w1 = CM.gradfilter(u1, w, l, st_h, st_w, pad) |> CM.mask(w, mw)
+      l1 = CM.deconvolute(l, CM.emult(w, mw), st_h, st_w, pad)
       backward(l1, rest, us, [{:filter, w1, {st_h, st_w}, pad, ir, lr, dr, v} | res])
-    end 
+    end
   end
 
   defp backward(l, [{:pooling, st_h, st_w} | rest], [u | us], res) do
@@ -290,7 +285,7 @@ defmodule Deeppipe do
   def learning([{:bias, w, ir, lr, dr, v} | rest], [{:bias, w1, _, _, _} | rest1], :momentum) do
     # IO.puts("LMom bias")
     {v1, w2} = CM.momentum(w, v, w1, lr)
-    [{:bias, w2, ir, lr, dr,v1} | learning(rest, rest1, :momentum)]
+    [{:bias, w2, ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
   end
 
   def learning(
@@ -358,7 +353,7 @@ defmodule Deeppipe do
     IO.puts("preparing data")
     train_image = tr_imag |> CM.new() |> CM.standardize()
     train_onehot = tr_onehot |> CM.new()
-    n = div(length(tr_onehot),m)
+    n = div(length(tr_onehot), m)
 
     {time, network1} =
       :timer.tc(fn ->
@@ -366,35 +361,40 @@ defmodule Deeppipe do
       end)
 
     save("temp.ex", network1)
-    correct = accuracy(ts_imag, network1, ts_label,m)
+    rate = accuracy(ts_imag, network1, ts_label, m)
     IO.puts("\nlearning end")
-    IO.write("accuracy rate = ")
-    IO.puts(correct)
+    IO.puts("accuracy rate = #{rate * 100}%")
 
-    IO.inspect("time: #{time / 1_000_000} second")
-    IO.inspect("-------------")
+    IO.puts("time: #{time / 1_000_000} second")
     :ok
   end
 
-  defp train1(network,_,_,_,_,_,_,0,_) do network end 
-  defp train1(network, train_image, train_onehot, loss_func, method, m, n, e, c) do
-    IO.write("epoch ")
-    IO.puts(c)
-    network1 = train2(network, train_image, train_onehot, loss_func, method, m, n)
-    train1(network1, train_image, train_onehot, loss_func, method, m, n, e-1, c+1)
+  defp train1(network, _, _, _, _, _, _, 0, _) do
+    network
   end
 
-  defp train2(network,_, _, _, _, _, 0) do
+  defp train1(network, train_image, train_onehot, loss_func, method, m, n, e, c) do
+    IO.puts("\nepoch #{c}")
+    network1 = train2(network, train_image, train_onehot, loss_func, method, m, n, n)
+    {train_image1, train_onehot1} = CM.random_select(train_image, train_onehot, m)
+    [y | _] = forward(train_image1, network1, [])
+    loss = CM.loss(y, train_onehot1, loss_func)
+    IO.puts("loss = #{loss}")
+    train1(network1, train_image, train_onehot, loss_func, method, m, n, e - 1, c + 1)
+  end
+
+  defp train2(network, _, _, _, _, _, 0, _) do
     newline()
     network
   end
 
-  defp train2(network, train_image, train_onehot, loss_func, method, m, n) do
+  defp train2(network, train_image, train_onehot, loss_func, method, m, n, all) do
     {train_image1, train_onehot1} = CM.random_select(train_image, train_onehot, m)
     network1 = gradient(train_image1, network, train_onehot1)
     network2 = learning(network, network1, method)
-    IO.write(".")
-    train2(network2, train_image, train_onehot, loss_func, method, m, n - 1)
+    rate = (all - n) / all
+    progress(rate)
+    train2(network2, train_image, train_onehot, loss_func, method, m, n - 1, all)
   end
 
   @doc """
@@ -412,7 +412,7 @@ defmodule Deeppipe do
         try1(network, train_image, train_onehot, loss_func, method, m, n)
       end)
 
-    correct = accuracy(ts_imag, network1, ts_label,m)
+    correct = accuracy(ts_imag, network1, ts_label, m)
     IO.puts("learning end")
     IO.write("accuracy rate = ")
     IO.puts(correct)
@@ -421,7 +421,6 @@ defmodule Deeppipe do
     IO.inspect("-------------")
     :ok
   end
-
 
   @doc """
   ```
@@ -447,7 +446,7 @@ defmodule Deeppipe do
         try1(network, train_image, train_onehot, loss_func, method, m, n)
       end)
 
-    correct = accuracy(ts_imag, network1, ts_label,m)
+    correct = accuracy(ts_imag, network1, ts_label, m)
     IO.puts("learning end")
     IO.write("accuracy rate = ")
     IO.puts(correct)
@@ -496,7 +495,7 @@ defmodule Deeppipe do
         try1(network, train_image, train_onehot, loss_func, method, m, n)
       end)
 
-    correct = accuracy(ts_imag, network1, ts_label,m)
+    correct = accuracy(ts_imag, network1, ts_label, m)
     IO.puts("learning end")
     IO.write("accuracy rate = ")
     IO.puts(correct)
@@ -505,7 +504,6 @@ defmodule Deeppipe do
     IO.inspect("-------------")
     :ok
   end
-
 
   @doc """
   train for batch. not show accuracy, not show execute time
@@ -525,7 +523,7 @@ defmodule Deeppipe do
     train_image = tr_imag |> CM.new() |> CM.standardize()
     train_onehot = tr_onehot |> CM.new()
 
-    batch_train1(network, train_image, train_onehot, loss_func, method, m, n) 
+    batch_train1(network, train_image, train_onehot, loss_func, method, m, n)
   end
 
   defp batch_train1(network, train_image, train_onehot, loss_func, method, m, n) do
@@ -560,24 +558,21 @@ defmodule Deeppipe do
   4th arg  mini batch size
   """
   def accuracy(image, network, label, m) do
-    accuracy1(image,network,label,m,length(label),0)
+    accuracy1(image, network, label, m, length(label), 0)
   end
 
-  defp accuracy1([],_,[],_,total,correct) do
+  defp accuracy1([], _, [], _, total, correct) do
     correct / total
-  end  
-  defp accuracy1(image, network,label,m,total,correct) do
-    n = min(length(label),m)
-    image1 = Enum.take(image,n) |> CM.new()
-    label1 = Enum.take(label,n)
+  end
+
+  defp accuracy1(image, network, label, m, total, correct) do
+    n = min(length(label), m)
+    image1 = Enum.take(image, n) |> CM.new()
+    label1 = Enum.take(label, n)
     [y | _] = forward(image1, network, [])
-    n1 = CM.correct(y,label1)
-    accuracy1(Enum.drop(image,n),network,Enum.drop(label,n),m,total,correct+n1)
-  end 
-
-
-
-
+    n1 = CM.correct(y, label1)
+    accuracy1(Enum.drop(image, n), network, Enum.drop(label, n), m, total, correct + n1)
+  end
 
   @doc """
   select random data from image data and train data 
@@ -760,6 +755,18 @@ defmodule Deeppipe do
   """
   def newline() do
     IO.puts("")
+  end
+
+  def progress(r) do
+    size = 50
+    done = round(size * r)
+    yet = size - done
+    done_str = String.duplicate("#", done)
+    yet_str = String.duplicate(" ", yet)
+    IO.write("\r[")
+    IO.write(done_str)
+    IO.write(yet_str)
+    IO.write("](#{round(r * 100)}%)")
   end
 
   @doc """

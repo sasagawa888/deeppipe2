@@ -1050,23 +1050,25 @@ defmodule Cumatrix do
   @doc """
   generate mask matrix or tensor for dropout
   """
-  def dropout({r,c,_},dr) do
-    result = dropout1(r*c,dr)
-    if !is_integer(result) do
-      {r,c,result}
-    else
-      error("dropout1", result)
-    end 
-  end 
+  def dropout({r, c, _}, dr) do
+    result = dropout1(r * c, dr)
 
-  def dropout({n,c,h,w,_},dr) do
-    result = dropout1(n*c*h*w,dr)
     if !is_integer(result) do
-      {n,c,h,w,result}
+      {r, c, result}
     else
       error("dropout1", result)
-    end 
-  end 
+    end
+  end
+
+  def dropout({n, c, h, w, _}, dr) do
+    result = dropout1(n * c * h * w, dr)
+
+    if !is_integer(result) do
+      {n, c, h, w, result}
+    else
+      error("dropout1", result)
+    end
+  end
 
   @doc """
   sgd(mt1,mt2,lr,dr)
@@ -1207,7 +1209,6 @@ defmodule Cumatrix do
     raise "mask illegal argument"
   end
 
-
   @doc """
   accuracy(mt1,ls) 
   return accuracy rate as float number.
@@ -1267,6 +1268,7 @@ defmodule Cumatrix do
       raise "correct illegal argument"
     else
       result = correct1(r1, c1, dt1, ls)
+
       if !is_integer(result) do
         result
       else
@@ -1278,9 +1280,6 @@ defmodule Cumatrix do
   def correct(_, _) do
     raise "correct illegal argument"
   end
-
-  
-
 
   @doc """
   random_select(mt1,mt2,n)

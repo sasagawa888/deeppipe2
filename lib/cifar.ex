@@ -30,23 +30,21 @@ defmodule CIFAR do
     |> w(100, 10, 0.1, 0.0001)
     |> b(10, 0.1, 0.0001)
     |> softmax
-  end 
-
-
+  end
 
   # adagrad/2 train network and save network temp.ex
   def adagrad(m, epoch) do
     test_image = test_image(1000)
     test_label = test_label(1000)
     network = init_network1(0)
-    n = div(10000,m)
-  
+    n = div(10000, m)
+
     {time, network1} =
       :timer.tc(fn ->
         adagrad1(network, m, n, epoch)
       end)
 
-    correct = DP.accuracy(test_image, network1, test_label,m)
+    correct = DP.accuracy(test_image, network1, test_label, m)
     IO.puts("learning end")
     IO.write("accuracy rate = ")
     IO.puts(correct)
@@ -55,31 +53,77 @@ defmodule CIFAR do
     IO.inspect("-------------")
   end
 
-  def adagrad1(network,_,_,0) do network end 
-  def adagrad1(network,m,n,epoch) do
+  def adagrad1(network, _, _, 0) do
+    network
+  end
+
+  def adagrad1(network, m, n, epoch) do
     IO.write("epocs--- ")
     IO.puts(epoch)
-    network1 = DP.batch_train(network, train_image_batch1(), train_label_onehot1(), :cross, :adagrad, m, n)
-    network2 = DP.batch_train(network1, train_image_batch2(), train_label_onehot2(), :cross, :adagrad, m, n)
-    network3 = DP.batch_train(network2, train_image_batch3(), train_label_onehot3(), :cross, :adagrad, m, n)
-    network4 = DP.batch_train(network3, train_image_batch4(), train_label_onehot4(), :cross, :adagrad, m, n)
-    network5 = DP.batch_train(network4, train_image_batch5(), train_label_onehot5(), :cross, :adagrad, m, n)
-    adagrad1(network5,m,n,epoch-1)
-  end 
+
+    network1 =
+      DP.batch_train(network, train_image_batch1(), train_label_onehot1(), :cross, :adagrad, m, n)
+
+    network2 =
+      DP.batch_train(
+        network1,
+        train_image_batch2(),
+        train_label_onehot2(),
+        :cross,
+        :adagrad,
+        m,
+        n
+      )
+
+    network3 =
+      DP.batch_train(
+        network2,
+        train_image_batch3(),
+        train_label_onehot3(),
+        :cross,
+        :adagrad,
+        m,
+        n
+      )
+
+    network4 =
+      DP.batch_train(
+        network3,
+        train_image_batch4(),
+        train_label_onehot4(),
+        :cross,
+        :adagrad,
+        m,
+        n
+      )
+
+    network5 =
+      DP.batch_train(
+        network4,
+        train_image_batch5(),
+        train_label_onehot5(),
+        :cross,
+        :adagrad,
+        m,
+        n
+      )
+
+    adagrad1(network5, m, n, epoch - 1)
+  end
 
   # adagrad/2 load network from temp.ex and restart training
   def readagrad(m, epoch) do
     test_image = test_image(1000)
     test_label = test_label(1000)
     network = DP.load("temp.ex")
-    n = div(10000,m)
-  
+    n = div(10000, m)
+
     {time, network1} =
       :timer.tc(fn ->
         adagrad1(network, m, n, epoch)
       end)
 
-    correct = DP.accuracy(test_image, network1, test_label,m)
+    correct = DP.accuracy(test_image, network1, test_label, m)
     IO.puts("learning end")
     IO.write("accuracy rate = ")
     IO.puts(correct)
@@ -92,37 +136,43 @@ defmodule CIFAR do
   def train_label_onehot1() do
     train_label_batch1() |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
+
   def train_label_onehot2() do
     train_label_batch2() |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
+
   def train_label_onehot3() do
     train_label_batch3() |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
+
   def train_label_onehot4() do
     train_label_batch4() |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
+
   def train_label_onehot5() do
     train_label_batch5() |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
-
-  
 
   def train_label_batch1() do
     {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_1.bin")
     [label | train_label1(rest)]
   end
+
   def train_label_batch2() do
     {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_2.bin")
     [label | train_label1(rest)]
   end
+
   def train_label_batch3() do
     {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_3.bin")
     [label | train_label1(rest)]
   end
+
   def train_label_batch4() do
     {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_4.bin")
     [label | train_label1(rest)]
   end
+
   def train_label_batch5() do
     {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_5.bin")
     [label | train_label1(rest)]
@@ -162,7 +212,6 @@ defmodule CIFAR do
     train_label2(rest, n - 1)
   end
 
- 
   def train_image() do
     train_image_batch1()
   end
@@ -171,18 +220,22 @@ defmodule CIFAR do
     {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_1.bin")
     train_image1(bin)
   end
+
   def train_image_batch2() do
     {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_2.bin")
     train_image1(bin)
   end
+
   def train_image_batch3() do
     {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_3.bin")
     train_image1(bin)
   end
+
   def train_image_batch4() do
     {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_4.bin")
     train_image1(bin)
   end
+
   def train_image_batch5() do
     {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_5.bin")
     train_image1(bin)
@@ -196,8 +249,6 @@ defmodule CIFAR do
     {:ok, bin} = File.read("cifar-10-batches-bin/test_batch.bin")
     train_image1(bin)
   end
-
-
 
   # get RGB 3ch data
   def train_image1(<<>>) do

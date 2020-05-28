@@ -19,8 +19,6 @@ defmodule Iris do
     |> softmax
   end
 
-  
-
   def sgd(m, n) do
     image = train_image()
     onehot = train_label_onehot()
@@ -30,7 +28,6 @@ defmodule Iris do
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
-  
   def train_image() do
     {_, x} = File.read("iris/iris.data")
 

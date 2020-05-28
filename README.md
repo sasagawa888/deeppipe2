@@ -57,20 +57,24 @@ $iex -S mix
 ```
 
 ## example
-MNIST 100 mini batch size, 5 epochs.
+MNIST 100 mini batch size, 2 epochs.
 
 ```
-iex(1)> Test.sgd(100,5)
-preparing data
-epoch 1
-...
 
-.........
+iex(1)> Test.sgd(100,2)
+preparing data
+
+epoch 1
+[##################################################](100%)
+loss = 0.19861093163490295
+
+epoch 2
+[##################################################](100%)
+loss = 0.157775416970253
 
 learning end
-accuracy rate = 0.9592
-"time: 74.508136 second"
-"-------------"
+accuracy rate = 94.96%
+time: 30.223084 second
 :ok
 
 ```
