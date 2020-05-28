@@ -60,7 +60,13 @@ $iex -S mix
 MNIST 100 mini batch size, 2 epochs.
 
 ```
-
+# for DNN test
+  defnetwork init_network1(_x) do
+    _x |> w(784,300) |> b(300) |> relu
+    |> w(300,100) |> b(100) |> relu
+    |> w(100,10) |> b(10) |> softmax
+  end
+  
 iex(1)> Test.sgd(100,2)
 preparing data
 
@@ -153,7 +159,7 @@ update method is sgd, momentam, adagrad
 6th arg loss function (;cross or :squre)
 7th arg minibatch size
 8th arg learning method
-9th arg repeat number
+9th arg epochs number
 
 ```
 
@@ -175,6 +181,19 @@ Now testing.
     |> w(300, 10, 0.1, 0.001)
     |> softmax
   end
+
+mini batch size 100, 1 epoch
+iex(2)> Test.fashion(100,1)
+preparing data
+
+epoch 1
+[##################################################](100%)
+loss = 0.715878427028656
+
+learning end
+accuracy rate = 38.73%
+time: 196.384742 second
+:ok
 
 ```
 
