@@ -1,9 +1,66 @@
 defmodule Fashon do
+  import Network
   alias Deeppipe, as: DP
 
   @moduledoc """
   test with Fashion-MNIST dataset.
   """
+
+  # for CNN test for Fashion-MNIST
+  defnetwork init_network9(_x) do
+    _x
+    # |> analizer(1)
+    |> f(5, 5, 1, 12, {1, 1}, 1, 0.1, 0.001)
+    |> pooling(2, 2)
+    |> f(3, 3, 12, 12, {1, 1}, 1, 0.1, 0.001)
+    |> f(2, 2, 12, 12, {1, 1}, 1, 0.1, 0.001)
+    |> pooling(2, 2)
+    |> f(3, 3, 12, 12, {1, 1}, 0, 0.1, 0.001)
+    |> relu
+    # |> visualizer(1,1)
+    |> full
+    |> w(300, 10, 0.1, 0.001)
+    |> softmax
+  end
+
+  # Fashon-MNIST
+  def adagrad(m, n) do
+    image = Fashon.train_image(60000, :structure)
+    onehot = Fashon.train_label_onehot(60000)
+    network = init_network9(0)
+    test_image = Fashon.test_image(10000, :structure)
+    test_label = Fashon.test_label(10000)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
+  end
+
+  def readagrad(m, n) do
+    image = Fashon.train_image(60000, :structure)
+    onehot = Fashon.train_label_onehot(60000)
+    # test_image = Fashon.train_image(10000, :structure)
+    # test_label = Fashon.train_label(10000)
+    test_image = Fashon.test_image(10000, :structure)
+    test_label = Fashon.test_label(10000)
+    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
+  end
+
+  # Fashon-MNIST
+  def try(m, n) do
+    image = Fashon.train_image(60000, :structure)
+    onehot = Fashon.train_label_onehot(60000)
+    network = init_network9(0)
+    test_image = Fashon.test_image(10000, :structure)
+    test_label = Fashon.test_label(10000)
+    DP.try(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
+  end
+
+  def retry(m, n) do
+    image = Fashon.train_image(60000, :structure)
+    onehot = Fashon.train_label_onehot(60000)
+    test_image = Fashon.test_image(10000, :structure)
+    test_label = Fashon.test_label(10000)
+    DP.retry("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
+  end
+
 
   # structure from flat vector to matrix(r,c) as 1 channel 
   def structure(x, r, c) do

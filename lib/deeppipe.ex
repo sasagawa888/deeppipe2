@@ -453,6 +453,7 @@ defmodule Deeppipe do
   end
 
   @doc """
+  for pre-test
   ```
   1st arg network
   2nd arg train image list
@@ -511,13 +512,13 @@ defmodule Deeppipe do
   end
 
   @doc """
-  retrain
+  retry
   load network from file and restart learning
   """
   def retry(file, tr_imag, tr_onehot, ts_imag, ts_label, loss_func, method, m, n) do
     IO.puts("preparing data")
     network = load(file)
-    train_image = tr_imag |> CM.new()
+    train_image = tr_imag |> CM.new() |> CM.standardize()
     train_onehot = tr_onehot |> CM.new()
 
     {time, network1} =
@@ -534,7 +535,7 @@ defmodule Deeppipe do
     IO.inspect("-------------")
     :ok
   end
-
+  
   @doc """
   train for batch. not show accuracy, not show execute time
   ```

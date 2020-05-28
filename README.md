@@ -174,7 +174,7 @@ update method is sgd, momentam, adagrad
 Now testing.
 
 ```
-# for CNN test for Fashion-MNIST
+# for CNN test for MNIST
   defnetwork init_network4(_x) do
     _x
     |> f(5, 5, 1, 12, {1,1}, 1, 0.5, 0.0001)
@@ -190,16 +190,25 @@ Now testing.
   end
 
 mini batch size 100, 1 epoch
-iex(2)> Test.fashion(100,1)
+
+Test.cnn(100,3)
 preparing data
 
 epoch 1
 [##################################################](100%)
-loss = 0.715878427028656
+loss = 0.5491012930870056
+accuracy rate = 81.08999999999999%
 
-learning end
-accuracy rate = 38.73%
-time: 196.384742 second
+epoch 2
+[##################################################](100%)
+loss = 0.40712782740592957
+accuracy rate = 85.65%
+
+epoch 3
+[##################################################](100%)
+loss = 0.2031838446855545
+accuracy rate = 87.64%
+time: 634.104309 second
 :ok
 
 ```
