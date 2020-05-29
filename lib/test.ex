@@ -233,24 +233,5 @@ defmodule Test do
     test_label = MNIST.test_label(10000)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
-
-  # Fashon-MNIST
-  def fashion(m, n) do
-    image = Fashon.train_image(60000, :structure)
-    onehot = Fashon.train_label_onehot(60000)
-    network = init_network9(0)
-    test_image = Fashon.test_image(10000, :structure)
-    test_label = Fashon.test_label(10000)
-    DP.train(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
-  end
-
-  def refashion(m, n) do
-    image = Fashon.train_image(60000, :structure)
-    onehot = Fashon.train_label_onehot(60000)
-    # test_image = Fashon.train_image(10000, :structure)
-    # test_label = Fashon.train_label(10000)
-    test_image = Fashon.test_image(10000, :structure)
-    test_label = Fashon.test_label(10000)
-    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
-  end
 end
+  
