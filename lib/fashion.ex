@@ -6,24 +6,49 @@ defmodule Fashion do
   test with Fashion-MNIST dataset.
   """
 
+  # for DNN test sgd
+  defnetwork init_network1(_x) do
+    _x
+    |> w(784, 300)
+    |> b(300)
+    |> tanh
+    |> w(300, 100)
+    |> b(100)
+    |> tanh
+    |> w(100, 10)
+    |> b(10)
+    |> softmax
+  end
+
+
   # for CNN test for Fashion-MNIST
   defnetwork init_network9(_x) do
     _x
     # |> analizer(1)
-    |> f(3, 3, 1, 32, {1, 1}, 0, 0.1, 0.001)
-    |> f(3, 3, 32, 64, {1, 1}, 0, 0.1, 0.001)
+    |> f(3, 3, 1, 6, {1, 1}, 0, 0.1, 0.001)
+    |> f(3, 3, 6, 12, {1, 1}, 0, 0.1, 0.001)
     |> pooling(2, 2)
     |> relu
     # |> visualizer(1,1)
     |> full
-    |> w(9216, 10, 0.1, 0.001)
+    |> w(1728, 10, 0.1, 0.001)
     |> softmax
+  end
+
+  def sgd(m, n) do
+    image = train_image(60000, :flatten)
+    onehot = train_label_onehot(60000)
+    network = init_network1(0)
+    test_image = test_image(10000, :flatten)
+    test_label = test_label(10000)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
   # Fashion-MNIST
   def adagrad(m, n) do
     image = train_image(60000, :structure)
     onehot = train_label_onehot(60000)
+
     network = init_network9(0)
     test_image = test_image(10000, :structure)
     test_label = test_label(10000)

@@ -151,20 +151,20 @@ defmodule Deeppipe do
     else
       {n, _} = CM.size(l)
       {u1, mw} = u
-      w1 = CM.mult(CM.transpose(u1), l) |> CM.mult(1 / n) |> CM.mask(w, mw)
-      l1 = CM.mult(l, CM.transpose(CM.emult(w, mw)))
+      w1 = CM.mult(CM.transpose(u1), l) |> CM.mult(1 / n) |> CM.emult(mw)
+      l1 = CM.mult(l, CM.transpose(CM.emult(w,mw)))
       backward(l1, rest, us, [{:weight, w1, ir, lr, dr, v} | res])
     end
   end
 
-  defp backward(l, [{:bias, b, ir, lr, dr, v} | rest], [u | us], res) do
+  defp backward(l, [{:bias, _, ir, lr, dr, v} | rest], [u | us], res) do
     # IO.puts("BK bias")
     if dr == 0.0 do
       b1 = CM.average(l)
       backward(l, rest, us, [{:bias, b1, ir, lr, 0.0, v} | res])
     else
       {_, mw} = u
-      b1 = CM.average(l) |> CM.mask(b, mw)
+      b1 = CM.average(l) |> CM.emult(mw)
       backward(l, rest, us, [{:bias, b1, ir, lr, dr, v} | res])
     end
   end
@@ -188,7 +188,7 @@ defmodule Deeppipe do
       backward(l1, rest, us, [{:filter, w1, {st_h, st_w}, pad, ir, lr, 0.0, v} | res])
     else
       {u1, mw} = u
-      w1 = CM.gradfilter(u1, w, l, st_h, st_w, pad) |> CM.mask(w, mw)
+      w1 = CM.gradfilter(u1, w, l, st_h, st_w, pad) |> CM.emult(mw)
       l1 = CM.deconvolute(l, CM.emult(w, mw), st_h, st_w, pad)
       backward(l1, rest, us, [{:filter, w1, {st_h, st_w}, pad, ir, lr, dr, v} | res])
     end

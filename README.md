@@ -35,7 +35,7 @@ x is dataset name atom.
 :iris     (IRIS)
 
 Network descriptions are Elixir-like pipeline operators. 
-See the test.ex file. The random number given to the weight matrix and bias affects learning.
+See the mnist.ex file. The random number given to the weight matrix and bias affects learning.
 The learning rate also has an effect. The default for each is 0.1.
 You can change it with w(300,100,0.2,0.5) in defnetwork.
 In this example, the multiple to the random number is 0.2 and the learning rate is 0.5.
@@ -67,7 +67,7 @@ MNIST 100 mini batch size, 2 epochs.
     |> w(100,10) |> b(10) |> softmax
   end
 
-iex(1)> Test.sgd(100,2)
+iex(1)> MNIST.sgd(100,2)
 preparing data
 
 epoch 1
@@ -101,7 +101,7 @@ Cuda compilation tools, release 10.2, V10.2.89
 
 
 ## network example
-see test.ex
+see mnist.ex
 
 ```
 # for DNN test
@@ -191,7 +191,7 @@ Now testing.
 
 mini batch size 100, 3 epoch
 
-Test.cnn(100,3)
+MNIST.cnn(100,3)
 preparing data
 
 epoch 1

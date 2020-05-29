@@ -2637,75 +2637,6 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-__global__ void mask_kernel(float *a, float *b, float *c, float *d, int n)
-{
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
-    while (tid < n)
-    {   
-
-        if(c[tid] != 0.0)
-            d[tid] = a[tid];
-        else 
-            d[tid] = b[tid];
-        tid += blockDim.x * gridDim.x;
-    }
-}
- 
-/*
-1st arg row-size of vectorized each-matrix
-2nd arg new-matrix (a_bin)
-3rd arg original-matrix      (b_bin)
-4th arg dropout-matrix  (c_bin)
-
-return new-matrix masked with dropout-matrix
-each element  dropout==1 -> new-element, dropout==0 -> original-element
-*/
-static ERL_NIF_TERM
-mask1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
-    ErlNifBinary  a_bin,b_bin,c_bin;
-    ERL_NIF_TERM  d_bin;
-    int n;
-    float *a,*b,*c,*d;
-    float *dev_a, *dev_b, *dev_c, *dev_d;
-    
-    DISP("mask1")
-    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
-    if (!enif_inspect_binary(env, argv[1], &a_bin)) return enif_make_int(env,2);
-    if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_int(env,3);
-    if (!enif_inspect_binary(env, argv[3], &c_bin)) return enif_make_int(env,4);
-
-    a = (float *) a_bin.data;
-    b = (float *) b_bin.data;
-    c = (float *) c_bin.data;
-    d = (float *) enif_make_new_binary(env, n * sizeof(float), &d_bin);
-  
-    // Allocate for GPU
-    CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
-    CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
-    CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
-    CHECK(cudaMalloc((void**)&dev_d, n * sizeof(float)));
-  
-    // copy from host a,b to GPU dev_a, dev_b
-    CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(dev_d, d, n * sizeof(float), cudaMemcpyHostToDevice));
-  
-    mask_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, dev_d, n);
-  
-    // copy to host d,e from GPU dev_d,dev_e
-    CHECK(cudaMemcpy(d, dev_d, n * sizeof(float), cudaMemcpyDeviceToHost));
-
-
-    // free 
-    cudaFree(dev_a);
-	cudaFree(dev_b);
-    cudaFree(dev_c);
-    cudaFree(dev_d);
-    
-    return(d_bin);
-}
-
 /*
 1st arg row-size of matrix
 2nd arg col-size of matris
@@ -3071,7 +3002,6 @@ static ErlNifFunc nif_funcs[] = {
   {"sgd1", 4, sgd1},
   {"momentum1", 5, momentum1},
   {"adagrad1", 5, adagrad1},
-  {"mask1", 4, mask1},
   {"accuracy1", 4, accuracy1},
   {"correct1", 4, correct1},
   {"pooling1", 7, pooling1},

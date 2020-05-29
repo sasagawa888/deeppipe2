@@ -169,10 +169,6 @@ defmodule Cumatrix do
     raise "NIF adagrad1/5 not implemented"
   end
 
-  defp mask1(_1, _2, _3, _4) do
-    raise "NIF mask1/4 not implemented"
-  end
-
   defp accuracy1(_1, _2, _3, _4) do
     raise "NIF accuracy/4 not implemented"
   end
@@ -1177,37 +1173,7 @@ defmodule Cumatrix do
     raise "adagrad illegal argument"
   end
 
-  @doc """
-  1st arg new-tensor
-  2nd arg original-tensor
-  3rd mask-matrix
-
-  return tensor
-  For eash element, when dropout==1 -> new, dropout==0 -> original
-  """
-  def mask({r1, c1, dt1}, {r1, c1, dt2}, {r1, c1, dt3}) do
-    result = mask1(r1 * c1, dt1, dt2, dt3)
-
-    if !is_integer(result) do
-      {r1, c1, result}
-    else
-      error("mask1", result)
-    end
-  end
-
-  def mask({n, c, h, w, dt1}, {n, c, h, w, dt2}, {n, c, h, w, dt3}) do
-    result = mask1(n * c * h * w, dt1, dt2, dt3)
-
-    if !is_integer(result) do
-      {n, c, h, w, result}
-    else
-      error("mask1", result)
-    end
-  end
-
-  def mask(_, _, _) do
-    raise "mask illegal argument"
-  end
+  
 
   @doc """
   accuracy(mt1,ls) 
