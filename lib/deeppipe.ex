@@ -54,9 +54,9 @@ defmodule Deeppipe do
       x1 = CM.mult(x, w)
       forward(x1, rest, [x1 | res])
     else
-      w1 = CM.dropout(w, dr)
-      x1 = CM.mult(x, w1)
-      forward(x1, rest, push(x1, w1, res))
+      mw = CM.dropout(w, dr)
+      x1 = CM.mult(x, CM.emult(w,mw))
+      forward(x1, rest, push(x1, mw, res))
     end
   end
 
@@ -66,9 +66,9 @@ defmodule Deeppipe do
       x1 = CM.add(x, b)
       forward(x1, rest, [x1 | res])
     else
-      b1 = CM.dropout(b, dr)
-      x1 = CM.add(x, b1)
-      forward(x1, rest, push(x1, b1, res))
+      mw = CM.dropout(b, dr)
+      x1 = CM.add(x, CM.emult(b,mw))
+      forward(x1, rest, push(x1, mw, res))
     end
   end
 
@@ -84,9 +84,9 @@ defmodule Deeppipe do
       x1 = CM.convolute(x, w, st_h, st_w, pad)
       forward(x1, rest, [x1 | res])
     else
-      w1 = CM.dropout(w, dr)
-      x1 = CM.convolute(x, CM.emult(w, w1), st_h, st_w, pad)
-      forward(x1, rest, push(x1, w1, res))
+      mw = CM.dropout(w, dr)
+      x1 = CM.convolute(x, CM.emult(w, mw), st_h, st_w, pad)
+      forward(x1, rest, push(x1, mw, res))
     end
   end
 

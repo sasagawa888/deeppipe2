@@ -2392,7 +2392,6 @@ dropout1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         a[j] = 0.0;
     }
 
-
     // free 
     cudaFree(dev_a);
 
