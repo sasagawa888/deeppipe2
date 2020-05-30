@@ -835,7 +835,7 @@ gradfilter1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     for(i=0;i<n4;i++){
         d[i] = d[i] / (float)in_n;
     }
-     
+    
     
     // free 
     cudaFree(dev_a);

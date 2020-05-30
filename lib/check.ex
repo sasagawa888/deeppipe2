@@ -11,13 +11,20 @@ defmodule Check do
   # for grad confirmation 
   defnetwork test_network0(_x) do
     _x
-    |> w(50, 10, 0.1, 0.1)
-    |> b(10, 0.1, 0.1)
+    |> f(3, 3, 1, 2, {1, 1}, 0, 0.1, 0.1)
+    |> relu
+    |> f(3, 3, 2, 2, {1, 1}, 0, 0.1, 0.1)
+    |> relu
+    |> f(3, 3, 2, 2, {1, 1}, 0, 0.1, 0.1)
+    |> relu
+    |> pooling(2, 2)
+    |> full
+    |> w(242, 10, 0.1, 0.1)
     |> softmax
   end
-
+  
   def test() do
-    data = CM.rand(2, 50)
+    data = CM.rand(2, 1,28,28)
 
     train =
       [

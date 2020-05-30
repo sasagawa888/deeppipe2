@@ -23,17 +23,14 @@ defmodule Fashion do
   # for CNN test for Fashion-MNIST
   defnetwork init_network9(_x) do
     _x
-    # |> analizer(1)
-    |> f(3, 3, 1, 6, {1, 1}, 0, 0.1, 0.01)
+    |> f(3, 3, 1, 32, {1, 1}, 0, 0.2, 0.0005)
     |> relu
-    |> f(3, 3, 6, 6, {1, 1}, 0, 0.1, 0.01)
-    |> relu
-    |> f(3, 3, 6, 6, {1, 1}, 0, 0.1, 0.01)
+    |> f(3, 3, 32, 64, {1, 1}, 0, 0.2, 0.0005)
     |> relu
     |> pooling(2, 2)
-    # |> visualizer(1,1)
     |> full
-    |> w(726, 10, 0.1, 0.01, 0.25)
+    |> w(9216, 128, 0.1, 0.0005, 0.25)
+    |> w(128, 10, 0.1, 0.0005, 0.25)
     |> softmax
   end
 
