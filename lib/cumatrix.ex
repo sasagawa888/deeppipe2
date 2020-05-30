@@ -1173,8 +1173,6 @@ defmodule Cumatrix do
     raise "adagrad illegal argument"
   end
 
-  
-
   @doc """
   accuracy(mt1,ls) 
   return accuracy rate as float number.

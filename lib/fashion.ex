@@ -20,18 +20,20 @@ defmodule Fashion do
     |> softmax
   end
 
-
   # for CNN test for Fashion-MNIST
   defnetwork init_network9(_x) do
     _x
     # |> analizer(1)
-    |> f(3, 3, 1, 16, {1, 1}, 0, 0.1, 0.005)
-    |> f(3, 3, 16, 32, {1, 1}, 0, 0.1, 0.005)
-    |> pooling(2, 2)
+    |> f(3, 3, 1, 6, {1, 1}, 0, 0.1, 0.01)
     |> relu
+    |> f(3, 3, 6, 6, {1, 1}, 0, 0.1, 0.01)
+    |> relu
+    |> f(3, 3, 6, 6, {1, 1}, 0, 0.1, 0.01)
+    |> relu
+    |> pooling(2, 2)
     # |> visualizer(1,1)
     |> full
-    |> w(4608, 10, 0.1, 0.005,0.25)
+    |> w(726, 10, 0.1, 0.01, 0.25)
     |> softmax
   end
 
@@ -82,7 +84,6 @@ defmodule Fashion do
     test_label = test_label(10000)
     DP.retry("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
-
 
   # structure from flat vector to matrix(r,c) as 1 channel 
   def structure(x, r, c) do

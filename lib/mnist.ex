@@ -5,7 +5,6 @@ defmodule MNIST do
   import Network
   alias Deeppipe, as: DP
 
- 
   # for DNN test sgd
   defnetwork init_network1(_x) do
     _x
@@ -62,7 +61,6 @@ defmodule MNIST do
     |> softmax
   end
 
-  
   # convolution filter (2,2) 1ch, stride=2
   defnetwork init_network5(_x) do
     _x
@@ -93,7 +91,7 @@ defmodule MNIST do
   # dropout rate 25% initial-rate =0.1 learning-rate=0.1
   defnetwork init_network7(_x) do
     _x
-    |> w(784, 300, 0.1, 0.1,0.25)
+    |> w(784, 300, 0.1, 0.1, 0.25)
     |> b(300)
     |> relu
     |> w(300, 100)
@@ -231,8 +229,6 @@ defmodule MNIST do
     test_label = test_label(10000)
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
-
-  
 
   # structure from flat vector to matrix(r,c) as 1 channel 
   def structure(x, r, c) do

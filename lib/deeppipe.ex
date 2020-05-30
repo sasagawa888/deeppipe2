@@ -55,7 +55,7 @@ defmodule Deeppipe do
       forward(x1, rest, [x1 | res])
     else
       mw = CM.dropout(w, dr)
-      x1 = CM.mult(x, CM.emult(w,mw))
+      x1 = CM.mult(x, CM.emult(w, mw))
       forward(x1, rest, push(x1, mw, res))
     end
   end
@@ -67,7 +67,7 @@ defmodule Deeppipe do
       forward(x1, rest, [x1 | res])
     else
       mw = CM.dropout(b, dr)
-      x1 = CM.add(x, CM.emult(b,mw))
+      x1 = CM.add(x, CM.emult(b, mw))
       forward(x1, rest, push(x1, mw, res))
     end
   end
@@ -152,7 +152,7 @@ defmodule Deeppipe do
       {n, _} = CM.size(l)
       {u1, mw} = u
       w1 = CM.mult(CM.transpose(u1), l) |> CM.mult(1 / n) |> CM.emult(mw)
-      l1 = CM.mult(l, CM.transpose(CM.emult(w,mw)))
+      l1 = CM.mult(l, CM.transpose(CM.emult(w, mw)))
       backward(l1, rest, us, [{:weight, w1, ir, lr, dr, v} | res])
     end
   end
@@ -402,7 +402,20 @@ defmodule Deeppipe do
     IO.puts("random loss = #{loss}")
     rate = accuracy(ts_imag, network1, ts_label, m)
     IO.puts("accuracy rate = #{rate * 100}%")
-    train1(network1, train_image, train_onehot, ts_imag, ts_label, loss_func, method, m, n, e - 1, c + 1)
+
+    train1(
+      network1,
+      train_image,
+      train_onehot,
+      ts_imag,
+      ts_label,
+      loss_func,
+      method,
+      m,
+      n,
+      e - 1,
+      c + 1
+    )
   end
 
   defp train2(network, _, _, _, _, _, 0, _) do
@@ -535,7 +548,7 @@ defmodule Deeppipe do
     IO.inspect("-------------")
     :ok
   end
-  
+
   @doc """
   train for batch. not show accuracy, not show execute time
   ```
