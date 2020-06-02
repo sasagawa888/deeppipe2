@@ -335,6 +335,14 @@ defmodule Deeppipe do
     [network | learning(rest, rest1, :adagrad)]
   end
 
+  defp repeat(size,mini) do
+    if rem(size,mini) == 0 do
+      div(size,mini)
+    else
+      div(size,mini)+1
+    end 
+  end 
+
   @doc """
   ```
   1st arg network
@@ -353,7 +361,7 @@ defmodule Deeppipe do
     IO.puts("preparing data")
     train_image = tr_imag |> CM.new() |> CM.standardize()
     train_onehot = tr_onehot |> CM.new()
-    n = div(length(tr_onehot), m)
+    n = repeat(length(tr_onehot), m)
 
     {time, network1} =
       :timer.tc(fn ->
@@ -391,10 +399,10 @@ defmodule Deeppipe do
          method,
          m,
          n,
-         e,
-         c
+         epoch,
+         count
        ) do
-    IO.puts("\nepoch #{c}")
+    IO.puts("\nepoch #{count}")
     network1 = train2(network, train_image, train_onehot, loss_func, method, m, n, n)
     {train_image1, train_onehot1} = CM.random_select(train_image, train_onehot, m)
     [y | _] = forward(train_image1, network1, [])
@@ -413,8 +421,8 @@ defmodule Deeppipe do
       method,
       m,
       n,
-      e - 1,
-      c + 1
+      epoch - 1,
+      count + 1
     )
   end
 

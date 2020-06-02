@@ -25,7 +25,7 @@ iex(1)> Deeppipe.download(:mnist)
 Deeppipe will prepare MNIST dataset 
 
 (5)learning
-iex(2)> Test.sgd(100,100).
+iex(2)> MNIST.sgd(100,100).
 
 
 When you test other dataset use Deeppipe.download(x)
@@ -62,9 +62,16 @@ MNIST 100 mini batch size, 2 epochs.
 ```
 # for DNN test
   defnetwork init_network1(_x) do
-    _x |> w(784,300) |> b(300) |> relu
-    |> w(300,100) |> b(100) |> relu
-    |> w(100,10) |> b(10) |> softmax
+    _x 
+    |> w(784,300) 
+    |> b(300) 
+    |> relu
+    |> w(300,100) 
+    |> b(100) 
+    |> relu
+    |> w(100,10) 
+    |> b(10) 
+    |> softmax
   end
 
 iex(1)> MNIST.sgd(100,2)
@@ -174,20 +181,21 @@ update method is sgd, momentam, adagrad
 Now testing.
 
 ```
-# for CNN test for MNIST
+
+ for CNN test for MNIST
   defnetwork init_network4(_x) do
     _x
-    |> f(5, 5, 1, 12, {1,1}, 1, 0.5, 0.0001)
-    |> pooling(2,2)
-    |> f(3, 3, 12, 12, {1,1}, 1, 0.5, 0.0001)
-    |> f(2, 2, 12, 12, {1,1}, 1, 0.5, 0.0001)
-    |> pooling(2,2)
-    |> f(3, 3, 12, 12, {1,1}, 0, 0.5, 0.0001)
+    |> f(3, 3, 1, 6, {1, 1}, 0, 0.1, 0.001)
+    |> f(3, 3, 6, 12, {1, 1}, 0, 0.1, 0.001)
+    |> pooling(2, 2)
     |> relu
     |> full
-    |> w(300, 10, 0.1, 0.001)
+    |> w(1728, 10, 0.1, 0.001)
     |> softmax
   end
+
+
+
 
 mini batch size 100, 3 epoch
 
@@ -196,20 +204,22 @@ preparing data
 
 epoch 1
 [##################################################](100%)
-loss = 0.5491012930870056
-accuracy rate = 81.08999999999999%
+random loss = 0.6510372757911682
+accuracy rate = 82.94%
 
 epoch 2
 [##################################################](100%)
-loss = 0.40712782740592957
-accuracy rate = 85.65%
+random loss = 0.4810127913951874
+accuracy rate = 85.8%
 
 epoch 3
 [##################################################](100%)
-loss = 0.2031838446855545
-accuracy rate = 87.64%
-time: 634.104309 second
+random loss = 0.5048774480819702
+accuracy rate = 87.07000000000001%
+time: 511.20555 second
 :ok
+
+
 
 ```
 

@@ -4,7 +4,7 @@ defmodule Deeppipe2.MixProject do
   def project do
     [
       app: :deeppipe2,
-      version: "1.1.4",
+      version: "1.1.5",
       elixir: "~> 1.7",
       description: "Deep-Learning library with CUDA/CUBLAS",
       compilers: [:elixir_make] ++ Mix.compilers(),

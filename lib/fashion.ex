@@ -19,18 +19,18 @@ defmodule Fashion do
     |> b(10)
     |> softmax
   end
-
+  # adagrad(300,12) acc=85.0% lr=0.01
   # for CNN test for Fashion-MNIST
   defnetwork init_network9(_x) do
     _x
-    |> f(3, 3, 1, 32, {1, 1}, 0, 0.2, 0.0005)
+    |> f(3, 3, 1, 32, {1, 1}, 0, {:he,784}, 0.01)
     |> relu
-    |> f(3, 3, 32, 64, {1, 1}, 0, 0.2, 0.0005)
+    |> f(3, 3, 32, 64, {1, 1}, 0, {:he,21632}, 0.01)
     |> relu
     |> pooling(2, 2)
     |> full
-    |> w(9216, 128, 0.1, 0.0005, 0.25)
-    |> w(128, 10, 0.1, 0.0005, 0.25)
+    |> w(9216, 128, {:he,9216}, 0.01, 0.25)
+    |> w(128, 10, {:he,128}, 0.01, 0.25)
     |> softmax
   end
 
@@ -43,34 +43,44 @@ defmodule Fashion do
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
-  # Fashion-MNIST
-  def adagrad(m, n) do
-    image = train_image(60000, :structure)
-    onehot = train_label_onehot(60000)
+  def momentum(m, n) do
+    image = train_image(10000, :structure)
+    onehot = train_label_onehot(10000)
 
     network = init_network9(0)
-    test_image = test_image(10000, :structure)
-    test_label = test_label(10000)
+    test_image = test_image(1000, :structure)
+    test_label = test_label(1000)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :momentum, m, n)
+  end
+
+  # Fashion-MNIST
+  def adagrad(m, n) do
+    image = train_image(10000, :structure)
+    onehot = train_label_onehot(10000)
+
+    network = init_network9(0)
+    test_image = test_image(1000, :structure)
+    test_label = test_label(1000)
     DP.train(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
 
   def readagrad(m, n) do
-    image = train_image(60000, :structure)
-    onehot = train_label_onehot(60000)
+    image = train_image(10000, :structure)
+    onehot = train_label_onehot(10000)
     # test_image = train_image(10000, :structure)
     # test_label = train_label(10000)
-    test_image = test_image(10000, :structure)
-    test_label = test_label(10000)
+    test_image = test_image(1000, :structure)
+    test_label = test_label(1000)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
 
   # Fashion-MNIST
   def try(m, n) do
-    image = train_image(60000, :structure)
-    onehot = train_label_onehot(60000)
+    image = train_image(10000, :structure)
+    onehot = train_label_onehot(10000)
     network = init_network9(0)
-    test_image = test_image(10000, :structure)
-    test_label = test_label(10000)
+    test_image = test_image(100, :structure)
+    test_label = test_label(100)
     DP.try(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
 
