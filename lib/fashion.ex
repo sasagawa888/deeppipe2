@@ -19,18 +19,18 @@ defmodule Fashion do
     |> b(10)
     |> softmax
   end
-  # adagrad(300,12) acc=85.0% lr=0.01
+  # adagrad(300,14) acc=86.2% lr=0.008
   # for CNN test for Fashion-MNIST
   defnetwork init_network9(_x) do
     _x
-    |> f(3, 3, 1, 32, {1, 1}, 0, {:he,784}, 0.01)
+    |> f(3, 3, 1, 32, {1, 1}, 0, {:he,784}, 0.008)
     |> relu
-    |> f(3, 3, 32, 64, {1, 1}, 0, {:he,21632}, 0.01)
+    |> f(3, 3, 32, 64, {1, 1}, 0, {:he,21632}, 0.008)
     |> relu
     |> pooling(2, 2)
     |> full
-    |> w(9216, 128, {:he,9216}, 0.01, 0.25)
-    |> w(128, 10, {:he,128}, 0.01, 0.25)
+    |> w(9216, 128, {:he,9216}, 0.008, 0.25)
+    |> w(128, 10, {:he,128}, 0.008, 0.25)
     |> softmax
   end
 
@@ -53,7 +53,6 @@ defmodule Fashion do
     DP.train(network, image, onehot, test_image, test_label, :cross, :momentum, m, n)
   end
 
-  # Fashion-MNIST
   def adagrad(m, n) do
     image = train_image(10000, :structure)
     onehot = train_label_onehot(10000)

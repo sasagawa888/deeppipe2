@@ -27,6 +27,8 @@ defmodule Network do
   - f(r,c,i,o) filter matrix. o output channel
   - f(r,c,i,o,{st_h,st_w}) filter matrix. st_h and st_w are stride size od hight and width.
   - f(r,c,i,o,{st_h,st_w},pad) filter matrix. pad is padding size. 
+  - f(r,c,i,o,{st_h,st_w},pad,{:xcavier,dim},lr) filter matrix. generate initial element by Xavier method. Dim is dimension of input, lr is learning rate.
+  - f(r,c,i,o,{st_h,st_w},pad,{:he,dim},lr) filter matrix. generate initial element by He method. Dim is dimension of input, lr is learning rate.
   - f(r,c,i,o,{st_h,st_w},pad,ir,lr) filter matrix. ir is rate for initial val, lr is learning rate.
   - f(r,c,i,o,{st_h,st_w},pad,ir,lr,dr) filter matrix. dr is dropout rate.
   - pooling(st_h,st_w) st_h and st_w are pooling size.
