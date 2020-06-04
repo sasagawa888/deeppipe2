@@ -189,6 +189,10 @@ defmodule Cumatrix do
     raise "NIF convolute1/13 not implemented"
   end
 
+  defp convolute11(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
+    raise "NIF convolute11/13 not implemented"
+  end
+
   defp deconvolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
     raise "NIF deconvolute1/13 not implemented"
   end

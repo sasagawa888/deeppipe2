@@ -370,6 +370,117 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(c_bin);
 }
 
+
+__global__ void convolute11_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int st_h, int st_w, int pad, int in_c, int in_h, int in_w, int n)
+{
+    int tid = threadIdx.x;
+    int bid = blockIdx.x;
+    int n1,c1,c2,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
+    float sum,elt1,elt2;
+    
+    if(tid < n)
+    {   
+        n1 = bid;
+        c2 = tid;
+        oh = (in_h+2*pad-filt_h)/st_h + 1;
+        ow = (in_w+2*pad-filt_w)/st_w + 1;
+        for(w2=0;w2<ow;w2++){
+            for(h2=0;h2<oh;h2++){
+                sum = 0.0;
+                start_h1 = st_h*h2-pad;
+                end_h1 = start_h1 + filt_h;
+                start_w1 = st_w*w2-pad;
+                end_w1 = start_w1 + filt_w;
+                for(c1=0;c1<in_c;c1++){
+                    for(h1=start_h1;h1<end_h1;h1++){
+                        for(w1=start_w1;w1<end_w1;w1++){
+                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
+                                elt1 = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
+                                elt2 = b[IDX4C(c2,c1,h1-start_h1,w1-start_w1,filt_c,filt_h,filt_w)];
+                                sum = sum + elt1*elt2;
+                            }
+                        }
+                    }
+                }
+                c[IDX4C(n1,c2,h2,w2,filt_n,oh,ow)] = sum;   
+            }
+        }
+        
+    }
+}
+  
+/*
+1st arg in_n of input tensor
+2nd arg in_c of input tensor
+3rd arg in_h of input tensor
+4th arg in_w of input tensor
+5th arg filt_n of filter tensor
+6th arg filt_c of filter tensor
+7th arg filt_h of filter tensor
+8th arg filt_w of filter tensor
+9th arg binary of input tensor
+10th arg binary of filter tensor
+11th arg stride
+12th arg padding   
+*/
+static ERL_NIF_TERM
+convolute11(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin;
+    int in_n,in_c,in_h,in_w, filt_n,filt_c,filt_h,filt_w, st_h,st_w,pad, n1, n2, n3, oh, ow;
+    float *a,*b, *c;
+    float *dev_a, *dev_b, *dev_c;
+  
+    DISP("convolute1")
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &in_h)) return enif_make_int(env,3);
+    if (!enif_get_int(env, argv[3], &in_w)) return enif_make_int(env,4);
+    if (!enif_get_int(env, argv[4], &filt_n)) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[5], &filt_c)) return enif_make_int(env,6);
+    if (!enif_get_int(env, argv[6], &filt_h)) return enif_make_int(env,7);
+    if (!enif_get_int(env, argv[7], &filt_w)) return enif_make_int(env,8);
+    if (!enif_inspect_binary(env, argv[8], &a_bin )) return enif_make_int(env,9);
+    if (!enif_inspect_binary(env, argv[9], &b_bin )) return enif_make_int(env,10);
+    if (!enif_get_int(env, argv[10], &st_h)) return enif_make_int(env,11);
+    if (!enif_get_int(env, argv[11], &st_w)) return enif_make_int(env,12);
+    if (!enif_get_int(env, argv[12], &pad)) return enif_make_int(env,13);
+
+    
+    n1 = in_n * in_c * in_h * in_w;
+    n2 = filt_n * filt_c * filt_h * filt_w;
+    oh = (in_h+2*pad-filt_h)/st_h + 1;
+    ow = (in_w+2*pad-filt_w)/st_w + 1;
+    n3 = in_n * filt_n * oh * ow;  // n of filter generate n channel
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env,  n3 * sizeof(float), &c_bin);
+
+    
+    // Allocate for GPU
+    CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n3 * sizeof(float)));
+
+  
+    // copy from host a,b,c to GPU dev_a, dev_b, dev_c
+    CHECK(cudaMemcpy(dev_a, a, n1 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
+
+    convolute11_kernel << <in_n, filt_n>> >(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad, in_c, in_h, in_w, in_n);
+  
+    // copy to host c from GPU dev_c
+    CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
+
+    // free 
+    cudaFree(dev_a);
+    cudaFree(dev_b);
+    cudaFree(dev_c);
+    
+    return(c_bin);
+}
+
   
 __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int st_h, int st_w, int pad1, int pad, int in_c, int in_h, int in_w, int n)
 {
@@ -3006,6 +3117,7 @@ static ErlNifFunc nif_funcs[] = {
   {"pooling1", 7, pooling1},
   {"unpooling1", 8, unpooling1},
   {"convolute1", 13, convolute1},
+  {"convolute11", 13, convolute11},
   {"deconvolute1", 13, deconvolute1},
   {"deconvolute2", 13, deconvolute2},
   {"gradfilter1", 16, gradfilter1},

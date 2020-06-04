@@ -25,7 +25,7 @@ iex(1)> Deeppipe.download(:mnist)
 Deeppipe will prepare MNIST dataset 
 
 (5)learning
-iex(2)> MNIST.sgd(100,100).
+iex(2)> MNIST.sgd(100,10).
 
 
 When you test other dataset use Deeppipe.download(x)

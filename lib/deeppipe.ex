@@ -427,6 +427,7 @@ defmodule Deeppipe do
   end
 
   defp train2(network, _, _, _, _, _, 0, _) do
+    progress(1.0)
     newline()
     network
   end
