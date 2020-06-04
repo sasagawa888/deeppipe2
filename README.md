@@ -172,7 +172,7 @@ update method is sgd, momentam, adagrad
 5th arg test labeel list
 6th arg loss function (:cross or :square)
 7th arg minibatch size
-8th arg learning method
+8th arg learning method (:sgd :momentum :adagrad)
 9th arg epochs number
 
 ```
