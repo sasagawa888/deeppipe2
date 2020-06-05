@@ -197,6 +197,15 @@ defmodule Cumatrix do
     raise "NIF deconvolute1/13 not implemented"
   end
 
+  defp deconvolute11(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
+    raise "NIF deconvolute11/13 not implemented"
+  end
+
+
+  defp deconvolute12(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
+    raise "NIF deconvolute12/13 not implemented"
+  end
+
   defp deconvolute2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
     raise "NIF deconvolute2/13 not implemented"
   end
@@ -1355,7 +1364,6 @@ defmodule Cumatrix do
     end
   end
 
-  
   @doc """
   deconvolute(ts1,ts2,st_h,st_w,pad)
   deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st_h,st_w), padding(pad)
@@ -1363,6 +1371,36 @@ defmodule Cumatrix do
   2nd arg filter-tesnor
   """
   def deconvolute({n, c1, oh, ow, dt1}, {n2, c2, h2, w2, dt2}, st_h, st_w, pad) do
+    h1 = (oh - 1) * st_h - 2 * pad + h2
+    w1 = (ow - 1) * st_w - 2 * pad + h2
+
+    if st_h == 1 && st_w == 1 do
+      result = deconvolute11(n, c1, oh, ow, n2, c2, h2, w2, dt1, dt2, st_h, st_w, pad)
+
+      if !is_integer(result) do
+        {n, c2, h1, w1, result}
+      else
+        error("deconvolute1", result)
+      end
+    else
+      result = deconvolute12(n, c1, oh, ow, n2, c2, h2, w2, dt1, dt2, st_h, st_w, pad)
+
+      if !is_integer(result) do
+        {n, c2, h1, w1, result}
+      else
+        error("deconvolute2", result)
+      end
+    end
+  end
+  
+  @doc """
+  old deconvolute
+  deconvolute(ts1,ts2,st_h,st_w,pad)
+  deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st_h,st_w), padding(pad)
+  1st arg loss-tensor
+  2nd arg filter-tesnor
+  """
+  def deconvolute1({n, c1, oh, ow, dt1}, {n2, c2, h2, w2, dt2}, st_h, st_w, pad) do
     h1 = (oh - 1) * st_h - 2 * pad + h2
     w1 = (ow - 1) * st_w - 2 * pad + h2
 
