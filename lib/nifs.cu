@@ -377,36 +377,33 @@ __global__ void convolute11_kernel(float *a, float *b, float *c, int filt_n, int
     int bid = blockIdx.x;
     int n1,c1,c2,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
     float sum,elt1,elt2;
-    
-    if(tid < n)
-    {   
-        n1 = bid;
-        c2 = tid;
-        oh = (in_h+2*pad-filt_h)/st_h + 1;
-        ow = (in_w+2*pad-filt_w)/st_w + 1;
-        for(w2=0;w2<ow;w2++){
-            for(h2=0;h2<oh;h2++){
-                sum = 0.0;
-                start_h1 = st_h*h2-pad;
-                end_h1 = start_h1 + filt_h;
-                start_w1 = st_w*w2-pad;
-                end_w1 = start_w1 + filt_w;
-                for(c1=0;c1<in_c;c1++){
-                    for(h1=start_h1;h1<end_h1;h1++){
-                        for(w1=start_w1;w1<end_w1;w1++){
-                            if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
-                                elt1 = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
-                                elt2 = b[IDX4C(c2,c1,h1-start_h1,w1-start_w1,filt_c,filt_h,filt_w)];
-                                sum = sum + elt1*elt2;
-                            }
+      
+    n1 = bid;
+    c2 = tid;
+    oh = (in_h+2*pad-filt_h)/st_h + 1;
+    ow = (in_w+2*pad-filt_w)/st_w + 1;
+    for(w2=0;w2<ow;w2++){
+        for(h2=0;h2<oh;h2++){
+            sum = 0.0;
+            start_h1 = st_h*h2-pad;
+            end_h1 = start_h1 + filt_h;
+            start_w1 = st_w*w2-pad;
+            end_w1 = start_w1 + filt_w;
+            for(c1=0;c1<in_c;c1++){
+                for(h1=start_h1;h1<end_h1;h1++){
+                    for(w1=start_w1;w1<end_w1;w1++){
+                        if(h1 >= 0 && h1 < in_h && w1 >= 0 && w1 < in_w){
+                            elt1 = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
+                            elt2 = b[IDX4C(c2,c1,h1-start_h1,w1-start_w1,filt_c,filt_h,filt_w)];
+                            sum = sum + elt1*elt2;
                         }
                     }
                 }
-                c[IDX4C(n1,c2,h2,w2,filt_n,oh,ow)] = sum;   
             }
+            c[IDX4C(n1,c2,h2,w2,filt_n,oh,ow)] = sum;   
         }
-        
     }
+        
 }
   
 /*
@@ -468,7 +465,9 @@ convolute11(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n3 * sizeof(float), cudaMemcpyHostToDevice));
 
-    convolute11_kernel << <in_n, filt_n>> >(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad, in_c, in_h, in_w, in_n);
+    dim3 blocks(in_n,1,1);
+    dim3 threads(filt_n,1,1);
+    convolute11_kernel <<<blocks, threads>>>(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad, in_c, in_h, in_w, in_n);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));

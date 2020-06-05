@@ -1328,6 +1328,24 @@ defmodule Cumatrix do
   def convolute({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, dt2}, st_h, st_w, pad) do
     oh = div(h1 + 2 * pad - h2, st_h) + 1
     ow = div(w1 + 2 * pad - w2, st_w) + 1
+    result = convolute11(n1, c1, h1, w1, n2, c2, h2, w2, dt1, dt2, st_h, st_w, pad)
+
+    if !is_integer(result) do
+      {n1, n2, oh, ow, result}
+    else
+      error("convolute11", result)
+    end
+  end
+
+
+  @doc """
+  old convolute
+  convolute(ts1,ts2,st_h,st_w,pad)
+  convolution with input-tensor(ts1), filter-tensor(ts2), stride(st_h,st_w), padding(pad)
+  """
+  def convolute1({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, dt2}, st_h, st_w, pad) do
+    oh = div(h1 + 2 * pad - h2, st_h) + 1
+    ow = div(w1 + 2 * pad - w2, st_w) + 1
     result = convolute1(n1, c1, h1, w1, n2, c2, h2, w2, dt1, dt2, st_h, st_w, pad)
 
     if !is_integer(result) do
@@ -1337,6 +1355,7 @@ defmodule Cumatrix do
     end
   end
 
+  
   @doc """
   deconvolute(ts1,ts2,st_h,st_w,pad)
   deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st_h,st_w), padding(pad)
