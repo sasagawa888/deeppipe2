@@ -214,8 +214,16 @@ defmodule Cumatrix do
     raise "NIF gradfilter1/16 not implemented"
   end
 
+  defp gradfilter11(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) do
+    raise "NIF gradfilter11/16 not implemented"
+  end
+
   defp gradfilter2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) do
     raise "NIF gradfilter2/16 not implemented"
+  end
+
+  defp gradfilter12(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) do
+    raise "NIF gradfilter12/16 not implemented"
   end
 
   defp full1(_1, _2, _3, _4, _5) do
@@ -1445,6 +1453,51 @@ defmodule Cumatrix do
         pad
       ) do
     if st_h == 1 && st_w == 1 do
+      result = gradfilter11(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st_h, st_w, pad)
+
+      if !is_integer(result) do
+        {n2, c2, h2, w2, result}
+      else
+        error("gradfilter1", result)
+      end
+    else
+      result = gradfilter12(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st_h, st_w, pad)
+
+      if !is_integer(result) do
+        {n2, c2, h2, w2, result}
+      else
+        error("gradfilter2", result)
+      end
+    end
+  end
+
+  def gradfilter(_, _, _, _, _, _) do
+    raise "gradfilter illegal data form"
+  end
+
+  @doc """
+  old gradfilter
+  gradfilter(ts1,ts2,ts3,st_h,st_w,pad)
+  gradient by backpropagation. ts1 is input-tesor, ts2 is filter-tensor, ts3 is loss-tensor, st_h and st_w are stride size, pad is padding size.
+  calculate gradient of filter.
+  ```
+  1st arg input tensor
+  2nd arg filter tensor
+  3rd arg loss tensor
+  4th arg stride_hight
+  5th arg stride_width
+  6th arg padding size
+  ```
+  """
+  def gradfilter1(
+        {n1, c1, h1, w1, dt1},
+        {n2, c2, h2, w2, _},
+        {n1, c3, h3, w3, dt3},
+        st_h,
+        st_w,
+        pad
+      ) do
+    if st_h == 1 && st_w == 1 do
       result = gradfilter1(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st_h, st_w, pad)
 
       if !is_integer(result) do
@@ -1463,9 +1516,6 @@ defmodule Cumatrix do
     end
   end
 
-  def gradfilter(_, _, _, _, _, _) do
-    raise "gradfilter illegal data form"
-  end
 
   @doc """
   full(ts) 
