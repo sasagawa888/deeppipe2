@@ -150,14 +150,11 @@ gradient with backpropagation
 - learn/2 learn/3
 
 ```
-learning/2 
+learning/3 
 1st arg is old network list
 2nd arg is network with gradient
+3rd arg is update method
 generate new network with leared weight and bias
-update method is sgd
-
-learning/3
-added update method to 3rd arg
 update method is sgd, momentam, adagrad
 
 ```

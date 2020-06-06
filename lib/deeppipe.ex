@@ -218,55 +218,45 @@ defmodule Deeppipe do
     backward(l, rest, us, [{:visualizer, n, c} | res])
   end
 
-  @doc """
-  learning(network1,network2)
-  learning/2 
-  1st arg is old network list
-  2nd arg is network with gradient
-  generate new network with leared weight and bias
-  update method is sgd
+   @doc """
+  learning(network1,network2,update_method)
+  learning/3
+  generate new network with leared weight,bias and filter
+  update method is :momentam, :adagrad, :sgd
   """
   # --------sgd----------
-  def learning([], _) do
+  def learning([], _, :sgd) do
     []
   end
 
-  def learning([{:weight, w, ir, lr, dr, v} | rest], [{:weight, w1, _, _, _, _} | rest1]) do
+  def learning([{:weight, w, ir, lr, dr, v} | rest], [{:weight, w1, _, _, _, _} | rest1], :sgd) do
     # IO.puts("LN weight")
     w2 = CM.sgd(w, w1, lr)
-    [{:weight, w2, ir, lr, dr, v} | learning(rest, rest1)]
+    [{:weight, w2, ir, lr, dr, v} | learning(rest, rest1, :sgd)]
   end
 
-  def learning([{:bias, w, ir, lr, dr, v} | rest], [{:bias, w1, _, _, _, _} | rest1]) do
+  def learning([{:bias, w, ir, lr, dr, v} | rest], [{:bias, w1, _, _, _, _} | rest1], :sgd) do
     # IO.puts("LN bias")
     w2 = CM.sgd(w, w1, lr)
-    [{:bias, w2, ir, lr, dr, v} | learning(rest, rest1)]
+    [{:bias, w2, ir, lr, dr, v} | learning(rest, rest1, :sgd)]
   end
 
   def learning([{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest], [
         {:filter, w1, _, _, _, _, _, _} | rest1
-      ]) do
+      ],:sgd) do
     # IO.puts("LN filter")
     w2 = CM.sgd(w, w1, lr)
     # w2 |> CM.to_list() |> IO.inspect()
-    [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, v} | learning(rest, rest1)]
+    [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, v} | learning(rest, rest1, :sgd)]
   end
 
-  def learning([network | rest], [_ | rest1]) do
+  def learning([network | rest], [_ | rest1], :sgd) do
     # IO.puts("LN else")
     # IO.inspect(network)
-    [network | learning(rest, rest1)]
+    [network | learning(rest, rest1, :sgd)]
   end
 
-  @doc """
-  learning(network1,network2,update_method)
-  learning/3
-  update method is :momentam, :adagrad, :sgd
-  """
-  def learning(network1, network2, :sgd) do
-    learning(network1, network2)
-  end
-
+ 
   # --------momentum-------------
   def learning([], _, :momentum) do
     []
