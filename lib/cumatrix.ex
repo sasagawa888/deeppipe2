@@ -189,21 +189,8 @@ defmodule Cumatrix do
     raise "NIF convolute1/13 not implemented"
   end
 
-  defp convolute11(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
-    raise "NIF convolute11/13 not implemented"
-  end
-
   defp deconvolute1(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
     raise "NIF deconvolute1/13 not implemented"
-  end
-
-  defp deconvolute11(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
-    raise "NIF deconvolute11/13 not implemented"
-  end
-
-
-  defp deconvolute12(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
-    raise "NIF deconvolute12/13 not implemented"
   end
 
   defp deconvolute2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) do
@@ -214,16 +201,8 @@ defmodule Cumatrix do
     raise "NIF gradfilter1/16 not implemented"
   end
 
-  defp gradfilter11(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) do
-    raise "NIF gradfilter11/16 not implemented"
-  end
-
   defp gradfilter2(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) do
     raise "NIF gradfilter2/16 not implemented"
-  end
-
-  defp gradfilter12(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16) do
-    raise "NIF gradfilter12/16 not implemented"
   end
 
   defp full1(_1, _2, _3, _4, _5) do
@@ -1345,24 +1324,6 @@ defmodule Cumatrix do
   def convolute({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, dt2}, st_h, st_w, pad) do
     oh = div(h1 + 2 * pad - h2, st_h) + 1
     ow = div(w1 + 2 * pad - w2, st_w) + 1
-    result = convolute11(n1, c1, h1, w1, n2, c2, h2, w2, dt1, dt2, st_h, st_w, pad)
-
-    if !is_integer(result) do
-      {n1, n2, oh, ow, result}
-    else
-      error("convolute11", result)
-    end
-  end
-
-
-  @doc """
-  old convolute
-  convolute(ts1,ts2,st_h,st_w,pad)
-  convolution with input-tensor(ts1), filter-tensor(ts2), stride(st_h,st_w), padding(pad)
-  """
-  def convolute1({n1, c1, h1, w1, dt1}, {n2, c2, h2, w2, dt2}, st_h, st_w, pad) do
-    oh = div(h1 + 2 * pad - h2, st_h) + 1
-    ow = div(w1 + 2 * pad - w2, st_w) + 1
     result = convolute1(n1, c1, h1, w1, n2, c2, h2, w2, dt1, dt2, st_h, st_w, pad)
 
     if !is_integer(result) do
@@ -1372,6 +1333,8 @@ defmodule Cumatrix do
     end
   end
 
+
+ 
   @doc """
   deconvolute(ts1,ts2,st_h,st_w,pad)
   deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st_h,st_w), padding(pad)
@@ -1379,36 +1342,6 @@ defmodule Cumatrix do
   2nd arg filter-tesnor
   """
   def deconvolute({n, c1, oh, ow, dt1}, {n2, c2, h2, w2, dt2}, st_h, st_w, pad) do
-    h1 = (oh - 1) * st_h - 2 * pad + h2
-    w1 = (ow - 1) * st_w - 2 * pad + h2
-
-    if st_h == 1 && st_w == 1 do
-      result = deconvolute11(n, c1, oh, ow, n2, c2, h2, w2, dt1, dt2, st_h, st_w, pad)
-
-      if !is_integer(result) do
-        {n, c2, h1, w1, result}
-      else
-        error("deconvolute1", result)
-      end
-    else
-      result = deconvolute12(n, c1, oh, ow, n2, c2, h2, w2, dt1, dt2, st_h, st_w, pad)
-
-      if !is_integer(result) do
-        {n, c2, h1, w1, result}
-      else
-        error("deconvolute2", result)
-      end
-    end
-  end
-  
-  @doc """
-  old deconvolute
-  deconvolute(ts1,ts2,st_h,st_w,pad)
-  deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st_h,st_w), padding(pad)
-  1st arg loss-tensor
-  2nd arg filter-tesnor
-  """
-  def deconvolute1({n, c1, oh, ow, dt1}, {n2, c2, h2, w2, dt2}, st_h, st_w, pad) do
     h1 = (oh - 1) * st_h - 2 * pad + h2
     w1 = (ow - 1) * st_w - 2 * pad + h2
 
@@ -1430,6 +1363,8 @@ defmodule Cumatrix do
       end
     end
   end
+  
+ 
 
   @doc """
   gradfilter(ts1,ts2,ts3,st_h,st_w,pad)
@@ -1445,51 +1380,6 @@ defmodule Cumatrix do
   ```
   """
   def gradfilter(
-        {n1, c1, h1, w1, dt1},
-        {n2, c2, h2, w2, _},
-        {n1, c3, h3, w3, dt3},
-        st_h,
-        st_w,
-        pad
-      ) do
-    if st_h == 1 && st_w == 1 do
-      result = gradfilter11(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st_h, st_w, pad)
-
-      if !is_integer(result) do
-        {n2, c2, h2, w2, result}
-      else
-        error("gradfilter1", result)
-      end
-    else
-      result = gradfilter12(n1, c1, h1, w1, n2, c2, h2, w2, c3, h3, w3, dt1, dt3, st_h, st_w, pad)
-
-      if !is_integer(result) do
-        {n2, c2, h2, w2, result}
-      else
-        error("gradfilter2", result)
-      end
-    end
-  end
-
-  def gradfilter(_, _, _, _, _, _) do
-    raise "gradfilter illegal data form"
-  end
-
-  @doc """
-  old gradfilter
-  gradfilter(ts1,ts2,ts3,st_h,st_w,pad)
-  gradient by backpropagation. ts1 is input-tesor, ts2 is filter-tensor, ts3 is loss-tensor, st_h and st_w are stride size, pad is padding size.
-  calculate gradient of filter.
-  ```
-  1st arg input tensor
-  2nd arg filter tensor
-  3rd arg loss tensor
-  4th arg stride_hight
-  5th arg stride_width
-  6th arg padding size
-  ```
-  """
-  def gradfilter1(
         {n1, c1, h1, w1, dt1},
         {n2, c2, h2, w2, _},
         {n1, c3, h3, w3, dt3},
@@ -1516,6 +1406,11 @@ defmodule Cumatrix do
     end
   end
 
+  def gradfilter(_, _, _, _, _, _) do
+    raise "gradfilter illegal data form"
+  end
+
+  
 
   @doc """
   full(ts) 
