@@ -166,7 +166,7 @@ update method is sgd, momentam, adagrad
 2nd arg train image list
 3rd arg train onehot list
 4th arg test image list
-5th arg test labeel list
+5th arg test label list
 6th arg loss function (:cross or :square)
 7th arg minibatch size
 8th arg learning method (:sgd :momentum :adagrad)

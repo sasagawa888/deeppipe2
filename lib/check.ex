@@ -22,9 +22,9 @@ defmodule Check do
     |> w(242, 10, 0.1, 0.1)
     |> softmax
   end
-  
+
   def test() do
-    data = CM.rand(2, 1,28,28)
+    data = CM.rand(2, 1, 28, 28)
 
     train =
       [

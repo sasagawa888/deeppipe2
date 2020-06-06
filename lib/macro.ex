@@ -91,17 +91,17 @@ defmodule Network do
     end
   end
 
-  defp parse({:w, _, [x, y, {:xavier,dim}, lr]}, _) do
+  defp parse({:w, _, [x, y, {:xavier, dim}, lr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(1 / unquote(dim))), {:xavier,unquote(dim)}, unquote(lr),
-       0.0, CM.new(unquote(x), unquote(y))}
+      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(1 / unquote(dim))),
+       {:xavier, unquote(dim)}, unquote(lr), 0.0, CM.new(unquote(x), unquote(y))}
     end
   end
 
-  defp parse({:w, _, [x, y, {:he,dim}, lr]}, _) do
+  defp parse({:w, _, [x, y, {:he, dim}, lr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(2 / unquote(dim))), {:he,unquote(dim)}, unquote(lr),
-       0.0, CM.new(unquote(x), unquote(y))}
+      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(2 / unquote(dim))),
+       {:he, unquote(dim)}, unquote(lr), 0.0, CM.new(unquote(x), unquote(y))}
     end
   end
 
@@ -112,17 +112,17 @@ defmodule Network do
     end
   end
 
-  defp parse({:w, _, [x, y, {:xavier,dim},lr , dr]}, _) do
+  defp parse({:w, _, [x, y, {:xavier, dim}, lr, dr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(1 / unquote(dim))), {:xavier,unquote(dim)}, unquote(lr),
-       unquote(dr), CM.new(unquote(x), unquote(y))}
+      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(1 / unquote(dim))),
+       {:xavier, unquote(dim)}, unquote(lr), unquote(dr), CM.new(unquote(x), unquote(y))}
     end
   end
 
-  defp parse({:w, _, [x, y, {:he,dim}, lr, dr]}, _) do
+  defp parse({:w, _, [x, y, {:he, dim}, lr, dr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(2 / unquote(dim))), {:he,unquote(dim)}, unquote(lr),
-       unquote(dr), CM.new(unquote(x), unquote(y))}
+      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(2 / unquote(dim))),
+       {:he, unquote(dim)}, unquote(lr), unquote(dr), CM.new(unquote(x), unquote(y))}
     end
   end
 
@@ -242,34 +242,40 @@ defmodule Network do
     end
   end
 
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:xavier,dim}]}, _) do
+  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:xavier, dim}]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(:math.sqrt(1 / unquote(dim))),
-       {unquote(h), unquote(w)}, unquote(pad), {:xavier,unquote(dim)}, 0.1, 0.0,
+      {:filter,
+       CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
+       |> CM.mult(:math.sqrt(1 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
+       {:xavier, unquote(dim)}, 0.1, 0.0, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+    end
+  end
+
+  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:he, dim}]}, _) do
+    quote do
+      {:filter,
+       CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
+       |> CM.mult(:math.sqrt(2 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
+       {:he, unquote(dim)}, 0.1, 0.0, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+    end
+  end
+
+  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:xavier, dim}, lr]}, _) do
+    quote do
+      {:filter,
+       CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
+       |> CM.mult(:math.sqrt(1 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
+       {:xavier, unquote(dim)}, unquote(lr), 0.0,
        CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end
   end
 
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:he,dim}]}, _) do
+  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:he, dim}, lr]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(:math.sqrt(2 / unquote(dim))),
-       {unquote(h), unquote(w)}, unquote(pad), {:he,unquote(dim)}, 0.1, 0.0,
-       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
-    end
-  end
-
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:xavier,dim}, lr]}, _) do
-    quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(:math.sqrt(1 / unquote(dim))),
-       {unquote(h), unquote(w)}, unquote(pad), {:xavier,unquote(dim)}, unquote(lr), 0.0,
-       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
-    end
-  end
-
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:he,dim}, lr]}, _) do
-    quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(:math.sqrt(2 / unquote(dim))),
-       {unquote(h), unquote(w)}, unquote(pad), {:he,unquote(dim)}, unquote(lr), 0.0,
+      {:filter,
+       CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
+       |> CM.mult(:math.sqrt(2 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
+       {:he, unquote(dim)}, unquote(lr), 0.0,
        CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end
   end

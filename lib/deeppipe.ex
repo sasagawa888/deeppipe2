@@ -218,11 +218,11 @@ defmodule Deeppipe do
     backward(l, rest, us, [{:visualizer, n, c} | res])
   end
 
-   @doc """
+  @doc """
   learning(network1,network2,update_method)
   learning/3
   generate new network with leared weight,bias and filter
-  update method is :momentam, :adagrad, :sgd
+  update method is :sgd, :momentum, :adagrad
   """
   # --------sgd----------
   def learning([], _, :sgd) do
@@ -241,9 +241,13 @@ defmodule Deeppipe do
     [{:bias, w2, ir, lr, dr, v} | learning(rest, rest1, :sgd)]
   end
 
-  def learning([{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest], [
-        {:filter, w1, _, _, _, _, _, _} | rest1
-      ],:sgd) do
+  def learning(
+        [{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest],
+        [
+          {:filter, w1, _, _, _, _, _, _} | rest1
+        ],
+        :sgd
+      ) do
     # IO.puts("LN filter")
     w2 = CM.sgd(w, w1, lr)
     # w2 |> CM.to_list() |> IO.inspect()
@@ -256,7 +260,6 @@ defmodule Deeppipe do
     [network | learning(rest, rest1, :sgd)]
   end
 
- 
   # --------momentum-------------
   def learning([], _, :momentum) do
     []
@@ -325,13 +328,13 @@ defmodule Deeppipe do
     [network | learning(rest, rest1, :adagrad)]
   end
 
-  defp repeat(size,mini) do
-    if rem(size,mini) == 0 do
-      div(size,mini)
+  defp repeat(size, mini) do
+    if rem(size, mini) == 0 do
+      div(size, mini)
     else
-      div(size,mini)+1
-    end 
-  end 
+      div(size, mini) + 1
+    end
+  end
 
   @doc """
   ```
@@ -340,8 +343,8 @@ defmodule Deeppipe do
   3rd arg train onehot list
   4th arg test image list
   5th arg test label list
-  6th arg loss function (;cross or :square)
-  7th arg learning method
+  6th arg loss function (:cross or :square)
+  7th arg learning method (:sgd :momentum or :adagrad)
   8th arg minibatch size
   9th arg epochs 
   ```
@@ -472,8 +475,8 @@ defmodule Deeppipe do
   3rd arg train onehot list
   4th arg test image list
   5th arg test label list
-  6th arg loss function (;cross or :square)
-  7th arg learning method
+  6th arg loss function (:cross or :square)
+  7th arg learning method (:sgd :momentum :adagrad)
   8th arg minibatch size
   9th arg repeat number
   ```

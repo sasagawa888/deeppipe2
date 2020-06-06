@@ -264,17 +264,16 @@ unpooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
   
 
-__global__ void convolute1_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int st_h, int st_w, int pad, int in_c, int in_h, int in_w, int n)
+__global__ void convolute1_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w,
+     int st_h, int st_w, int pad, int in_c, int in_h, int in_w, int oh, int ow)
 {
-    int tid = threadIdx.x;
     int bid = blockIdx.x;
-    int n1,c1,c2,h1,w1,h2,w2,oh,ow,start_h1,end_h1,start_w1,end_w1;
+    int tid = threadIdx.x;
+    int n1,c1,c2,h1,w1,h2,w2,start_h1,end_h1,start_w1,end_w1;
     float sum,elt1,elt2;
       
     n1 = bid;
     c2 = tid;
-    oh = (in_h+2*pad-filt_h)/st_h + 1;
-    ow = (in_w+2*pad-filt_w)/st_w + 1;
     for(w2=0;w2<ow;w2++){
         for(h2=0;h2<oh;h2++){
             sum = 0.0;
@@ -360,7 +359,7 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     dim3 blocks(in_n,1,1);
     dim3 threads(filt_n,1,1);
-    convolute1_kernel <<<blocks, threads>>>(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad, in_c, in_h, in_w, in_n);
+    convolute1_kernel <<<blocks, threads>>>(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad, in_c, in_h, in_w, oh, ow);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -375,7 +374,8 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
 
 
-__global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w, int st_h, int st_w, int pad1, int pad, int in_c, int in_h, int in_w, int n)
+__global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w,
+     int st_h, int st_w, int pad1, int pad, int in_c, int in_h, int in_w)
 {
     int tid = threadIdx.x;
     int bid = blockIdx.x;
@@ -490,20 +490,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
         }
     }
 
-    //debug
-    /*
-    for(i=0;i<filt_n;i++){
-        for(j=0;j<filt_c;j++){
-            for(k=0;k<filt_h;k++){
-                for(l=0;l<filt_w;l++){
-                    printf("%f ", b1[IDX4C(i,j,k,l,filt_c,filt_h,filt_w)]);
-                }
-            }
-        }
-    }
-    printf("\n\r");
-    */
-
+    
     // Allocate for GPU
     CHECK(cudaMalloc((void**)&dev_a, n1 * sizeof(float)));
     CHECK(cudaMalloc((void**)&dev_b, n2 * sizeof(float)));
@@ -517,7 +504,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     dim3 blocks(in_n,1,1);
     dim3 threads(filt_c,1,1);
-    deconvolute1_kernel <<<blocks, threads>>>(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad1, pad, in_c, in_h, in_w, in_n);
+    deconvolute1_kernel <<<blocks, threads>>>(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad1, pad, in_c, in_h, in_w);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
@@ -535,7 +522,8 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
 
 
-__global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int filt_n, int filt_c,int filt_h, int filt_w, int st_h, int st_w, int pad, int in_c, int in_h, int in_w, int loss_h, int loss_w, int n)
+__global__ void deconvolute2_kernel(float *a1, float *a, float *b, float *c, int filt_n, int filt_c,int filt_h, int filt_w,
+     int st_h, int st_w, int pad, int in_c, int in_h, int in_w, int loss_h, int loss_w)
 {
     int tid = threadIdx.x;
     int bid = blockIdx.x;
@@ -691,7 +679,7 @@ deconvolute2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     dim3 blocks(in_n,1,1);
     dim3 threads(filt_c,1,1);
-    deconvolute2_kernel <<<blocks, filt_c>> >(dev_a1, dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad1, in_c, in_h, in_w, loss_h, loss_w, in_n);
+    deconvolute2_kernel <<<blocks, filt_c>> >(dev_a1, dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad1, in_c, in_h, in_w, loss_h, loss_w);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));

@@ -1333,8 +1333,6 @@ defmodule Cumatrix do
     end
   end
 
-
- 
   @doc """
   deconvolute(ts1,ts2,st_h,st_w,pad)
   deconvolution with input-tensor(ts1), filter-tensor(ts2), stride(st_h,st_w), padding(pad)
@@ -1363,8 +1361,6 @@ defmodule Cumatrix do
       end
     end
   end
-  
- 
 
   @doc """
   gradfilter(ts1,ts2,ts3,st_h,st_w,pad)
@@ -1409,8 +1405,6 @@ defmodule Cumatrix do
   def gradfilter(_, _, _, _, _, _) do
     raise "gradfilter illegal data form"
   end
-
-  
 
   @doc """
   full(ts) 

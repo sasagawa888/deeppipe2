@@ -12,20 +12,20 @@ defmodule CIFAR do
 
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 32, {1, 1}, 1, {:he,1024}, 0.01)
+    |> f(3, 3, 3, 32, {1, 1}, 1, {:he, 1024}, 0.01)
     |> relu
-    |> f(3, 3, 32, 32, {1, 1}, 1, {:he,32768}, 0.01)
+    |> f(3, 3, 32, 32, {1, 1}, 1, {:he, 32768}, 0.01)
     |> pooling(2, 2)
-    |> f(3, 3, 32, 64, {1, 1}, 1, {:he,32768}, 0.01)
+    |> f(3, 3, 32, 64, {1, 1}, 1, {:he, 32768}, 0.01)
     |> relu
-    |> f(3, 3, 64, 64, {1, 1}, 1, {:he,65536}, 0.01)
+    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 65536}, 0.01)
     |> relu
     |> pooling(2, 2)
-    |> f(3, 3, 64, 64, {1, 1}, 1, {:he,32768}, 0.01)
-    |> f(3, 3, 64, 64, {1, 1}, 1, {:he,32768}, 0.01)
+    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 32768}, 0.01)
+    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 32768}, 0.01)
     |> full
-    |> w(4096, 100, {:he,4098}, 0.01)
-    |> w(100, 10, {:he,100}, 0.01)
+    |> w(4096, 100, {:he, 4098}, 0.01)
+    |> w(100, 10, {:he, 100}, 0.01)
     |> softmax
   end
 
@@ -45,9 +45,6 @@ defmodule CIFAR do
     test_label = test_label(1000)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
-
-
-  
 
   # transfer from train-label to onehot list
   def train_label_onehot1() do
