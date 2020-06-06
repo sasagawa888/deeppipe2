@@ -370,20 +370,15 @@ convolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
 
 __global__ void deconvolute1_kernel(float *a, float *b, float *c, int filt_n, int filt_c, int filt_h, int filt_w,
-     int st_h, int st_w, int pad1, int pad, int in_c, int in_h, int in_w)
+     int st_h, int st_w, int pad1, int pad, int in_c, int in_h, int in_w, int oh, int ow, int oh1, int ow1)
 {
     int bid = blockIdx.x;
     int tid = threadIdx.x;
-    int n1,c1,c2,h1,w1,h2,w2,oh,ow,oh1,ow1,start_h1,end_h1,start_w1,end_w1;
+    int n1,c1,c2,h1,w1,h2,w2,start_h1,end_h1,start_w1,end_w1;
     float sum,elt1,elt2;
     
     n1 = bid;
     c2 = tid;
-    // pad1 = filt_h -1,  pad is original padding size
-    oh = (in_h+2*pad1-filt_h)/st_h + 1;
-    ow = (in_w+2*pad1-filt_w)/st_w + 1;
-    oh1 = (in_h+2*(pad1-pad)-filt_h)/st_h + 1;
-    ow1 = (in_w+2*(pad1-pad)-filt_w)/st_w + 1;
         
     //full convolute. stride=1 always
     for(w2=0;w2<ow;w2++){
@@ -441,7 +436,7 @@ static ERL_NIF_TERM
 deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
     ERL_NIF_TERM  c_bin;
-    int in_n,in_c,in_h,in_w, filt_n,filt_c,filt_h,filt_w, st_h,st_w,pad, pad1, n1, n2, n3, oh, ow, i,j,k,l;
+    int in_n,in_c,in_h,in_w, filt_n,filt_c,filt_h,filt_w, st_h,st_w,pad, pad1, n1, n2, n3, oh, ow, oh1, ow1, i,j,k,l;
     float *a,*b, *b1, *c;
     float *dev_a, *dev_b, *dev_c;
   
@@ -464,9 +459,12 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     n1 = in_n * in_c * in_h * in_w;
     n2 = filt_n * filt_c * filt_h * filt_w;
     pad1 = filt_h - 1;
-    oh = (in_h+2*(pad1-pad)-filt_h)/st_h + 1;
-    ow = (in_w+2*(pad1-pad)-filt_w)/st_w + 1;
-    n3 = in_n * filt_c * oh * ow;  // channel of filter generate same channel input tensor
+    // pad1 = filt_h -1,  pad is original padding size
+    oh = (in_h+2*pad1-filt_h)/st_h + 1;
+    ow = (in_w+2*pad1-filt_w)/st_w + 1;
+    oh1 = (in_h+2*(pad1-pad)-filt_h)/st_h + 1;
+    ow1 = (in_w+2*(pad1-pad)-filt_w)/st_w + 1;
+    n3 = in_n * filt_c * oh1 * ow1;  // channel of filter generate same channel input tensor
     a = (float *) a_bin.data;
     b = (float *) b_bin.data;
     b1 = (float *) enif_alloc(n2 * sizeof(float));
@@ -498,7 +496,7 @@ deconvolute1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     dim3 blocks(in_n,1,1);
     dim3 threads(filt_c,1,1);
-    deconvolute1_kernel <<<blocks, threads>>>(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad1, pad, in_c, in_h, in_w);
+    deconvolute1_kernel <<<blocks, threads>>>(dev_a, dev_b, dev_c, filt_n, filt_c, filt_h, filt_w, st_h, st_w, pad1, pad, in_c, in_h, in_w, oh, ow, oh1, ow1);
   
     // copy to host c from GPU dev_c
     CHECK(cudaMemcpy(c, dev_c, n3 * sizeof(float), cudaMemcpyDeviceToHost));
