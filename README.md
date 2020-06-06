@@ -147,7 +147,7 @@ gradient with backpropagation
 3rd arg is train matrix
 ```
 
-- learn/2 learn/3
+- learn/3
 
 ```
 learning/3 

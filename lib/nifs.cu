@@ -30,41 +30,40 @@
     }                                                 \
 }
 
-__global__ void pooling_kernel(float *a, float *b, float *c, int st_h, int st_w, int in_c, int in_h, int in_w, int n)
+__global__ void pooling_kernel(float *a, float *b, float *c, int st_h, int st_w, int in_c, int in_h, int in_w)
 {
     int tid = threadIdx.x;
+    int bid = blockIdx.x;
     int n1,c1,h1,w1,h2,w2,in_h2,in_w2,start_h1,end_h1,start_w1,end_w1,max_h,max_w;
-    float max,fmax_h,fmax_w;
-    if(tid < n)
-    {   
-        n1 = tid;
-        in_h2 = in_h / st_h;
-        in_w2 = in_w / st_w;
-        for(c1=0;c1<in_c;c1++){
-            for(w2=0;w2<in_w2;w2++){
-                for(h2=0;h2<in_h2;h2++){
-                    max = -999999999;
-                    start_h1 = st_h*h2;
-                    end_h1 = st_h*(h2+1);
-                    start_w1 = st_w*w2;
-                    end_w1 = st_w*(w2+1);
-                    for(h1=start_h1;h1<end_h1;h1++){
-                        for(w1=start_w1;w1<end_w1;w1++){
-                            if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] >= max){
-                                max = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
-                                max_h = h1;
-                                max_w = w1;
-                            }
-                        }
+    float max,fmax_h,fmax_w; 
+    n1 = bid;
+    c1 = tid;
+    in_h2 = in_h / st_h;
+    in_w2 = in_w / st_w;
+    
+    for(w2=0;w2<in_w2;w2++){
+        for(h2=0;h2<in_h2;h2++){
+            max = -999999999.0;
+            start_h1 = st_h*h2;
+            end_h1 = st_h*(h2+1);
+            start_w1 = st_w*w2;
+            end_w1 = st_w*(w2+1);
+            for(h1=start_h1;h1<end_h1;h1++){
+                for(w1=start_w1;w1<end_w1;w1++){
+                    if(a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)] >= max){
+                        max = a[IDX4C(n1,c1,h1,w1,in_c,in_h,in_w)];
+                        max_h = h1;
+                        max_w = w1;
                     }
-                    b[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)] = max;
-                    fmax_h = (float)max_h;
-                    fmax_w = (float)max_w;
-                    c[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)] = fmax_h * 1000.0 + fmax_w; 
                 }
             }
+            b[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)] = max;
+            fmax_h = (float)max_h;
+            fmax_w = (float)max_w;
+            c[IDX4C(n1,c1,h2,w2,in_c,in_h2,in_w2)] = fmax_h * 1000.0 + fmax_w; 
         }
     }
+    
 }
   
   /*
@@ -128,7 +127,9 @@ pooling1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     CHECK(cudaMemcpy(dev_b, b, n2 * sizeof(float), cudaMemcpyHostToDevice));
     CHECK(cudaMemcpy(dev_c, c, n2 * sizeof(float), cudaMemcpyHostToDevice));
   
-    pooling_kernel << <1, in_n>> >(dev_a, dev_b, dev_c, st_h, st_w, in_c, in_h, in_w, in_n);
+    dim3 blocks(in_n,1,1);
+    dim3 threads(in_c,1,1);
+    pooling_kernel <<<blocks, threads>>>(dev_a, dev_b, dev_c, st_h, st_w, in_c, in_h, in_w);
   
     // copy to host b,c from GPU dev_b,dev_c
     CHECK(cudaMemcpy(b, dev_b, n2 * sizeof(float), cudaMemcpyDeviceToHost));
