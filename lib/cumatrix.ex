@@ -1210,7 +1210,6 @@ defmodule Cumatrix do
     raise "rms illegal argument"
   end
 
-
   @doc """
   adam(w,m,v,grad,lr)
   adam optimizer

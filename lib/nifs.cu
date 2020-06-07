@@ -2695,8 +2695,8 @@ rms1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     beta2 = 0.999
     epsilon = 10.0e-7
     alpha = 0.001
-    m1 = beta1 * m + (1 - beta1) * lr * grad
-    v1 = beta2 * v + (1 - beta2) * lr * grad^2
+    m1 = beta1 * m + (1 - beta1) * grad
+    v1 = beta2 * v + (1 - beta2) * grad^2
     m2 = m1/(1 - beta1)
     v2 = v1/(1 - beta2)
     w1 = w - alpha * m2/(sqrt(v2)+epsilon)
@@ -2720,8 +2720,8 @@ __global__ void adam_kernel(float *a, float *b, float *c, float *d, float *e, fl
     alpha = 0.001;
 
     while (tid < n){   
-        e[tid] = beta1 * b[tid] + (1 - beta1) * lr * d[tid];
-        f[tid] = beta2 * c[tid] + (1 - beta2) * lr * d[tid]*d[tid];
+        e[tid] = beta1 * b[tid] + (1 - beta1) * d[tid];
+        f[tid] = beta2 * c[tid] + (1 - beta2) * d[tid]*d[tid];
         m2 = e[tid]/(1-beta1);
         v2 = f[tid]/(1-beta2);
         g[tid] = a[tid] - alpha * (m2/(sqrt(v2)+epsilon));
