@@ -2507,22 +2507,28 @@ momentum1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(tuple);
 }
 
-  /*
+/* ADAGRAD
     h1 = h + grad*grad
-    w1 = w - lr * 1/sqrt(h1) * grad 
-  */
+    lr1 = lr/(sqrt(h1))
+    w1 = w - lr1 * grad 
+
+    a[] = w
+    b[] = h
+    c[] = grad
+    d[] = h1
+    e[] = w1
+*/
   
 __global__ void adagrad_kernel(float *a, float *b, float *c, float *d, float *e, float lr, int n)
 {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    float lr1;
     while (tid < n)
     {   
         d[tid] = b[tid] + c[tid]*c[tid];
+        lr1 = lr/(sqrt(d[tid]));
+        e[tid] = a[tid] - lr1 * c[tid];
 
-        if(d[tid] != 0)
-            e[tid] = a[tid] - (lr * (1 / sqrt(d[tid])) * c[tid]);
-        else 
-            e[tid] = a[tid] - (lr * c[tid]);
         tid += blockDim.x * gridDim.x;
     }
 }
@@ -2591,7 +2597,100 @@ adagrad1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(tuple);
 }
 
+/* RMSprop
+    h1 = alpha * h + (1 - alpha) * grad*grad
+    lr1 = lr /(sqrt(h) + epsilon)
+    w1 = w - lr1 * grad 
+
+    a[] = w
+    b[] = h
+    c[] = grad
+    d[] = h1
+    e[] = w1
+*/
+  
+__global__ void rms_kernel(float *a, float *b, float *c, float *d, float *e, float lr, int n)
+{
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    float lr1,alpha,epsilon;
+    alpha = 0.99;
+    epsilon = 10.0e-7;
+    while (tid < n)
+    {   
+        d[tid] = alpha * b[tid] + (1-alpha)*c[tid]*c[tid];
+        lr1 = lr/(sqrt(d[tid])+epsilon);
+        e[tid] = a[tid] - lr1*c[tid];
+
+        tid += blockDim.x * gridDim.x;
+    }
+}
+ 
 /*
+1st arg row-size of vectorized each-matrix
+2nd arg wight-matrix (a_bin)
+3rd arg h-matrix     (b_bin)
+4th arg grad-matrix  (c_bin)
+5th arg learning rate
+return tuple {new-h,new-w}
+*/
+static ERL_NIF_TERM
+rms1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin,c_bin;
+    ERL_NIF_TERM  d_bin,e_bin,tuple;
+    int n;
+    float *a,*b,*c,*d,*e;
+    float *dev_a, *dev_b, *dev_c, *dev_d, *dev_e;
+    float lr;
+    double learning_rate;
+    
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin)) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &b_bin)) return enif_make_int(env,3);
+    if (!enif_inspect_binary(env, argv[3], &c_bin)) return enif_make_int(env,4);
+    if (!enif_get_double(env, argv[4], &learning_rate)) return enif_make_int(env,5);
+
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) c_bin.data;
+    d = (float *) enif_make_new_binary(env, n * sizeof(float), &d_bin);
+    e = (float *) enif_make_new_binary(env, n * sizeof(float), &e_bin);
+    lr = (float) learning_rate;
+  
+    // Allocate for GPU
+    CHECK(cudaMalloc((void**)&dev_a, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_b, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_c, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_d, n * sizeof(float)));
+    CHECK(cudaMalloc((void**)&dev_e, n * sizeof(float)));
+  
+    // copy from host a,b to GPU dev_a, dev_b
+    CHECK(cudaMemcpy(dev_a, a, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_b, b, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_c, c, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_d, d, n * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(dev_e, e, n * sizeof(float), cudaMemcpyHostToDevice));
+  
+    rms_kernel << <128, 128 >> >(dev_a, dev_b, dev_c, dev_d, dev_e, lr, n);
+  
+    // copy to host d,e from GPU dev_d,dev_e
+    CHECK(cudaMemcpy(d, dev_d, n * sizeof(float), cudaMemcpyDeviceToHost));
+    CHECK(cudaMemcpy(e, dev_e, n * sizeof(float), cudaMemcpyDeviceToHost));
+
+    
+
+    // free 
+    cudaFree(dev_a);
+	cudaFree(dev_b);
+    cudaFree(dev_c);
+    cudaFree(dev_d);
+	cudaFree(dev_e);
+    
+    tuple = enif_make_tuple2(env,d_bin,e_bin);
+    return(tuple);
+}
+
+
+/* ADAM
     beta1 = 0.9
     beta2 = 0.999
     epsilon = 10.0e-7
@@ -3067,6 +3166,7 @@ static ErlNifFunc nif_funcs[] = {
   {"sgd1", 4, sgd1},
   {"momentum1", 5, momentum1},
   {"adagrad1", 5, adagrad1},
+  {"rms1", 5, rms1},
   {"adam1", 6, adam1},
   {"accuracy1", 4, accuracy1},
   {"correct1", 4, correct1},

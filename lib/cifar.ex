@@ -8,42 +8,41 @@ defmodule CIFAR do
   """
 
   # for CNN test
-  # CIFAR.adagrad(100,20) 20epochs mini batch size 100 for batch_data1
 
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 32, {1, 1}, 1, {:he, 1024}, 0.01)
+    |> f(3, 3, 3, 32, {1, 1}, 1, {:he, 1024}, 0.0001)
     |> relu
-    |> f(3, 3, 32, 32, {1, 1}, 1, {:he, 32768}, 0.01)
+    |> f(3, 3, 32, 32, {1, 1}, 1, {:he, 32768}, 0.0001)
     |> pooling(2, 2)
-    |> f(3, 3, 32, 64, {1, 1}, 1, {:he, 32768}, 0.01)
+    |> f(3, 3, 32, 64, {1, 1}, 1, {:he, 32768}, 0.0001)
     |> relu
-    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 65536}, 0.01)
+    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 65536}, 0.0001)
     |> relu
     |> pooling(2, 2)
-    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 32768}, 0.01)
-    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 32768}, 0.01)
+    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 32768}, 0.0001)
+    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 32768}, 0.0001)
     |> full
-    |> w(4096, 100, {:he, 4098}, 0.01)
-    |> w(100, 10, {:he, 100}, 0.01)
+    |> w(4096, 100, {:he, 4098}, 0.0001)
+    |> w(100, 10, {:he, 100}, 0.0001)
     |> softmax
   end
 
-  def adagrad(m, n) do
+  def adam(m, n) do
     image = train_image_batch1()
     onehot = train_label_onehot1()
     network = init_network1(0)
     test_image = test_image(1000)
     test_label = test_label(1000)
-    DP.train(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
+    DP.try(network, image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 
-  def readagrad(m, n) do
+  def readam(m, n) do
     image = train_image_batch1()
     onehot = train_label_onehot1()
     test_image = test_image(1000)
     test_label = test_label(1000)
-    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
+    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 
   # transfer from train-label to onehot list

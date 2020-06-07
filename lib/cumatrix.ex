@@ -169,6 +169,10 @@ defmodule Cumatrix do
     raise "NIF adagrad1/5 not implemented"
   end
 
+  defp rms1(_1, _2, _3, _4, _5) do
+    raise "NIF rms1/5 not implemented"
+  end
+
   defp adam1(_1, _2, _3, _4, _5, _6) do
     raise "NIF adam1/5 not implemented"
   end
@@ -1143,10 +1147,8 @@ defmodule Cumatrix do
   end
 
   @doc """
-  adagrad(mt1,mt2,mt3,lr)
-  for each element
-  h = mt2 + mt3*mt3.  
-  w = mt1 - lr * (1 / sqrt(h)) * mt2. 
+  adagrad(weight,h,grad,lr)
+  adagrad optimizer 
   return tuple(h,w)
   for learn/3 in DeepPipe2
   """
@@ -1175,6 +1177,39 @@ defmodule Cumatrix do
   def adagrad(_, _, _, _) do
     raise "adagrad illegal argument"
   end
+
+  @doc """
+  rms(weight,h,grad,lr)
+  RMSprop optimizer 
+  return tuple(h,w)
+  for learn/3 in DeepPipe2
+  """
+  def rms({r1, c1, dt1}, {r1, c1, dt2}, {r1, c1, dt3}, lr) do
+    result = rms1(r1 * c1, dt1, dt2, dt3, lr)
+
+    if !is_integer(result) do
+      {dth, dtw} = result
+      {{r1, c1, dth}, {r1, c1, dtw}}
+    else
+      error("rms1", result)
+    end
+  end
+
+  def rms({n, c, h, w, dt1}, {n, c, h, w, dt2}, {n, c, h, w, dt3}, lr) do
+    result = rms1(n * c * h * w, dt1, dt2, dt3, lr)
+
+    if !is_integer(result) do
+      {dth, dtw} = result
+      {{n, c, h, w, dth}, {n, c, h, w, dtw}}
+    else
+      error("rms1", result)
+    end
+  end
+
+  def rms(_, _, _, _) do
+    raise "rms illegal argument"
+  end
+
 
   @doc """
   adam(w,m,v,grad,lr)

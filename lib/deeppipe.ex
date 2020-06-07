@@ -222,7 +222,7 @@ defmodule Deeppipe do
   learning(network1,network2,update_method)
   learning/3
   generate new network with leared weight,bias and filter
-  update method is :sgd, :momentum, :adagrad
+  update method is :sgd, :momentum, :rms, :adagrad
   """
   # --------sgd----------
   def learning([], _, :sgd) do
@@ -327,6 +327,39 @@ defmodule Deeppipe do
   def learning([network | rest], [_ | rest1], :adagrad) do
     [network | learning(rest, rest1, :adagrad)]
   end
+
+# --------RMSprop--------------
+  def learning([], _, :rms) do
+    []
+  end
+
+  def learning(
+        [{:weight, w, ir, lr, dr, h} | rest],
+        [{:weight, w1, _, _, _, _} | rest1],
+        :rms
+      ) do
+    {h1, w2} = CM.rms(w, h, w1, lr)
+    [{:weight, w2, ir, lr, dr, h1} | learning(rest, rest1, :rms)]
+  end
+
+  def learning([{:bias, w, ir, lr, dr, h} | rest], [{:bias, w1, _, _, _, _} | rest1], :rms) do
+    {h1, w2} = CM.rms(w, h, w1, lr)
+    [{:bias, w2, ir, lr, dr, h1} | learning(rest, rest1, :rms)]
+  end
+
+  def learning(
+        [{:filter, w, {st_h, st_w}, pad, ir, lr, dr, h} | rest],
+        [{:filter, w1, _, _, _, _, _, _} | rest1],
+        :rms
+      ) do
+    {h1, w2} = CM.rms(w, h, w1, lr)
+    [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, h1} | learning(rest, rest1, :rms)]
+  end
+
+  def learning([network | rest], [_ | rest1], :rms) do
+    [network | learning(rest, rest1, :rms)]
+  end
+
 
 # --------Adam--------------
   def learning([], _, :adam) do

@@ -76,6 +76,16 @@ defmodule Fashion do
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
 
+  def adam(m, n) do
+    image = train_image(60000, :structure)
+    onehot = train_label_onehot(60000)
+
+    network = init_network9(0)
+    test_image = test_image(10000, :structure)
+    test_label = test_label(10000)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :adam, m, n)
+  end
+
   # Fashion-MNIST
   def try(m, n) do
     image = train_image(60000, :structure)
