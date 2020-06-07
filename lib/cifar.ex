@@ -34,7 +34,7 @@ defmodule CIFAR do
     network = init_network1(0)
     test_image = test_image(1000)
     test_label = test_label(1000)
-    DP.try(network, image, onehot, test_image, test_label, :cross, :adam, m, n)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 
   def readam(m, n) do
