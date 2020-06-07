@@ -33,7 +33,7 @@ defmodule MNIST do
     |> softmax
   end
 
-  # for adagrad
+  # for adagrad/adam
   defnetwork init_network3(_x) do
     _x
     |> w(784, 300, 0.1, 0.01)
@@ -175,6 +175,23 @@ defmodule MNIST do
     test_image = test_image(10000, :flatten)
     test_label = test_label(10000)
     DP.train(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
+  end
+
+  def adam(m, n) do
+    image = train_image(60000, :flatten)
+    onehot = train_label_onehot(60000)
+    network = init_network3(0)
+    test_image = test_image(10000, :flatten)
+    test_label = test_label(10000)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :adam, m, n)
+  end
+
+  def readam(m, n) do
+    image = train_image(60000, :flatten)
+    onehot = train_label_onehot(60000)
+    test_image = test_image(10000, :flatten)
+    test_label = test_label(10000)
+    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 
   def cnn(m, n) do

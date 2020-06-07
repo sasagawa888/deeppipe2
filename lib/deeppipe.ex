@@ -328,6 +328,61 @@ defmodule Deeppipe do
     [network | learning(rest, rest1, :adagrad)]
   end
 
+# --------Adam--------------
+  def learning([], _, :adam) do
+    []
+  end
+
+  def learning(
+        [{:weight, w, ir, lr, dr, h} | rest],
+        [{:weight, w1, _, _, _, _} | rest1],
+        :adam
+      ) do
+    if CM.is_matrix(h) || CM.is_tensor(h) do 
+      {m1, v1, w2} = CM.adam(w, h, h, w1, lr)
+      [{:weight, w2, ir, lr, dr, {m1,v1}} | learning(rest, rest1, :adam)]
+    else
+      {m,v} = h
+      {m1, v1, w2} = CM.adam(w, m, v, w1, lr)
+      [{:weight, w2, ir, lr, dr, {m1,v1}} | learning(rest, rest1, :adam)]
+    end 
+  end
+
+  
+  def learning([{:bias, w, ir, lr, dr, h} | rest], [{:bias, w1, _, _, _, _} | rest1], :adam) do
+    if CM.is_matrix(h) || CM.is_tensor(h) do 
+      {m1, v1, w2} = CM.adam(w, h, h, w1, lr)
+      [{:bias, w2, ir, lr, dr, {m1,v1}} | learning(rest, rest1, :adam)]
+    else
+      {m,v} = h
+      {m1, v1, w2} = CM.adam(w, m, v, w1, lr)
+      [{:bias, w2, ir, lr, dr, {m1,v1}} | learning(rest, rest1, :adam)]
+    end 
+  end
+
+  
+  def learning(
+        [{:filter, w, {st_h, st_w}, pad, ir, lr, dr, h} | rest],
+        [{:filter, w1, _, _, _, _, _, _} | rest1],
+        :adam
+      ) do
+    if CM.is_matrix(h) || CM.is_tensor(h) do 
+      {m1, v1, w2} = CM.adam(w, h, h, w1, lr)
+      [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, {m1,v1}} | learning(rest, rest1, :adam)]
+    else 
+      {m,v} = h
+      {m1, v1, w2} = CM.adam(w, m, v, w1, lr)
+      [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, {m1,v1}} | learning(rest, rest1, :adam)]
+    end
+  end
+
+  def learning([network | rest], [_ | rest1], :adam) do
+    [network | learning(rest, rest1, :adam)]
+  end
+
+
+
+  #------------train------------
   defp repeat(size, mini) do
     if rem(size, mini) == 0 do
       div(size, mini)
@@ -551,51 +606,7 @@ defmodule Deeppipe do
     :ok
   end
 
-  @doc """
-  train for batch. not show accuracy, not show execute time
-  ```
-  1st arg network
-  2nd arg train image list
-  3rd arg train onehot list
-  4th arg loss function (;cross or :square)
-  5th arg learning method
-  6th arg minibatch size
-  7th arg repeat number
-  ```
-  automaticaly save network to temp.ex
-  """
-  def batch_train(network, tr_imag, tr_onehot, loss_func, method, m, n) do
-    IO.puts("batch process")
-    train_image = tr_imag |> CM.new() |> CM.standardize()
-    train_onehot = tr_onehot |> CM.new()
-
-    batch_train1(network, train_image, train_onehot, loss_func, method, m, n)
-  end
-
-  defp batch_train1(network, train_image, train_onehot, loss_func, method, m, n) do
-    IO.puts("learning start")
-    IO.puts("count down: loss:")
-    network1 = batch_train2(train_image, network, train_onehot, loss_func, method, m, n)
-    save("temp.ex", network1)
-    network1
-  end
-
-  defp batch_train2(_, network, _, _, _, _, 0) do
-    network
-  end
-
-  defp batch_train2(image, network, train, loss_func, method, m, n) do
-    {image1, train1} = CM.random_select(image, train, m)
-    network1 = gradient(image1, network, train1)
-    network2 = learning(network, network1, method)
-    [y | _] = forward(image1, network2, [])
-    loss = CM.loss(y, train1, loss_func)
-    IO.write(n)
-    IO.write(" ")
-    IO.puts(loss)
-    try2(image, network2, train, loss_func, method, m, n - 1)
-  end
-
+  
   @doc """
   calculate accuracy
   1st arg  list of image
@@ -688,16 +699,31 @@ defmodule Deeppipe do
     []
   end
 
-  defp save1([{:weight, w, ir, lr, dr, v} | rest]) do
-    [{:weight, CM.to_list(w), ir, lr, dr, CM.to_list(v)} | save1(rest)]
+  defp save1([{:weight, w, ir, lr, dr, h} | rest]) do
+    if CM.is_matrix(h) || CM.is_tensor(h) do
+      [{:weight, CM.to_list(w), ir, lr, dr, CM.to_list(h)} | save1(rest)]
+    else
+      {m,v} = h
+      [{:weight, CM.to_list(w), ir, lr, dr, {CM.to_list(m),CM.to_list(v)}} | save1(rest)]
+    end 
   end
 
-  defp save1([{:bias, w, ir, lr, dr, v} | rest]) do
-    [{:bias, CM.to_list(w), ir, lr, dr, CM.to_list(v)} | save1(rest)]
+  defp save1([{:bias, w, ir, lr, dr, h} | rest]) do
+    if CM.is_matrix(h) || CM.is_tensor(h) do
+      [{:bias, CM.to_list(w), ir, lr, dr, CM.to_list(h)} | save1(rest)]
+    else
+      {m,v} = h
+      [{:bias, CM.to_list(w), ir, lr, dr, {CM.to_list(m),CM.to_list(v)}} | save1(rest)]
+    end 
   end
 
-  defp save1([{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest]) do
-    [{:filter, CM.to_list(w), {st_h, st_w}, pad, ir, lr, dr, CM.to_list(v)} | save1(rest)]
+  defp save1([{:filter, w, {st_h, st_w}, pad, ir, lr, dr, h} | rest]) do
+    if CM.is_matrix(h) || CM.is_tensor(h) do
+      [{:filter, CM.to_list(w), {st_h, st_w}, pad, ir, lr, dr, CM.to_list(h)} | save1(rest)]
+    else
+      {m,v} = h
+      [{:filter, CM.to_list(w), {st_h, st_w}, pad, ir, lr, dr,{CM.to_list(m),CM.to_list(v)}} | save1(rest)]
+    end 
   end
 
   defp save1([{:function, name} | rest]) do
@@ -719,16 +745,31 @@ defmodule Deeppipe do
     []
   end
 
-  defp load1([{:weight, w, ir, lr, dr, v} | rest]) do
-    [{:weight, CM.new(w), ir, lr, dr, CM.new(v)} | load1(rest)]
+  defp load1([{:weight, w, ir, lr, dr, h} | rest]) do
+    if !is_tuple(h) do 
+      [{:weight, CM.new(w), ir, lr, dr, CM.new(h)} | load1(rest)]
+    else
+      {m,v} = h
+      [{:weight, CM.new(w), ir, lr, dr, {CM.new(m),CM.new(v)}} | load1(rest)]
+    end 
   end
 
-  defp load1([{:bias, w, ir, lr, dr, v} | rest]) do
-    [{:bias, CM.new(w), ir, lr, dr, CM.new(v)} | load1(rest)]
+  defp load1([{:bias, w, ir, lr, dr, h} | rest]) do
+    if !is_tuple(h) do 
+      [{:bias, CM.new(w), ir, lr, dr, CM.new(h)} | load1(rest)]
+    else
+      {m,v} = h 
+      [{:bias, CM.new(w), ir, lr, dr, {CM.new(m),CM.new(v)}} | load1(rest)]
+    end 
   end
 
-  defp load1([{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | rest]) do
-    [{:filter, CM.new(w), {st_h, st_w}, pad, ir, lr, dr, CM.new(v)} | load1(rest)]
+  defp load1([{:filter, w, {st_h, st_w}, pad, ir, lr, dr, h} | rest]) do
+    if !is_tuple(h) do 
+      [{:filter, CM.new(w), {st_h, st_w}, pad, ir, lr, dr, CM.new(h)} | load1(rest)]
+    else
+      {m,v} = h
+      [{:filter, CM.new(w), {st_h, st_w}, pad, ir, lr, dr, {CM.new(m),CM.new(v)}} | load1(rest)]
+    end 
   end
 
   defp load1([{:function, name} | rest]) do

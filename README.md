@@ -155,7 +155,7 @@ learning/3
 2nd arg is network with gradient
 3rd arg is update method
 generate new network with leared weight and bias
-update method is sgd, momentam, adagrad
+update method is :sgd :momentam :adagrad :adam
 
 ```
 
@@ -169,13 +169,12 @@ update method is sgd, momentam, adagrad
 5th arg test label list
 6th arg loss function (:cross or :square)
 7th arg minibatch size
-8th arg learning method (:sgd :momentum :adagrad)
+8th arg learning method (:sgd :momentum :adagrad :adam)
 9th arg epochs number
 
 ```
 
 ## CNN
-Now testing.
 
 ```
 

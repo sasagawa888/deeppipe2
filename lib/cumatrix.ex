@@ -169,6 +169,10 @@ defmodule Cumatrix do
     raise "NIF adagrad1/5 not implemented"
   end
 
+  defp adam1(_1, _2, _3, _4, _5, _6) do
+    raise "NIF adam1/5 not implemented"
+  end
+
   defp accuracy1(_1, _2, _3, _4) do
     raise "NIF accuracy/4 not implemented"
   end
@@ -1143,7 +1147,6 @@ defmodule Cumatrix do
   for each element
   h = mt2 + mt3*mt3.  
   w = mt1 - lr * (1 / sqrt(h)) * mt2. 
-  and dropout w with dr.
   return tuple(h,w)
   for learn/3 in DeepPipe2
   """
@@ -1171,6 +1174,38 @@ defmodule Cumatrix do
 
   def adagrad(_, _, _, _) do
     raise "adagrad illegal argument"
+  end
+
+  @doc """
+  adam(w,m,v,grad,lr)
+  adam optimizer
+  return tuple(m1,v1,w1)
+  for learn/3 in DeepPipe2
+  """
+  def adam({r1, c1, dt1}, {r1, c1, dt2}, {r1, c1, dt3}, {r1, c1, dt4}, lr) do
+    result = adam1(r1 * c1, dt1, dt2, dt3, dt4, lr)
+
+    if !is_integer(result) do
+      {dtm, dtv, dtw} = result
+      {{r1, c1, dtm}, {r1, c1, dtv}, {r1, c1, dtw}}
+    else
+      error("adam1", result)
+    end
+  end
+
+  def adam({n, c, h, w, dt1}, {n, c, h, w, dt2}, {n, c, h, w, dt3}, {n, c, h, w, dt4}, lr) do
+    result = adam1(n * c * h * w, dt1, dt2, dt3, dt4, lr)
+
+    if !is_integer(result) do
+      {dtm, dtv, dtw} = result
+      {{n, c, h, w, dtm}, {n, c, h, w, dtv}, {n, c, h, w, dtw}}
+    else
+      error("adam1", result)
+    end
+  end
+
+  def adam(_, _, _, _, _) do
+    raise "adam illegal argument"
   end
 
   @doc """

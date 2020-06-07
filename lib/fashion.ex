@@ -24,8 +24,10 @@ defmodule Fashion do
   # for CNN test for Fashion-MNIST
   defnetwork init_network9(_x) do
     _x
+    # 28*28*1=784
     |> f(3, 3, 1, 32, {1, 1}, 0, {:he, 784}, 0.008)
     |> relu
+    # 26*26*32=21632
     |> f(3, 3, 32, 64, {1, 1}, 0, {:he, 21632}, 0.008)
     |> relu
     |> pooling(2, 2)
