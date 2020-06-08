@@ -8,7 +8,7 @@ defmodule CIFAR do
   """
 
   # for CNN test
-  Fashion.adam(300,50)    about 4 hours by GTX960
+  #Fashion.adam(300,50)    about 4 hours by GTX960
   defnetwork init_network1(_x) do
     _x
     |> f(3, 3, 3, 32, {1, 1}, 1, {:he, 1024}, 0.001)
@@ -40,10 +40,10 @@ defmodule CIFAR do
   def readam(m, n) do
     image = train_image_batch1()
     onehot = train_label_onehot1()
-    test_image = train_image(1000)
-    test_label = train_label(1000)
-    #test_image = test_image(1000)
-    #test_label = test_label(1000)
+    #test_image = train_image(1000)
+    #test_label = train_label(1000)
+    test_image = test_image(1000)
+    test_label = test_label(1000)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 

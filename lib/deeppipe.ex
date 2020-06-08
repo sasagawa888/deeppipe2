@@ -551,7 +551,7 @@ defmodule Deeppipe do
   end
 
   @doc """
-  for pre-test
+  for easy test to decide parameter
   ```
   1st arg network
   2nd arg train image list
@@ -651,7 +651,7 @@ defmodule Deeppipe do
 
   defp accuracy1(image, network, label, m, total, correct) do
     n = min(length(label), m)
-    image1 = Enum.take(image, n) |> CM.new()
+    image1 = Enum.take(image, n) |> CM.new() |> CM.standardize()
     label1 = Enum.take(label, n)
     [y | _] = forward(image1, network, [])
     n1 = CM.correct(y, label1)
