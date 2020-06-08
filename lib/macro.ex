@@ -288,6 +288,22 @@ defmodule Network do
     end
   end
 
+  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:xavier, dim}, lr, dr]}, _) do
+    quote do
+      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(:math.sqrt(1 / unquote(dim))),
+       {unquote(h), unquote(w)}, unquote(pad), {:xavier, unquote(dim)}, unquote(lr), unquote(dr),
+       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+    end
+  end
+
+  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:he, dim}, lr, dr]}, _) do
+    quote do
+      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(:math.sqrt(2 / unquote(dim))),
+       {unquote(h), unquote(w)}, unquote(pad), {:he, unquote(dim)}, unquote(lr), unquote(dr),
+       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+    end
+  end
+
   defp parse({:f, _, [x, y, c, n, {h, w}, pad, ir, lr, dr]}, _) do
     quote do
       {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(unquote(ir)),

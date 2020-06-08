@@ -61,8 +61,8 @@ defmodule Cumatrix do
     raise "NIF sub1/3 not implemented"
   end
 
-  defp emult1(_1, _2, _3, _4) do
-    raise "NIF emult1/4 not implemented"
+  defp emult1(_1, _2, _3) do
+    raise "NIF emult1/3 not implemented"
   end
 
   defp transpose1(_1, _2, _3) do
@@ -618,10 +618,20 @@ defmodule Cumatrix do
   generate Hadamard matrix.
   """
   def emult({r1, c1, dt1}, {r1, c1, dt2}) do
-    result = emult1(r1, c1, dt1, dt2)
+    result = emult1(r1*c1, dt1, dt2)
 
     if !is_integer(result) do
       {r1, c1, result}
+    else
+      error("emult1", result)
+    end
+  end
+
+  def emult({n, c, h, w, dt1}, {n, c, h, w, dt2}) do
+    result = emult1(n*c*h*w, dt1, dt2)
+
+    if !is_integer(result) do
+      {n,c,h,w, result}
     else
       error("emult1", result)
     end
