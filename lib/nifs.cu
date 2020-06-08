@@ -2713,18 +2713,18 @@ rms1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 __global__ void adam_kernel(float *a, float *b, float *c, float *d, float *e, float *f, float *g, float lr, int n)
 {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
-    float beta1,beta2,epsilon,alpha,m2,v2;
+    float beta1,beta2,epsilon,m2,v2;
     beta1 = 0.9;
     beta2 = 0.999;
     epsilon = 10.0e-7;
-    alpha = 0.001;
+    //alpha = 0.001;
 
     while (tid < n){   
         e[tid] = beta1 * b[tid] + (1 - beta1) * d[tid];
         f[tid] = beta2 * c[tid] + (1 - beta2) * d[tid]*d[tid];
         m2 = e[tid]/(1-beta1);
         v2 = f[tid]/(1-beta2);
-        g[tid] = a[tid] - alpha * (m2/(sqrt(v2)+epsilon));
+        g[tid] = a[tid] - lr * (m2/(sqrt(v2)+epsilon));
          
         tid += blockDim.x * gridDim.x;
     }
