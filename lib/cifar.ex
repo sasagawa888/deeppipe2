@@ -11,20 +11,20 @@ defmodule CIFAR do
   #Fashion.adam(300,50)    about 4 hours by GTX960
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 32, {1, 1}, 1, {:he, 1024}, 0.002,0.25)
+    |> f(3, 3, 3, 32, {1, 1}, 1, {:he, 1024}, 0.001)
     |> relu
-    |> f(3, 3, 32, 32, {1, 1}, 1, {:he, 32768}, 0.002, 0.50)
+    |> f(3, 3, 32, 32, {1, 1}, 1, {:he, 32768}, 0.001)
     |> pooling(2, 2)
-    |> f(3, 3, 32, 64, {1, 1}, 1, {:he, 32768}, 0.002, 0.50)
+    |> f(3, 3, 32, 64, {1, 1}, 1, {:he, 32768}, 0.001)
     |> relu
-    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 65536}, 0.002, 0.50)
+    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 65536}, 0.001)
     |> relu
     |> pooling(2, 2)
-    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 32768}, 0.002, 0.50)
-    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 32768}, 0.002, 0.50)
+    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 32768}, 0.001)
+    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 32768}, 0.001)
     |> full
-    |> w(4096, 100, {:he, 4098}, 0.002, 0.50)
-    |> w(100, 10, {:he, 100}, 0.002, 0.50)
+    |> w(4096, 100, {:he, 4098}, 0.001, 0.25)
+    |> w(100, 10, {:he, 100}, 0.001, 0.25)
     |> softmax
   end
 
@@ -46,6 +46,7 @@ defmodule CIFAR do
     #test_label = test_label(1000)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
+
 
   # transfer from train-label to onehot list
   def train_image(n) do
@@ -165,7 +166,7 @@ defmodule CIFAR do
   end
 
   def test_image(n) do
-    train_image() |> Enum.take(n)
+    test_image() |> Enum.take(n)
   end
 
   def test_image() do
