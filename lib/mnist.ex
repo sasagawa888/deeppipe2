@@ -50,14 +50,15 @@ defmodule MNIST do
   # for CNN test for MNIST
   defnetwork init_network4(_x) do
     _x
-    # |> analizer(1)
-    |> f(3, 3, 1, 6, {1, 1}, 0, 0.1, 0.001)
-    |> f(3, 3, 6, 12, {1, 1}, 0, 0.1, 0.001)
+    |> f(3, 3, 1, 6, {1, 1}, 0, {:he,728}, 0.001)
+    |> relu
+    |> f(3, 3, 6, 12, {1, 1}, 0, {:he,4056}, 0.001)
+    |> relu
     |> pooling(2, 2)
     |> relu
     # |> visualizer(1,1)
     |> full
-    |> w(1728, 10, 0.1, 0.001)
+    |> w(1728, 10, {:he,2028}, 0.001)
     |> softmax
   end
 
@@ -125,22 +126,7 @@ defmodule MNIST do
     |> softmax
   end
 
-  # for CNN test for Fashion-MNIST
-  defnetwork init_network9(_x) do
-    _x
-    # |> analizer(1)
-    |> f(5, 5, 1, 12, {1, 1}, 1, 0.1, 0.0005)
-    |> pooling(2, 2)
-    |> f(3, 3, 12, 12, {1, 1}, 1, 0.1, 0.0005)
-    |> f(2, 2, 12, 12, {1, 1}, 1, 0.1, 0.0005)
-    |> pooling(2, 2)
-    |> f(3, 3, 12, 12, {1, 1}, 0, 0.1, 0.0005)
-    |> relu
-    # |> visualizer(1,1)
-    |> full
-    |> w(300, 10, 0.1, 0.0005)
-    |> softmax
-  end
+  
 
   def sgd(m, n) do
     image = train_image(60000, :flatten)
@@ -209,7 +195,7 @@ defmodule MNIST do
     network = init_network4(0)
     test_image = test_image(10000, :structure)
     test_label = test_label(10000)
-    DP.train(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
+    DP.train(network, image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 
   def recnn(m, n) do
@@ -217,7 +203,7 @@ defmodule MNIST do
     onehot = train_label_onehot(60000)
     test_image = test_image(10000, :structure)
     test_label = test_label(10000)
-    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
+    DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 
   def st(m, n) do

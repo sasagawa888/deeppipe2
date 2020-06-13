@@ -155,7 +155,7 @@ learning/3
 2nd arg is network with gradient
 3rd arg is update method
 generate new network with leared weight and bias
-update method is :sgd :momentam :adagrad :adam
+update method is :sgd :momentam :adagrad :rms :adam
 
 ```
 
@@ -169,7 +169,7 @@ update method is :sgd :momentam :adagrad :adam
 5th arg test label list
 6th arg loss function (:cross or :square)
 7th arg minibatch size
-8th arg learning method (:sgd :momentum :adagrad :adam)
+8th arg learning method (:sgd :momentum :adagrad :rms :adam)
 9th arg epochs number
 
 ```
@@ -179,42 +179,35 @@ update method is :sgd :momentam :adagrad :adam
 ```
 
  for CNN test for MNIST
+ # for CNN test for MNIST
   defnetwork init_network4(_x) do
     _x
-    |> f(3, 3, 1, 6, {1, 1}, 0, 0.1, 0.001)
-    |> f(3, 3, 6, 12, {1, 1}, 0, 0.1, 0.001)
+    |> f(3, 3, 1, 6, {1, 1}, 0, {:he,728}, 0.001)
+    |> relu
+    |> f(3, 3, 6, 12, {1, 1}, 0, {:he,4056}, 0.001)
+    |> relu
     |> pooling(2, 2)
     |> relu
     |> full
-    |> w(1728, 10, 0.1, 0.001)
+    |> w(1728, 10, {:he,2028}, 0.001)
     |> softmax
   end
+  
 
 
 
+mini batch size 100, 1 epoch
 
-mini batch size 100, 3 epoch
-
-MNIST.cnn(100,3)
+iex(1)> MNIST.cnn(100,1)
 preparing data
 
 epoch 1
 [##################################################](100%)
-random loss = 0.6510372757911682
-accuracy rate = 82.94%
-
-epoch 2
-[##################################################](100%)
-random loss = 0.4810127913951874
-accuracy rate = 85.8%
-
-epoch 3
-[##################################################](100%)
-random loss = 0.5048774480819702
-accuracy rate = 87.07000000000001%
-time: 511.20555 second
+random loss = 0.33610451221466064
+accuracy rate = 92.02%
+time: 43.508671 second
 :ok
-
+iex(2)> 
 
 
 ```
