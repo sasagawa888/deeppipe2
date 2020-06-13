@@ -2525,7 +2525,10 @@ __global__ void adagrad_kernel(float *a, float *b, float *c, float *d, float *e,
     while (tid < n)
     {   
         d[tid] = b[tid] + c[tid]*c[tid];
-        lr1 = lr/(sqrt(d[tid]));
+        if(d[tid] != 0.0)
+            lr1 = lr/(sqrt(d[tid]));
+        else
+            lr1 = lr;
         e[tid] = a[tid] - lr1 * c[tid];
 
         tid += blockDim.x * gridDim.x;
