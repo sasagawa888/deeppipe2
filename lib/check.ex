@@ -41,11 +41,11 @@ defmodule Check do
     test1(network1, network2, 1)
   end
 
-  def test1([], [], _) do
+  defp test1([], [], _) do
     true
   end
 
-  def test1([{:filter, x, _, _, _, _, _, _} | xs], [{:filter, y, _, _, _, _, _, _} | ys], n) do
+  defp test1([{:filter, x, _, _, _, _, _, _} | xs], [{:filter, y, _, _, _, _, _, _} | ys], n) do
     if CM.is_near(x, y) == 1 do
       IO.write(n)
       IO.puts(" filter layer ok")
@@ -59,7 +59,7 @@ defmodule Check do
     end
   end
 
-  def test1([{:weight, x, _, _, _, _} | xs], [{:weight, y, _, _, _, _} | ys], n) do
+  defp test1([{:weight, x, _, _, _, _} | xs], [{:weight, y, _, _, _, _} | ys], n) do
     if CM.is_near(x, y) == 1 do
       IO.write(n)
       IO.puts(" weight layer ok")
@@ -71,7 +71,7 @@ defmodule Check do
     end
   end
 
-  def test1([{:bias, x, _, _, _, _} | xs], [{:bias, y, _, _, _, _} | ys], n) do
+  defp test1([{:bias, x, _, _, _, _} | xs], [{:bias, y, _, _, _, _} | ys], n) do
     if CM.is_near(x, y) == 1 do
       IO.write(n)
       IO.puts(" bias layer ok")
@@ -83,7 +83,7 @@ defmodule Check do
     end
   end
 
-  def test1([x | xs], [_ | ys], n) do
+  defp test1([x | xs], [_ | ys], n) do
     IO.write(n)
     IO.inspect(x)
     test1(xs, ys, n + 1)

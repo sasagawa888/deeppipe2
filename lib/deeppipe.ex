@@ -575,18 +575,14 @@ defmodule Deeppipe do
         try1(network, train_image, train_onehot, loss_func, method, m, n)
       end)
 
-    correct = accuracy(ts_imag, network1, ts_label, m)
-    IO.puts("learning end")
-    IO.write("accuracy rate = ")
-    IO.puts(correct)
+    rate = accuracy(ts_imag, network1, ts_label, m)
+    IO.puts("accuracy rate = #{rate * 100}%")
 
     IO.inspect("time: #{time / 1_000_000} second")
-    IO.inspect("-------------")
     :ok
   end
 
   defp try1(network, train_image, train_onehot, loss_func, method, m, n) do
-    IO.puts("learning start")
     IO.puts("count down: loss:")
     network1 = try2(train_image, network, train_onehot, loss_func, method, m, n)
     save("temp.ex", network1)

@@ -1,14 +1,14 @@
 defmodule CIFAR do
   import Network
   alias Deeppipe, as: DP
-  alias Cumatrix, as: CM
 
   @moduledoc """
   test with CIFAR10 dataset
   """
 
-  # for CNN test
-  #Fashion.adam(300,50)    about 4 hours by GTX960
+  # for CNN for CIFAR10
+  # e.g. CIFAR.adam(300,20)    about 1.5 hours by GTX960
+  
   defnetwork init_network1(_x) do
     _x
     |> f(3, 3, 3, 32, {1, 1}, 1, {:he, 1024}, 0.001)
@@ -28,6 +28,10 @@ defmodule CIFAR do
     |> softmax
   end
 
+  @doc """
+  train with CIFAR10 dataset. optimizer is Adam 
+  CIFAR.adam(300,20) about 1.5 hours by GTX960
+  """
   def adam(m, n) do
     image = train_image_batch1()
     onehot = train_label_onehot1()
@@ -37,77 +41,98 @@ defmodule CIFAR do
     DP.train(network, image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 
+  @doc """
+  train agrain with CIFAR10data set.
+  initialize network from file temp.ex
+  """
   def readam(m, n) do
     image = train_image_batch1()
     onehot = train_label_onehot1()
-    test_image = train_image(1000)
-    test_label = train_label(1000)
-    #test_image = test_image(1000)
-    #test_label = test_label(1000)
+    test_image = test_image(1000)
+    test_label = test_label(1000)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 
-
-  # transfer from train-label to onehot list
+  @doc """
+  get n-size train image data from batch1 file
+  """
   def train_image(n) do
     train_image_batch1() |> Enum.take(n)
   end 
 
+  @doc """
+  get n-size train label data from batch1 file
+  """
   def train_label(n) do
     train_label_batch1() |> Enum.take(n)
   end 
 
+  @doc """
+  get n-size train label data as onehot from batch1 file
+  """
   def train_label_onehot1() do
     train_label_batch1() |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
 
+  @doc """
+  get n-size train label data as onehot from batch2 file
+  """
   def train_label_onehot2() do
     train_label_batch2() |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
 
+  @doc """
+  get n-size train label data as onehot from batch3 file
+  """
   def train_label_onehot3() do
     train_label_batch3() |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
 
+  @doc """
+  get n-size train label data as onehot from batch4 file
+  """
   def train_label_onehot4() do
     train_label_batch4() |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
 
+  @doc """
+  get n-size train label data as onehot from batch5 file
+  """
   def train_label_onehot5() do
     train_label_batch5() |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
 
-  def train_label_batch1() do
+  defp train_label_batch1() do
     {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_1.bin")
     [label | train_label1(rest)]
   end
 
-  def train_label_batch2() do
+  defp train_label_batch2() do
     {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_2.bin")
     [label | train_label1(rest)]
   end
 
-  def train_label_batch3() do
+  defp train_label_batch3() do
     {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_3.bin")
     [label | train_label1(rest)]
   end
 
-  def train_label_batch4() do
+  defp train_label_batch4() do
     {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_4.bin")
     [label | train_label1(rest)]
   end
 
-  def train_label_batch5() do
+  defp train_label_batch5() do
     {:ok, <<label, rest::binary>>} = File.read("cifar-10-batches-bin/data_batch_5.bin")
     [label | train_label1(rest)]
   end
 
   # 36*36*3 = 3072
-  def train_label1(<<>>) do
+  defp train_label1(<<>>) do
     []
   end
 
-  def train_label1(x) do
+  defp train_label1(x) do
     result = train_label2(x, 3072)
 
     if result != <<>> do
@@ -128,11 +153,11 @@ defmodule CIFAR do
   end
 
   # skip data
-  def train_label2(<<rest::binary>>, 0) do
+  defp train_label2(<<rest::binary>>, 0) do
     rest
   end
 
-  def train_label2(<<_, rest::binary>>, n) do
+  defp train_label2(<<_, rest::binary>>, n) do
     train_label2(rest, n - 1)
   end
 
@@ -175,119 +200,44 @@ defmodule CIFAR do
   end
 
   # get RGB 3ch data
-  def train_image1(<<>>) do
+  defp train_image1(<<>>) do
     []
   end
 
-  def train_image1(<<_, rest::binary>>) do
+  defp train_image1(<<_, rest::binary>>) do
     {image, other} = train_image2(rest, 3, [])
     [image | train_image1(other)]
   end
 
   # get one RGB data
-  def train_image2(x, 0, res) do
+  defp train_image2(x, 0, res) do
     {Enum.reverse(res), x}
   end
 
-  def train_image2(x, n, res) do
+  defp train_image2(x, n, res) do
     {image, rest} = train_image3(x, 32, [])
     train_image2(rest, n - 1, [image | res])
   end
 
   # get one image 2D data
-  def train_image3(x, 0, res) do
+  defp train_image3(x, 0, res) do
     {Enum.reverse(res), x}
   end
 
-  def train_image3(x, n, res) do
+  defp train_image3(x, n, res) do
     {image, rest} = train_image4(x, 32, [])
     train_image3(rest, n - 1, [image | res])
   end
 
   # get one row vector
-  def train_image4(x, 0, res) do
+  defp train_image4(x, 0, res) do
     # {Enum.reverse(res) , x}
     {Enum.reverse(res) |> DP.normalize(-128, 128), x}
   end
 
-  def train_image4(<<x, xs::binary>>, n, res) do
+  defp train_image4(<<x, xs::binary>>, n, res) do
     train_image4(xs, n - 1, [x | res])
   end
 
-  def heatmap(n) do
-    train_rgb(n) |> Matrex.new() |> Matrex.heatmap(:color24bit, [])
-  end
-
-  def heatmapr(n) do
-    train_r(n) |> Matrex.new() |> Matrex.heatmap(:color24bit, [])
-  end
-
-  def heatmapg(n) do
-    train_g(n) |> Matrex.new() |> Matrex.heatmap(:color24bit, [])
-  end
-
-  def heatmapb(n) do
-    train_b(n) |> Matrex.new() |> Matrex.heatmap(:color24bit, [])
-  end
-
-  def train_rgb(n) do
-    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_1.bin")
-    train_rgb1(bin) |> CM.nth(n) |> composit() |> CM.reshape([32, 32])
-  end
-
-  def train_r(n) do
-    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_1.bin")
-    train_rgb1(bin) |> CM.nth(n) |> CM.nth(1) |> CM.reshape([32, 32])
-  end
-
-  def train_g(n) do
-    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_1.bin")
-    train_rgb1(bin) |> CM.nth(n) |> CM.nth(2) |> CM.reshape([32, 32])
-  end
-
-  def train_b(n) do
-    {:ok, bin} = File.read("cifar-10-batches-bin/data_batch_1.bin")
-    train_rgb1(bin) |> CM.nth(n) |> CM.nth(3) |> CM.reshape([32, 32])
-  end
-
-  # get RGB 3ch data
-  def train_rgb1(<<>>) do
-    []
-  end
-
-  def train_rgb1(<<_, rest::binary>>) do
-    {image, other} = train_rgb2(rest, 3, [])
-    [image | train_rgb1(other)]
-  end
-
-  # get one RGB data
-  def train_rgb2(x, 0, res) do
-    {Enum.reverse(res), x}
-  end
-
-  def train_rgb2(x, n, res) do
-    {image, rest} = train_rgb3(x, 1024, [])
-    train_rgb2(rest, n - 1, [image | res])
-  end
-
-  # get one image vector data
-  def train_rgb3(x, 0, res) do
-    {Enum.reverse(res), x}
-  end
-
-  def train_rgb3(<<x, xs::binary>>, n, res) do
-    train_rgb3(xs, n - 1, [x | res])
-  end
-
-  def composit([r, g, b]) do
-    composit1(r, g, b)
-  end
-
-  def composit1([], [], []) do
-    []
-  end
-
-  def composit1([r | rs], [g | gs], [b | bs]) do
-    [r * 256 * 256 + g * 256 + b | composit1(rs, gs, bs)]
-  end
+  
 end

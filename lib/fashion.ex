@@ -86,7 +86,6 @@ defmodule Fashion do
     DP.train(network, image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 
-  # Fashion-MNIST
   def try(m, n) do
     image = train_image(60000, :structure)
     onehot = train_label_onehot(60000)
