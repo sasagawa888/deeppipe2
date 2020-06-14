@@ -48,7 +48,7 @@ defmodule MNIST do
     |> softmax
   end
 
-  # for CNN test for MNIST
+  # CNN test for MNIST
   defnetwork init_network4(_x) do
     _x
     |> f(3, 3, 1, 6, {1, 1}, 0, {:he,728}, 0.001)
@@ -127,7 +127,10 @@ defmodule MNIST do
   end
 
   
-
+  @doc """
+  MNIST minibatch size , n epocs
+  SGD optimizer
+  """
   def sgd(m, n) do
     image = train_image(60000, :flatten)
     onehot = train_label_onehot(60000)
@@ -137,6 +140,11 @@ defmodule MNIST do
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
+  @doc """
+  MNIST minibatch size , n epocs
+  SGD optimizer
+  initialize network from file temp.ex
+  """
   def resgd(m, n) do
     image = train_image(60000, :flatten)
     onehot = train_label_onehot(60000)
@@ -145,6 +153,10 @@ defmodule MNIST do
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
+  @doc """
+  MNIST minibatch size , n epocs
+  momentum optimizer
+  """
   def momentum(m, n) do
     image = train_image(60000, :flatten)
     onehot = train_label_onehot(60000)
@@ -154,6 +166,10 @@ defmodule MNIST do
     DP.train(network, image, onehot, test_image, test_label, :cross, :momentum, m, n)
   end
 
+  @doc """
+  MNIST minibatch size , n epocs
+  adagrad optimizer
+  """
   def adagrad(m, n) do
     image = train_image(60000, :flatten)
     onehot = train_label_onehot(60000)
@@ -163,6 +179,10 @@ defmodule MNIST do
     DP.train(network, image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
 
+  @doc """
+  MNIST minibatch size , n epocs
+  RMSprop optimizer
+  """
   def rms(m, n) do
     image = train_image(60000, :flatten)
     onehot = train_label_onehot(60000)
@@ -171,7 +191,11 @@ defmodule MNIST do
     test_label = test_label(10000)
     DP.train(network, image, onehot, test_image, test_label, :cross, :rms, m, n)
   end
-
+  
+  @doc """
+  MNIST minibatch size , n epocs
+  adam optimizer
+  """
   def adam(m, n) do
     image = train_image(60000, :flatten)
     onehot = train_label_onehot(60000)
@@ -181,6 +205,11 @@ defmodule MNIST do
     DP.train(network, image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 
+  @doc """
+  MNIST minibatch size , n epocs
+  adam optimizer
+  initialize network from file temp.ex
+  """
   def readam(m, n) do
     image = train_image(60000, :flatten)
     onehot = train_label_onehot(60000)
@@ -188,7 +217,12 @@ defmodule MNIST do
     test_label = test_label(10000)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
-
+  
+  @doc """
+  MNIST minibatch size , n epocs
+  Adam optimizer
+  CNN network
+  """
   def cnn(m, n) do
     image = train_image(60000, :structure)
     onehot = train_label_onehot(60000)
@@ -198,6 +232,12 @@ defmodule MNIST do
     DP.train(network, image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 
+  @doc """
+  MNIST minibatch size , n epocs
+  Adam optimizer
+  CNN network
+  initialize network from file temp.ex
+  """
   def recnn(m, n) do
     image = train_image(60000, :structure)
     onehot = train_label_onehot(60000)
@@ -206,6 +246,11 @@ defmodule MNIST do
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
 
+  @doc """
+  MNIST minibatch size , n epocs
+  SGD optimizer
+  CNN network stride-test
+  """
   def st(m, n) do
     image = train_image(60000, :structure)
     onehot = train_label_onehot(60000)
@@ -215,6 +260,11 @@ defmodule MNIST do
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
+  @doc """
+  MNIST minibatch size , n epocs
+  SGD optimizer
+  CNN network padding-test
+  """
   def pad(m, n) do
     image = train_image(60000, :structure)
     onehot = train_label_onehot(60000)
@@ -224,6 +274,11 @@ defmodule MNIST do
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
+  @doc """
+  MNIST minibatch size , n epocs
+  SGD optimizer
+  CNN network dropout-test
+  """
   def drop(m, n) do
     image = train_image(60000, :flatten)
     onehot = train_label_onehot(60000)
@@ -233,6 +288,11 @@ defmodule MNIST do
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
   end
 
+  @doc """
+  MNIST minibatch size , n epocs
+  SGD optimizer
+  long DNN test
+  """
   def long(m, n) do
     image = train_image(60000, :flatten)
     onehot = train_label_onehot(60000)
