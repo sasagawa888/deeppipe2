@@ -1,8 +1,6 @@
 # DeepPipe2
 DeepPipe2 is a library of Deep-Learning by Elixir using GPU. It is fast because it uses CUDA/cuBLAS. 
 
-Currently, I am improving to use CNN.
-
 # getting started
 DeepPipe2 requires GPU. Nvidia's GeForce is easy. The game PC turns into an AI experiment tool.
 
@@ -178,7 +176,7 @@ update method is :sgd :momentam :adagrad :rms :adam
 
 ```
 
- for CNN test for MNIST
+ CNN test for MNIST
  # for CNN test for MNIST
   defnetwork init_network4(_x) do
     _x

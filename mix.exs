@@ -4,7 +4,7 @@ defmodule Deeppipe2.MixProject do
   def project do
     [
       app: :deeppipe2,
-      version: "1.1.9",
+      version: "1.2.0",
       elixir: "~> 1.7",
       description: "Deep-Learning library with CUDA/CUBLAS",
       compilers: [:elixir_make] ++ Mix.compilers(),
@@ -16,7 +16,7 @@ defmodule Deeppipe2.MixProject do
       start_permanent: Mix.env() == :prod,
       docs: [
         # The main page in the docs
-        # main: "DeepPipe2",
+        main: "readme",
         extras: ["README.md"]
       ],
       package: [
