@@ -1145,4 +1145,51 @@ defmodule Deeppipe do
     [y1 | _] = forward(x, network1, [])
     (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / delta
   end
+
+ 
 end
+
+
+defmodule NAT do
+  @moduledoc """
+  for natural language
+  """
+
+  @doc """
+  iex(1)> NAT.preprocess("You say goodby and I say hello.")
+  {[0, 1, 2, 3, 4, 1, 5, 6],
+  [You: 0, say: 1, goodby: 2, and: 3, I: 4, hello: 5, ".": 6],
+  [{0, :You}, {1, :say}, {2, :goodby}, {3, :and}, {4, :I}, {5, :hello}, {6, :.}]}
+  """
+  def preprocess(text) do
+    text1 = text |> String.replace("."," .") |> String.split(" ") |> Enum.map(fn(x) -> String.to_atom(x) end)
+    dic = text1 |> word_to_id()
+    {corpus(text1,dic),dic,id_to_word(dic)}
+  end
+
+  def corpus([],_) do [] end 
+  def corpus([l|ls],dic) do
+    [dic[l]|corpus(ls,dic)]
+  end 
+
+  
+  def word_to_id(ls) do
+    word_to_id1(ls,0,[])
+  end 
+
+  def word_to_id1([],_,dic) do Enum.reverse(dic) end 
+  def word_to_id1([l|ls],n,dic) do
+    if dic[l] != nil do 
+      word_to_id1(ls,n,dic)
+    else
+      word_to_id1(ls,n+1,Keyword.put(dic,l,n))
+    end 
+  end 
+
+  def id_to_word([]) do [] end 
+  def id_to_word([{word,id}|ls]) do 
+    [{id,word}|id_to_word(ls)]
+  end 
+
+  
+end 
