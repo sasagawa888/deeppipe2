@@ -340,6 +340,24 @@ defmodule Network do
     end
   end
 
+  # RNN
+  defp parse({:rnn,_, [arg,body]},_) do
+    {arg1,_,_} = arg
+    body1 = parse(body,arg1)
+    quote do
+      {:rnn,unquote(body1)}
+    end 
+  end 
+
+  # LSTM
+  defp parse({:lstm,_, [arg,body]},_) do
+    {arg1,_,_} = arg
+    body1 = parse(body,arg1)
+    quote do
+      {:rnn,unquote(body1)}
+    end 
+  end 
+
   defp parse({x, _, nil}, _) do
     x
   end

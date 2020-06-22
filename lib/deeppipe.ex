@@ -1151,9 +1151,21 @@ end
 
 
 defmodule NAT do
+  import Network
+
+
   @moduledoc """
   for natural language
   """
+
+  defnetwork init1(_x) do
+    _x
+    |> rnn(_y,
+        _y
+        |> w(100,10)
+        |> tanh)
+    |> softmax
+  end 
 
   @doc """
   iex(1)> NAT.preprocess("You say goodby and I say hello.")
