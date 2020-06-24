@@ -3128,7 +3128,44 @@ standardize1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
+  
+/*
+1st arg in_n of 3D tensor
+2rd arg in_r of 3D tensor
+3th arg in_c of 3D tensor
+4th arg binary of tensor
+5th arg nth in_r of 3D tensor
+  
+*/
+static ERL_NIF_TERM
+pickup1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin;
+    int in_n,in_row,in_col,nth,n1,i,j;
+    float *a,*b;
+    
+    if (!enif_get_int(env, argv[0], &in_n)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &in_row)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &in_col)) return enif_make_int(env,3);
+    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,4);
+    if (!enif_get_int(env, argv[4], &nth)) return enif_make_int(env,5);
 
+  
+    n1 = in_n * in_col;
+    a = (float *) a_bin.data;
+    b = (float *) enif_make_new_binary(env, n1 * sizeof(float), &b_bin);
+     
+      
+    for(i=0;i<in_n;i++){
+        for(j=0;j<in_col;j++){
+            b[IDX2C(i,j,in_row)] = a[IDX3C(i,nth,j,in_row,in_col)];
+        }
+    }
+      
+    return(b_bin);
+}
+  
+  
 
 // define the array of ErlNifFunc
 static ErlNifFunc nif_funcs[] = {
@@ -3186,7 +3223,8 @@ static ErlNifFunc nif_funcs[] = {
   {"is_near1", 3, is_near1},
   {"is_equal1", 3, is_equal1},
   {"analizer1", 3, analizer1},
-  {"standardize1", 5, standardize1}
+  {"standardize1", 5, standardize1},
+  {"pickup1", 5, pickup1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)

@@ -245,6 +245,10 @@ defmodule Cumatrix do
     raise "NIF normalizer1/3 not implemented"
   end
 
+  defp pickup1(_1, _2, _3, _4, _5) do
+    raise "NIF pickup1/3 not implemented"
+  end
+
   # ----------------------------------------------------------------
   @doc """
   generate matrix  mt1*mt2 with cuBLAS. 
@@ -1628,6 +1632,24 @@ defmodule Cumatrix do
     {r, c, dt}
   end
 
+  @doc """
+  pickup(3Dtensor,nth)
+  translate 3Dtensor to matrix. for RNN
+  """
+  def pickup({n,r,c,dt},nth) do
+    result = pickup1(n,r,c,dt,nth)
+    if !is_integer(result) do
+      {n,c,dt}
+    else 
+      error("pickup1",result)
+    end 
+  end 
+
+  @doc """
+  is_matrix(x)
+  if x is matrix return true
+  else return false
+  """
   def is_matrix({r, c, dt}) do
     if is_integer(r) && is_integer(c) && is_binary(dt) do
       true
@@ -1636,11 +1658,6 @@ defmodule Cumatrix do
     end
   end
 
-  @doc """
-  is_matrix(x)
-  if x is matrix return true
-  else return false
-  """
   def is_matrix(_) do
     false
   end
