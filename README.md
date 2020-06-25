@@ -187,7 +187,7 @@ update method is :sgd :momentam :adagrad :rms :adam
     |> pooling(2, 2)
     |> relu
     |> full
-    |> w(1728, 10, {:he,2028}, 0.001)
+    |> w(1728, 10, {:he,1728}, 0.001)
     |> softmax
   end
   
