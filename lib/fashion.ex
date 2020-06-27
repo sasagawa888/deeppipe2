@@ -102,7 +102,6 @@ defmodule Fashion do
     DP.retry("temp.ex", image, onehot, test_image, test_label, :cross, :adagrad, m, n)
   end
 
-  
   @doc """
   get n datas from train-label
   """
@@ -122,9 +121,9 @@ defmodule Fashion do
   """
   def train_image(n, :structure) do
     train_image()
-    |> Enum.take(n*28*28)
-    |> DP.normalize(0,255)
-    |> CM.reshape([n,1,28,28])
+    |> Enum.take(n * 28 * 28)
+    |> DP.normalize(0, 255)
+    |> CM.reshape([n, 1, 28, 28])
   end
 
   @doc """
@@ -132,9 +131,9 @@ defmodule Fashion do
   """
   def train_image(n, :flatten) do
     train_image()
-    |> Enum.take(n*784)
+    |> Enum.take(n * 784)
     |> DP.normalize(0, 255)
-    |> CM.reshape([n,784])
+    |> CM.reshape([n, 784])
   end
 
   @doc """
@@ -149,7 +148,7 @@ defmodule Fashion do
   """
   def test_label_onehot(n) do
     test_label()
-    |> Enum.take(n) 
+    |> Enum.take(n)
     |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
 
@@ -158,9 +157,9 @@ defmodule Fashion do
   """
   def test_image(n) do
     test_image()
-    |> Enum.take(n*28*28)
+    |> Enum.take(n * 28 * 28)
     |> DP.normalize(0, 255)
-    |> CM.reshape([n,1,28,28])
+    |> CM.reshape([n, 1, 28, 28])
   end
 
   @doc """
@@ -170,17 +169,17 @@ defmodule Fashion do
   """
   def test_image(n, :structure) do
     test_image()
-    |> Enum.take(n*28*28)
+    |> Enum.take(n * 28 * 28)
     |> DP.normalize(0, 255)
-    |> CM.reshape([n,1,28,28])
+    |> CM.reshape([n, 1, 28, 28])
   end
 
   # get n datas from train-image as flatten list
   def test_image(n, :flatten) do
     test_image()
-    |> Enum.take(n*784)
+    |> Enum.take(n * 784)
     |> DP.normalize(0, 255)
-    |> CM.reshape([n,784])
+    |> CM.reshape([n, 784])
   end
 
   @doc """
@@ -222,5 +221,4 @@ defmodule Fashion do
 
     image |> :binary.bin_to_list()
   end
-
 end

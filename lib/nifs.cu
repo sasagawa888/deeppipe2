@@ -3150,7 +3150,6 @@ pickup1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,4);
     if (!enif_get_int(env, argv[4], &nth)) return enif_make_int(env,5);
 
-  
     n1 = in_n * in_col;
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n1 * sizeof(float), &b_bin);
@@ -3158,7 +3157,7 @@ pickup1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
       
     for(i=0;i<in_n;i++){
         for(j=0;j<in_col;j++){
-            b[IDX2C(i,j,in_row)] = a[IDX3C(i,nth,j,in_row,in_col)];
+            b[IDX2C(i,j,in_n)] = a[IDX3C(i,nth,j,in_row,in_col)];
         }
     }
       

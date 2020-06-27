@@ -1145,14 +1145,10 @@ defmodule Deeppipe do
     [y1 | _] = forward(x, network1, [])
     (CM.loss(y1, t, :cross) - CM.loss(y0, t, :cross)) / delta
   end
-
- 
 end
-
 
 defmodule NAT do
   import Network
-
 
   @moduledoc """
   for natural language
@@ -1160,12 +1156,14 @@ defmodule NAT do
 
   defnetwork init1(_x) do
     _x
-    |> rnn(_y,
-        _y
-        |> w(100,10)
-        |> tanh)
+    |> rnn(
+      _y,
+      _y
+      |> w(100, 10)
+      |> tanh
+    )
     |> softmax
-  end 
+  end
 
   @doc """
   iex(1)> NAT.preprocess("You say goodby and I say hello.")
@@ -1174,34 +1172,45 @@ defmodule NAT do
   [{0, :You}, {1, :say}, {2, :goodby}, {3, :and}, {4, :I}, {5, :hello}, {6, :.}]}
   """
   def preprocess(text) do
-    text1 = text |> String.replace("."," .") |> String.split(" ") |> Enum.map(fn(x) -> String.to_atom(x) end)
+    text1 =
+      text
+      |> String.replace(".", " .")
+      |> String.split(" ")
+      |> Enum.map(fn x -> String.to_atom(x) end)
+
     dic = text1 |> word_to_id()
-    {corpus(text1,dic),dic,id_to_word(dic)}
+    {corpus(text1, dic), dic, id_to_word(dic)}
   end
 
-  def corpus([],_) do [] end 
-  def corpus([l|ls],dic) do
-    [dic[l]|corpus(ls,dic)]
-  end 
+  def corpus([], _) do
+    []
+  end
 
-  
+  def corpus([l | ls], dic) do
+    [dic[l] | corpus(ls, dic)]
+  end
+
   def word_to_id(ls) do
-    word_to_id1(ls,0,[])
-  end 
+    word_to_id1(ls, 0, [])
+  end
 
-  def word_to_id1([],_,dic) do Enum.reverse(dic) end 
-  def word_to_id1([l|ls],n,dic) do
-    if dic[l] != nil do 
-      word_to_id1(ls,n,dic)
+  def word_to_id1([], _, dic) do
+    Enum.reverse(dic)
+  end
+
+  def word_to_id1([l | ls], n, dic) do
+    if dic[l] != nil do
+      word_to_id1(ls, n, dic)
     else
-      word_to_id1(ls,n+1,Keyword.put(dic,l,n))
-    end 
-  end 
+      word_to_id1(ls, n + 1, Keyword.put(dic, l, n))
+    end
+  end
 
-  def id_to_word([]) do [] end 
-  def id_to_word([{word,id}|ls]) do 
-    [{id,word}|id_to_word(ls)]
-  end 
+  def id_to_word([]) do
+    []
+  end
 
-  
-end 
+  def id_to_word([{word, id} | ls]) do
+    [{id, word} | id_to_word(ls)]
+  end
+end

@@ -8,20 +8,26 @@ defmodule CIFAR do
 
   # for CNN for CIFAR10
   # e.g. CIFAR.adam(300,20)    about 1.5 hours by GTX960
-  
+
   defnetwork init_network1(_x) do
     _x
-    |> f(3, 3, 3, 32, {1, 1}, 1, {:he, 1024}, 0.001)   # 32*32*3=1024
+    # 32*32*3=1024
+    |> f(3, 3, 3, 32, {1, 1}, 1, {:he, 1024}, 0.001)
     |> relu
-    |> f(3, 3, 32, 32, {1, 1}, 1, {:he, 32768}, 0.001) # 32*32*32=32768
+    # 32*32*32=32768
+    |> f(3, 3, 32, 32, {1, 1}, 1, {:he, 32768}, 0.001)
     |> pooling(2, 2)
-    |> f(3, 3, 32, 64, {1, 1}, 1, {:he, 8192}, 0.001) # 16*16*32=8192
+    # 16*16*32=8192
+    |> f(3, 3, 32, 64, {1, 1}, 1, {:he, 8192}, 0.001)
     |> relu
-    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 16384}, 0.001) # 16*16*64=16384
+    # 16*16*64=16384
+    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 16384}, 0.001)
     |> relu
     |> pooling(2, 2)
-    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 4096}, 0.001) #  8*8*64=4096  
-    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 4096}, 0.001) #  8*8*64
+    #  8*8*64=4096  
+    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 4096}, 0.001)
+    #  8*8*64
+    |> f(3, 3, 64, 64, {1, 1}, 1, {:he, 4096}, 0.001)
     |> full
     |> w(4096, 100, {:he, 4096}, 0.001, 0.25)
     |> w(100, 10, {:he, 100}, 0.001, 0.25)
@@ -58,14 +64,14 @@ defmodule CIFAR do
   """
   def train_image(n) do
     train_image_batch1() |> Enum.take(n)
-  end 
+  end
 
   @doc """
   get n-size train label data from batch1 file
   """
   def train_label(n) do
     train_label_batch1() |> Enum.take(n)
-  end 
+  end
 
   @doc """
   get n-size train label data as onehot from batch1 file
@@ -238,6 +244,4 @@ defmodule CIFAR do
   defp train_image4(<<x, xs::binary>>, n, res) do
     train_image4(xs, n - 1, [x | res])
   end
-
-  
 end

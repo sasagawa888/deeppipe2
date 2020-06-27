@@ -622,7 +622,7 @@ defmodule Cumatrix do
   generate Hadamard matrix.
   """
   def emult({r1, c1, dt1}, {r1, c1, dt2}) do
-    result = emult1(r1*c1, dt1, dt2)
+    result = emult1(r1 * c1, dt1, dt2)
 
     if !is_integer(result) do
       {r1, c1, result}
@@ -632,10 +632,10 @@ defmodule Cumatrix do
   end
 
   def emult({n, c, h, w, dt1}, {n, c, h, w, dt2}) do
-    result = emult1(n*c*h*w, dt1, dt2)
+    result = emult1(n * c * h * w, dt1, dt2)
 
     if !is_integer(result) do
-      {n,c,h,w, result}
+      {n, c, h, w, result}
     else
       error("emult1", result)
     end
@@ -1636,14 +1636,15 @@ defmodule Cumatrix do
   pickup(3Dtensor,nth)
   translate 3Dtensor to matrix. for RNN
   """
-  def pickup({n,r,c,dt},nth) do
-    result = pickup1(n,r,c,dt,nth)
+  def pickup({n, r, c, dt}, nth) do
+    result = pickup1(n, r, c, dt, nth)
+
     if !is_integer(result) do
-      {n,c,dt}
-    else 
-      error("pickup1",result)
-    end 
-  end 
+      {n, c, result}
+    else
+      error("pickup1", result)
+    end
+  end
 
   @doc """
   is_matrix(x)

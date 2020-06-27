@@ -290,16 +290,20 @@ defmodule Network do
 
   defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:xavier, dim}, lr, dr]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(:math.sqrt(1 / unquote(dim))),
-       {unquote(h), unquote(w)}, unquote(pad), {:xavier, unquote(dim)}, unquote(lr), unquote(dr),
+      {:filter,
+       CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
+       |> CM.mult(:math.sqrt(1 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
+       {:xavier, unquote(dim)}, unquote(lr), unquote(dr),
        CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end
   end
 
   defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:he, dim}, lr, dr]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(:math.sqrt(2 / unquote(dim))),
-       {unquote(h), unquote(w)}, unquote(pad), {:he, unquote(dim)}, unquote(lr), unquote(dr),
+      {:filter,
+       CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
+       |> CM.mult(:math.sqrt(2 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
+       {:he, unquote(dim)}, unquote(lr), unquote(dr),
        CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
     end
   end
@@ -341,22 +345,24 @@ defmodule Network do
   end
 
   # RNN
-  defp parse({:rnn,_, [arg,body]},_) do
-    {arg1,_,_} = arg
-    body1 = parse(body,arg1)
+  defp parse({:rnn, _, [arg, body]}, _) do
+    {arg1, _, _} = arg
+    body1 = parse(body, arg1)
+
     quote do
-      {:rnn,unquote(body1)}
-    end 
-  end 
+      {:rnn, unquote(body1)}
+    end
+  end
 
   # LSTM
-  defp parse({:lstm,_, [arg,body]},_) do
-    {arg1,_,_} = arg
-    body1 = parse(body,arg1)
+  defp parse({:lstm, _, [arg, body]}, _) do
+    {arg1, _, _} = arg
+    body1 = parse(body, arg1)
+
     quote do
-      {:rnn,unquote(body1)}
-    end 
-  end 
+      {:rnn, unquote(body1)}
+    end
+  end
 
   defp parse({x, _, nil}, _) do
     x

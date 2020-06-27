@@ -51,14 +51,14 @@ defmodule MNIST do
   # CNN test for MNIST
   defnetwork init_network4(_x) do
     _x
-    |> f(3, 3, 1, 6, {1, 1}, 0, {:he,728}, 0.001)
+    |> f(3, 3, 1, 6, {1, 1}, 0, {:he, 728}, 0.001)
     |> relu
-    |> f(3, 3, 6, 12, {1, 1}, 0, {:he,4056}, 0.001)
+    |> f(3, 3, 6, 12, {1, 1}, 0, {:he, 4056}, 0.001)
     |> relu
     |> pooling(2, 2)
     |> relu
     |> full
-    |> w(1728, 10, {:he,1728}, 0.001)
+    |> w(1728, 10, {:he, 1728}, 0.001)
     |> softmax
   end
 
@@ -126,7 +126,6 @@ defmodule MNIST do
     |> softmax
   end
 
-  
   @doc """
   MNIST minibatch size , n epocs
   SGD optimizer
@@ -191,7 +190,7 @@ defmodule MNIST do
     test_label = test_label(10000)
     DP.train(network, image, onehot, test_image, test_label, :cross, :rms, m, n)
   end
-  
+
   @doc """
   MNIST minibatch size , n epocs
   adam optimizer
@@ -217,7 +216,7 @@ defmodule MNIST do
     test_label = test_label(10000)
     DP.retrain("temp.ex", image, onehot, test_image, test_label, :cross, :adam, m, n)
   end
-  
+
   @doc """
   MNIST minibatch size , n epocs
   Adam optimizer
@@ -321,9 +320,9 @@ defmodule MNIST do
   """
   def train_image(n, :structure) do
     train_image()
-    |> Enum.take(n*28*28)
-    |> DP.normalize(0,255)
-    |> CM.reshape([n,1,28,28])
+    |> Enum.take(n * 28 * 28)
+    |> DP.normalize(0, 255)
+    |> CM.reshape([n, 1, 28, 28])
   end
 
   @doc """
@@ -331,9 +330,9 @@ defmodule MNIST do
   """
   def train_image(n, :flatten) do
     train_image()
-    |> Enum.take(n*784)
+    |> Enum.take(n * 784)
     |> DP.normalize(0, 255)
-    |> CM.reshape([n,784])
+    |> CM.reshape([n, 784])
   end
 
   @doc """
@@ -348,7 +347,7 @@ defmodule MNIST do
   """
   def test_label_onehot(n) do
     test_label()
-    |> Enum.take(n) 
+    |> Enum.take(n)
     |> Enum.map(fn y -> DP.to_onehot(y, 9) end)
   end
 
@@ -357,9 +356,9 @@ defmodule MNIST do
   """
   def test_image(n) do
     test_image()
-    |> Enum.take(n*28*28)
+    |> Enum.take(n * 28 * 28)
     |> DP.normalize(0, 255)
-    |> CM.reshape([n,1,28,28])
+    |> CM.reshape([n, 1, 28, 28])
   end
 
   @doc """
@@ -369,17 +368,17 @@ defmodule MNIST do
   """
   def test_image(n, :structure) do
     test_image()
-    |> Enum.take(n*28*28)
+    |> Enum.take(n * 28 * 28)
     |> DP.normalize(0, 255)
-    |> CM.reshape([n,1,28,28])
+    |> CM.reshape([n, 1, 28, 28])
   end
 
   # get n datas from train-image as flatten list
   def test_image(n, :flatten) do
     test_image()
-    |> Enum.take(n*784)
+    |> Enum.take(n * 784)
     |> DP.normalize(0, 255)
-    |> CM.reshape([n,784])
+    |> CM.reshape([n, 784])
   end
 
   @doc """
@@ -406,8 +405,7 @@ defmodule MNIST do
   get test label data
   """
   def test_label() do
-    {:ok, <<0, 0, 8, 1, 0, 0, 39, 16, label::binary>>} =
-      File.read("mnist/t10k-labels-idx1-ubyte")
+    {:ok, <<0, 0, 8, 1, 0, 0, 39, 16, label::binary>>} = File.read("mnist/t10k-labels-idx1-ubyte")
 
     label |> String.to_charlist()
   end
@@ -421,6 +419,4 @@ defmodule MNIST do
 
     image |> :binary.bin_to_list()
   end
-
-
 end
