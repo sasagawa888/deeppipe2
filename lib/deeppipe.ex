@@ -114,6 +114,24 @@ defmodule Deeppipe do
     forward(x, rest, res)
   end
 
+  def forward(x, [{:rnn, network} | rest], res) do
+    # IO.puts("FD rnn")
+    {n, r, c} = CM.size(x)
+    y = CM.new(n, c)
+    x1 = forward_rnn(x, y, network, [], 0, r)
+    forward(x, rest, [x1 | res])
+  end
+
+  def forward_rnn(_, _, _, res, _, 0) do
+    res
+  end
+
+  def forward_rnn(x, y, network, res, n, r) do
+    x1 = CM.pickup(x, n) |> CM.add(y)
+    [x2 | x3] = forward(x1, network, [x])
+    forward_rnn(x, x2, network, [x3 | res], n + 1, r - 1)
+  end
+
   @doc """
   gradient with backpropagation
   ```
@@ -126,7 +144,7 @@ defmodule Deeppipe do
     [x1 | x2] = forward(x, network, [x])
     loss = CM.sub(x1, t)
     network1 = Enum.reverse(network)
-    result = backward(loss, network1, x2, [])
+    {_, result} = backward(loss, network1, x2, [])
     result
   end
 
@@ -137,8 +155,9 @@ defmodule Deeppipe do
   # 3rd arg is generated new network with calulated gradient
   # var l is loss matrix
   # var u is input data matrix or tesnro at each layer
-  defp backward(_, [], _, res) do
-    res
+  # return {loss,calculated-network}
+  defp backward(l, [], _, res) do
+    {l, res}
   end
 
   defp backward(l, [{:weight, w, ir, lr, dr, v} | rest], [u | us], res) do
@@ -218,6 +237,65 @@ defmodule Deeppipe do
     backward(l, rest, us, [{:visualizer, n, c} | res])
   end
 
+  defp backward(l, [{:rnn, network} | rest], [u | us], res) do
+    # IO.puts("BK network"
+    n = length(u)
+    network1 = backward_rnn(l, network, u, n)
+    backward(l, rest, us, [{:rnn, network1} | res])
+  end
+
+  def backward_rnn(l, network, u, n) do
+    backward_rnn1(l, network, u, [], n) |> backward_rnn2()
+  end
+
+  def backward_rnn1(_, _, _, res, 0) do
+    res
+  end
+
+  def backward_rnn1(l, network, [u | us], res, n) do
+    {l1, g1} = backward(l, network, u, [])
+    backward_rnn1(l1, network, us, [g1 | res], n - 1)
+  end
+
+  # average of many networks
+  def backward_rnn2([g]) do
+    [g]
+  end
+
+  def backward_rnn2([g1, g2]) do
+    backward_rnn3(g1, g2)
+  end
+
+  def backward_rnn2([g1, g2 | gs]) do
+    backward_rnn2([backward_rnn3(g1, g2) | gs])
+  end
+
+  # average of two networks
+  def backward_rnn3([], []) do
+    []
+  end
+
+  def backward_rnn3([{:weight, w1, ir, lr, dr, v} | rest1], [{:weight, w2, _, _, _, _} | rest2]) do
+    w3 = CM.average(w1, w2)
+    [{:weight, w3, ir, lr, dr, v} | backward_rnn3(rest1, rest2)]
+  end
+
+  def backward_rnn3([{:bias, b1, ir, lr, dr, v} | rest1], [{:bias, b2, _, _, _, _} | rest2]) do
+    b3 = CM.average(b1, b2)
+    [{:bias, b3, ir, lr, dr, v} | backward_rnn3(rest1, rest2)]
+  end
+
+  def backward_rnn3([{:filter, w1, {st_h, st_w}, pad, ir, lr, dr, v} | rest1], [
+        {:filter, w2, _, _, _, _, _, _} | rest2
+      ]) do
+    w3 = CM.average(w1, w2)
+    [{:filter, w3, {st_h, st_w}, pad, ir, lr, dr, v} | backward_rnn3(rest1, rest2)]
+  end
+
+  def backward_rnn3([network | rest1], [network | rest2]) do
+    [network | backward_rnn3(rest1, rest2)]
+  end
+
   @doc """
   learning(network1,network2,update_method)
   learning/3
@@ -252,6 +330,10 @@ defmodule Deeppipe do
     w2 = CM.sgd(w, w1, lr)
     # w2 |> CM.to_list() |> IO.inspect()
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, v} | learning(rest, rest1, :sgd)]
+  end
+
+  def learning([{:rnn, network} | rest], [{:rnn, network1} | rest1], :sgd) do
+    [{:rnn, learning(network, network1, :sgd)} | learning(rest, rest1, :sgd)]
   end
 
   def learning([network | rest], [_ | rest1], :sgd) do
@@ -291,6 +373,10 @@ defmodule Deeppipe do
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
   end
 
+  def learning([{:rnn, network} | rest], [{:rnn, network1} | rest1], :momentum) do
+    [{:rnn, learning(network, network1, :momentum)} | learning(rest, rest1, :momentum)]
+  end
+
   def learning([network | rest], [_ | rest1], :momentum) do
     # IO.puts("LMom else")
     [network | learning(rest, rest1, :momentum)]
@@ -324,6 +410,10 @@ defmodule Deeppipe do
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
+  def learning([{:rnn, network} | rest], [{:rnn, network1} | rest1], :adagrad) do
+    [{:rnn, learning(network, network1, :adagrad)} | learning(rest, rest1, :adagrad)]
+  end
+
   def learning([network | rest], [_ | rest1], :adagrad) do
     [network | learning(rest, rest1, :adagrad)]
   end
@@ -354,6 +444,10 @@ defmodule Deeppipe do
       ) do
     {h1, w2} = CM.rms(w, h, w1, lr)
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, h1} | learning(rest, rest1, :rms)]
+  end
+
+  def learning([{:rnn, network} | rest], [{:rnn, network1} | rest1], :rms) do
+    [{:rnn, learning(network, network1, :rms)} | learning(rest, rest1, :rms)]
   end
 
   def learning([network | rest], [_ | rest1], :rms) do
@@ -404,6 +498,10 @@ defmodule Deeppipe do
       {m1, v1, w2} = CM.adam(w, m, v, w1, lr)
       [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, {m1, v1}} | learning(rest, rest1, :adam)]
     end
+  end
+
+  def learning([{:rnn, network} | rest], [{:rnn, network1} | rest1], :adam) do
+    [{:rnn, learning(network, network1, :adam)} | learning(rest, rest1, :adam)]
   end
 
   def learning([network | rest], [_ | rest1], :adam) do

@@ -978,6 +978,14 @@ defmodule Cumatrix do
   end
 
   @doc """
+  average(mt1,mt2)
+  caluculate average of each element mt1 and mt2
+  """
+  def average(mt1, mt2) do
+    add(mt1, mt2) |> emult(0.5)
+  end
+
+  @doc """
   sum(mt)
   return sum of elements
   """
