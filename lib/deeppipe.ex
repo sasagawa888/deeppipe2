@@ -117,18 +117,21 @@ defmodule Deeppipe do
   def forward(x, [{:rnn, network} | rest], res) do
     # IO.puts("FD rnn")
     {n, r, c} = CM.size(x)
-    y = CM.new(n, c)
+    y = CM.new(n, c) # each element of y is 0.0
     x1 = forward_rnn(x, y, network, [], 0, r)
     forward(x, rest, [x1 | res])
   end
 
+  # for RNN
+  # pick up nth row from x 3Dtensor 
+  # store intermediate data as list for backward
   def forward_rnn(_, _, _, res, _, 0) do
     res
   end
 
   def forward_rnn(x, y, network, res, n, r) do
     x1 = CM.pickup(x, n) |> CM.add(y)
-    [x2 | x3] = forward(x1, network, [x])
+    [x2 | x3] = forward(x1, network, [x1])
     forward_rnn(x, x2, network, [x3 | res], n + 1, r - 1)
   end
 
@@ -239,11 +242,17 @@ defmodule Deeppipe do
 
   defp backward(l, [{:rnn, network} | rest], [u | us], res) do
     # IO.puts("BK network"
-    n = length(u)
+    n = length(u) # u is intermediate data list. length of u means recursive nest number
     network1 = backward_rnn(l, network, u, n)
     backward(l, rest, us, [{:rnn, network1} | res])
   end
 
+  # for RNN
+  # backward recursively and generate average weight
+  # l is loss matrix
+  # network is partial network 
+  # u is imidiate data list
+  # n is recursive number
   def backward_rnn(l, network, u, n) do
     backward_rnn1(l, network, u, [], n) |> backward_rnn2()
   end
@@ -258,14 +267,17 @@ defmodule Deeppipe do
   end
 
   # average of many networks
+  # case of one network
   def backward_rnn2([g]) do
     [g]
   end
 
+  # case of two network
   def backward_rnn2([g1, g2]) do
     backward_rnn3(g1, g2)
   end
 
+  # case of many network
   def backward_rnn2([g1, g2 | gs]) do
     backward_rnn2([backward_rnn3(g1, g2) | gs])
   end
