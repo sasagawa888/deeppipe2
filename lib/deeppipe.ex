@@ -117,7 +117,8 @@ defmodule Deeppipe do
   def forward(x, [{:rnn, network} | rest], res) do
     # IO.puts("FD rnn")
     {n, r, c} = CM.size(x)
-    y = CM.new(n, c) # each element of y is 0.0
+    # each element of y is 0.0
+    y = CM.new(n, c)
     x1 = forward_rnn(x, y, network, [], 0, r)
     forward(x, rest, [x1 | res])
   end
@@ -242,7 +243,8 @@ defmodule Deeppipe do
 
   defp backward(l, [{:rnn, network} | rest], [u | us], res) do
     # IO.puts("BK network"
-    n = length(u) # u is intermediate data list. length of u means recursive nest number
+    # u is intermediate data list. length of u means recursive nest number
+    n = length(u)
     network1 = backward_rnn(l, network, u, n)
     backward(l, rest, us, [{:rnn, network1} | res])
   end
@@ -1259,6 +1261,7 @@ end
 
 defmodule NAT do
   import Network
+  alias Deeppipe, as: DP
 
   @moduledoc """
   for natural language
@@ -1275,8 +1278,54 @@ defmodule NAT do
     |> softmax
   end
 
-
+  @doc """
+  transform sentences to matrix. Each element is onehot_vector.
+  iex(1)> NAT.preprocess("I love you.you love me?")
+  [
+  [
+    [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
+  ],
+  [
+    [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+  ]
+  ]
+  """
   def preprocess(text) do
+    {text1, dic, _} = preprocess1(text)
+    maxlen = text1 |> Enum.map(fn x -> length(x) end) |> Enum.max()
+    count = length(dic)
+
+    text1
+    |> Enum.map(fn x -> addzero(x, maxlen - length(x)) end)
+    |> Enum.map(fn x -> Enum.map(x, fn y -> DP.to_onehot(y, count) end) end)
+  end
+
+  defp addzero1(0) do
+    []
+  end
+
+  defp addzero1(n) do
+    [0 | addzero1(n - 1)]
+  end
+
+  defp addzero(ls, n) do
+    ls ++ addzero1(n)
+  end
+
+  @doc """
+  generate corpus,dic of word->ID and dic of ID->word from sentences as text.
+  iex(2)> NAT.preprocess1("I love you.you love me?")
+  {[[1, 2, 3, 4], [3, 2, 5, 6]], [I: 1, love: 2, you: 3, ".": 4, me: 5, "?": 6],
+  [{1, :I}, {2, :love}, {3, :you}, {4, :.}, {5, :me}, {6, :"?"}]}
+
+  """
+  def preprocess1(text) do
     dic =
       text
       |> String.replace(".", " . ")
@@ -1287,18 +1336,17 @@ defmodule NAT do
       |> word_to_id()
 
     text1 =
-      text 
+      text
       |> String.replace(".", ".EOS")
       |> String.replace("?", "?EOS")
       |> String.split("EOS")
       |> butlast()
-      |> Enum.map(fn(x) -> preprocess1(x,dic) end)
- 
-    {text1,dic,id_to_word(dic)}
-  end 
+      |> Enum.map(fn x -> preprocess2(x, dic) end)
 
- 
-  def preprocess1(text,dic) do
+    {text1, dic, id_to_word(dic)}
+  end
+
+  def preprocess2(text, dic) do
     text1 =
       text
       |> String.replace(".", " .")
@@ -1309,12 +1357,12 @@ defmodule NAT do
     corpus(text1, dic)
   end
 
-  def butlast(ls) do 
-    ls 
+  def butlast(ls) do
+    ls
     |> Enum.reverse()
     |> Enum.drop(1)
     |> Enum.reverse()
-  end 
+  end
 
   def corpus([], _) do
     []
@@ -1325,7 +1373,7 @@ defmodule NAT do
   end
 
   def word_to_id(ls) do
-    word_to_id1(ls, 0, [])
+    word_to_id1(ls, 1, [])
   end
 
   def word_to_id1([], _, dic) do
