@@ -1275,22 +1275,46 @@ defmodule NAT do
     |> softmax
   end
 
-  @doc """
-  iex(1)> NAT.preprocess("You say goodby and I say hello.")
-  {[0, 1, 2, 3, 4, 1, 5, 6],
-  [You: 0, say: 1, goodby: 2, and: 3, I: 4, hello: 5, ".": 6],
-  [{0, :You}, {1, :say}, {2, :goodby}, {3, :and}, {4, :I}, {5, :hello}, {6, :.}]}
-  """
+
   def preprocess(text) do
+    dic =
+      text
+      |> String.replace(".", " . ")
+      |> String.replace("?", " ? ")
+      |> String.split(" ")
+      |> butlast()
+      |> Enum.map(fn x -> String.to_atom(x) end)
+      |> word_to_id()
+
+    text1 =
+      text 
+      |> String.replace(".", ".EOS")
+      |> String.replace("?", "?EOS")
+      |> String.split("EOS")
+      |> butlast()
+      |> Enum.map(fn(x) -> preprocess1(x,dic) end)
+ 
+    {text1,dic,id_to_word(dic)}
+  end 
+
+ 
+  def preprocess1(text,dic) do
     text1 =
       text
       |> String.replace(".", " .")
+      |> String.replace("?", " ?")
       |> String.split(" ")
       |> Enum.map(fn x -> String.to_atom(x) end)
 
-    dic = text1 |> word_to_id()
-    {corpus(text1, dic), dic, id_to_word(dic)}
+    corpus(text1, dic)
   end
+
+  def butlast(ls) do 
+    ls 
+    |> Enum.reverse()
+    |> Enum.drop(1)
+    |> Enum.reverse()
+  end 
 
   def corpus([], _) do
     []
