@@ -1278,6 +1278,26 @@ defmodule NAT do
     |> softmax
   end
 
+  def train_image() do
+    {:ok,dt} = File.read("rnn/train.exs")
+    dt |> String.replace("\n","") |> preprocess()
+  end 
+
+  def train_label() do
+    {:ok,dt} = File.read("rnn/label.exs")
+    dt |> String.replace("\n"," ")
+    |> String.split(" ")
+    |> butlast()
+    |> Enum.map(fn(x) -> String.to_integer(x) end)
+  end 
+
+  def train_label_onehot() do
+    ls = train_label()
+    dim = Enum.max(ls)
+    ls |> Enum.map(fn(x) -> DP.to_onehot(x,dim) end)
+  end 
+  
+
   @doc """
   transform sentences to matrix. Each element is onehot_vector.
   iex(1)> NAT.preprocess("I love you.you love me?")
