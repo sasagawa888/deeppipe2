@@ -2900,7 +2900,9 @@ correct1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 }
 
 
-
+/*
+random_select for matrix data
+*/
 static ERL_NIF_TERM
 random_select1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
@@ -2937,6 +2939,9 @@ random_select1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(tuple);
 }
 
+/*
+random_select for 4D-tensor data
+*/
 static ERL_NIF_TERM
 random_select2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin,b_bin;
@@ -2977,6 +2982,48 @@ random_select2(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     tuple = enif_make_tuple2(env,c_bin,d_bin);
     return(tuple);
 }
+
+/*
+random_select for 3D-tensor data
+*/
+static ERL_NIF_TERM
+random_select3(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin,b_bin;
+    ERL_NIF_TERM  c_bin,d_bin,tuple;
+    int n1,h1,w1,r2,c2, i, j, k, n, r;
+    float *a, *b, *c, *d;
+  
+    if (!enif_get_int(env, argv[0], &n1)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &h1)) return enif_make_int(env,2);
+    if (!enif_get_int(env, argv[2], &w1)) return enif_make_int(env,3);
+    if (!enif_inspect_binary(env, argv[3], &a_bin )) return enif_make_int(env,4);
+    if (!enif_get_int(env, argv[4], &r2)) return enif_make_int(env,5);
+    if (!enif_get_int(env, argv[5], &c2)) return enif_make_int(env,6);
+    if (!enif_inspect_binary(env, argv[6], &b_bin )) return enif_make_int(env,7);
+    if (!enif_get_int(env, argv[7], &n)) return enif_make_int(env,8);
+
+    a = (float *) a_bin.data;
+    b = (float *) b_bin.data;
+    c = (float *) enif_make_new_binary(env, n*h1*w1 * sizeof(float), &c_bin);
+    d = (float *) enif_make_new_binary(env, n*r2*c2 * sizeof(float), &d_bin);
+
+    // random-select
+    for(i=0;i<n;i++){
+        r = rand() % n1;
+        for(j=0;j<h1;j++){
+            for(k=0;k<w1;k++){
+                c[IDX3C(i,j,k,h1,w1)] = a[IDX3C(r,j,k,h1,w1)];
+            }
+        }
+        for(j=0;j<c2;j++){
+            d[IDX2C(i,j,n)] = b[IDX2C(r,j,r2)];
+        }    
+    }
+
+    tuple = enif_make_tuple2(env,c_bin,d_bin);
+    return(tuple);
+}
+
 
 
 static ERL_NIF_TERM
@@ -3219,6 +3266,7 @@ static ErlNifFunc nif_funcs[] = {
   {"unfull1", 5, unfull1},
   {"random_select1", 7, random_select1},
   {"random_select2", 9, random_select2},
+  {"random_select3", 8, random_select3},
   {"is_near1", 3, is_near1},
   {"is_equal1", 3, is_equal1},
   {"analizer1", 3, analizer1},

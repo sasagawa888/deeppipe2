@@ -226,7 +226,11 @@ defmodule Cumatrix do
   end
 
   defp random_select2(_1, _2, _3, _4, _5, _6, _7, _8, _9) do
-    raise "NIF random_select1/9 not implemented"
+    raise "NIF random_select2/9 not implemented"
+  end
+
+  defp random_select3(_1, _2, _3, _4, _5, _6, _7, _8) do
+    raise "NIF random_select3/8 not implemented"
   end
 
   defp is_near1(_1, _2, _3) do
@@ -1339,6 +1343,7 @@ defmodule Cumatrix do
   @doc """
   random_select(mt1,mt2,n)
   select same row data from matrix(mt1) and matrix(mt2)
+  also for tensor arg1.
   """
   def random_select({r1, c1, dt1}, {r2, c2, dt2}, n) do
     result = random_select1(r1, c1, dt1, r2, c2, dt2, n)
@@ -1357,6 +1362,17 @@ defmodule Cumatrix do
     if !is_integer(result) do
       {dt3, dt4} = result
       {{n, c1, h1, w1, dt3}, {n, c2, dt4}}
+    else
+      error("random_select", result)
+    end
+  end
+
+  def random_select({n1, h1, w1, dt1}, {r2, c2, dt2}, n) do
+    result = random_select3(n1, h1, w1, dt1, r2, c2, dt2, n)
+
+    if !is_integer(result) do
+      {dt3, dt4} = result
+      {{n, h1, w1, dt3}, {n, c2, dt4}}
     else
       error("random_select", result)
     end
