@@ -1630,10 +1630,14 @@ defmodule Cumatrix do
   @doc """
   normalizer(ts)
   calculate average of nth data and sub each elemet the average.
-  when matrix , nothing to do
+  when 3D tensor or matrix , nothing to do
   """
   def standardize({n, c, h, w, dt}) do
     {n, c, h, w, standardize1(n, c, h, w, dt)}
+  end
+
+  def standardize({n, h, w, dt}) do
+    {n, h, w, dt}
   end
 
   def standardize({r, c, dt}) do

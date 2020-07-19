@@ -1272,11 +1272,20 @@ defmodule NAT do
     |> rnn(
       _y,
       _y
-      |> w(100, 10)
+      |> w(8, 2)
       |> tanh
     )
     |> softmax
   end
+
+  def sgd(n,m) do 
+    image = train_image()
+    onehot = train_label_onehot()
+    network = init1(0)
+    test_image = train_image()
+    test_label = train_label()
+    DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
+  end 
 
   def train_image() do
     {:ok,dt} = File.read("rnn/train.exs")
