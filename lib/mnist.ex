@@ -20,6 +20,20 @@ defmodule MNIST do
     |> softmax
   end
 
+  # same meaning as init_network1
+  defnetwork init_network11(_x) do
+    _x
+    |> w(784, 300, 0.1, 0.1, 0.0)
+    |> b(300, 0.1, 0.1, 0.0)
+    |> tanh
+    |> w(300, 100, 0.1, 0.1, 0.0)
+    |> b(100, 0.1, 0.0)
+    |> tanh
+    |> w(100, 10, 0.1, 0.1, 0.0)
+    |> b(10, 0.1, 0.0)
+    |> softmax
+  end
+
   # for momentum
   defnetwork init_network2(_x) do
     _x
@@ -38,10 +52,10 @@ defmodule MNIST do
   defnetwork init_network3(_x) do
     _x
     |> w(784, 300, 0.1, 0.01)
-    |> b(300, 0.1, 0.1)
+    |> b(300, 0.1, 0.01)
     |> relu
     |> w(300, 100, 0.1, 0.01)
-    |> b(100, 0.1, 0.1)
+    |> b(100, 0.1, 0.01)
     |> relu
     |> w(100, 10, 0.1, 0.01, 0.25)
     |> b(10, 0.1, 0.01)

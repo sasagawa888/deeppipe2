@@ -6,6 +6,7 @@ defmodule Deeppipe do
 
   functions for Deep-Learning.
 
+
   """
 
   @doc """
@@ -314,7 +315,7 @@ defmodule Deeppipe do
   learning(network1,network2,update_method)
   learning/3
   generate new network with leared weight,bias and filter
-  update method is :sgd, :momentum, :rms, :adagrad
+  update method is :sgd, :momentum, :rms, :adagrad ,:adam 
   """
   # --------sgd----------
   def learning([], _, :sgd) do
@@ -539,7 +540,7 @@ defmodule Deeppipe do
   4th arg test image list
   5th arg test label list
   6th arg loss function (:cross or :square)
-  7th arg learning method (:sgd :momentum or :adagrad)
+  7th arg learning method (:sgd :momentum :rms :adagrad :adam)
   8th arg minibatch size
   9th arg epochs 
   ```
@@ -671,7 +672,7 @@ defmodule Deeppipe do
   4th arg test image list
   5th arg test label list
   6th arg loss function (:cross or :square)
-  7th arg learning method (:sgd :momentum :adagrad)
+  7th arg learning method (:sgd :momentum :adagrad :adam)
   8th arg minibatch size
   9th arg repeat number
   ```
@@ -1278,34 +1279,35 @@ defmodule NAT do
     |> softmax
   end
 
-  def sgd(n,m) do 
+  def sgd(n, m) do
     image = train_image()
     onehot = train_label_onehot()
     network = init1(0)
     test_image = train_image()
     test_label = train_label()
     DP.train(network, image, onehot, test_image, test_label, :cross, :sgd, m, n)
-  end 
+  end
 
   def train_image() do
-    {:ok,dt} = File.read("rnn/train.exs")
-    dt |> String.replace("\n","") |> preprocess()
-  end 
+    {:ok, dt} = File.read("rnn/train.exs")
+    dt |> String.replace("\n", "") |> preprocess()
+  end
 
   def train_label() do
-    {:ok,dt} = File.read("rnn/label.exs")
-    dt |> String.replace("\n"," ")
+    {:ok, dt} = File.read("rnn/label.exs")
+
+    dt
+    |> String.replace("\n", " ")
     |> String.split(" ")
     |> butlast()
-    |> Enum.map(fn(x) -> String.to_integer(x) end)
-  end 
+    |> Enum.map(fn x -> String.to_integer(x) end)
+  end
 
   def train_label_onehot() do
     ls = train_label()
     dim = Enum.max(ls)
-    ls |> Enum.map(fn(x) -> DP.to_onehot(x,dim) end)
-  end 
-  
+    ls |> Enum.map(fn x -> DP.to_onehot(x, dim) end)
+  end
 
   @doc """
   transform sentences to matrix. Each element is onehot_vector.
