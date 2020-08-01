@@ -14,6 +14,7 @@ defmodule NAT do
       |> w(14, 14)
       |> tanh
     )
+    |> w(14,2)
     |> softmax
   end
 
