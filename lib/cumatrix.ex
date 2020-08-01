@@ -1345,6 +1345,7 @@ defmodule Cumatrix do
   select same row data from matrix(mt1) and matrix(mt2)
   also for tensor arg1.
   """
+  # matrix
   def random_select({r1, c1, dt1}, {r2, c2, dt2}, n) do
     result = random_select1(r1, c1, dt1, r2, c2, dt2, n)
 
@@ -1356,6 +1357,7 @@ defmodule Cumatrix do
     end
   end
 
+  # 4D tensor
   def random_select({n1, c1, h1, w1, dt1}, {r2, c2, dt2}, n) do
     result = random_select2(n1, c1, h1, w1, dt1, r2, c2, dt2, n)
 
@@ -1367,6 +1369,7 @@ defmodule Cumatrix do
     end
   end
 
+  # 3D tensor
   def random_select({n1, h1, w1, dt1}, {r2, c2, dt2}, n) do
     result = random_select3(n1, h1, w1, dt1, r2, c2, dt2, n)
 
