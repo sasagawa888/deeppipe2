@@ -115,13 +115,14 @@ defmodule Deeppipe do
     forward(x, rest, res)
   end
 
-  def forward(x, [{:rnn, network} | rest], res) do
+  # [_ | res] when rnn, drop first data
+  def forward(x, [{:rnn, network} | rest], [_ | res]) do
     # IO.puts("FD rnn")
     {n, r, c} = CM.size(x)
     # each element of y is 0.0
     y = CM.new(n, c)
     [x1 | x2] = forward_rnn(x, y, network, [], 0, r)
-    forward(x1, rest, [x2 | res])
+    forward(x1, rest, [x1,x2 | res])
   end
 
   # for RNN
@@ -594,7 +595,7 @@ defmodule Deeppipe do
     IO.puts("\nepoch #{count}")
     network1 = train2(network, train_image, train_onehot, loss_func, method, m, n, n)
     {train_image1, train_onehot1} = CM.random_select(train_image, train_onehot, m)
-    [y | _] = forward(train_image1, network1, [])
+    [y | _] = forward(train_image1, network1, [train_image1])
     loss = CM.loss(y, train_onehot1, loss_func)
     IO.puts("random loss = #{loss}")
     rate = accuracy(ts_imag, network1, ts_label, m)
@@ -762,7 +763,7 @@ defmodule Deeppipe do
     n = min(length(label), m)
     image1 = Enum.take(image, n) |> CM.new() |> CM.standardize()
     label1 = Enum.take(label, n)
-    [y | _] = forward(image1, network, [])
+    [y | _] = forward(image1, network, [image1])
     n1 = CM.correct(y, label1)
     accuracy1(Enum.drop(image, n), network, Enum.drop(label, n), m, total, correct + n1)
   end
