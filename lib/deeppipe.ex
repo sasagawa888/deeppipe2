@@ -122,7 +122,7 @@ defmodule Deeppipe do
     # each element of y is 0.0
     y = CM.new(n, c)
     [x1 | x2] = forward_rnn(x, y, network, [], 0, r)
-    forward(x1, rest, [x1,x2 | res])
+    forward(x1, rest, [x1, x2 | res])
   end
 
   # for RNN

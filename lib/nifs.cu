@@ -3211,7 +3211,35 @@ pickup1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     return(b_bin);
 }
   
+
   
+/*
+1st arg size of tensor or matrix
+2rd arg binary of tensor or matrix
+  
+*/
+static ERL_NIF_TERM
+copy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin;
+    int n,i;
+    float *a,*b;
+    
+    if (!enif_get_int(env, argv[0], &n)) return enif_make_int(env,1);
+    if (!enif_inspect_binary(env, argv[1], &a_bin )) return enif_make_int(env,2);
+
+    a = (float *) a_bin.data;
+    b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
+     
+      
+    for(i=0;i<n;i++){
+        b[i] = a[i];
+    }
+      
+    return(b_bin);
+}
+  
+
 
 // define the array of ErlNifFunc
 static ErlNifFunc nif_funcs[] = {
@@ -3271,7 +3299,8 @@ static ErlNifFunc nif_funcs[] = {
   {"is_equal1", 3, is_equal1},
   {"analizer1", 3, analizer1},
   {"standardize1", 5, standardize1},
-  {"pickup1", 5, pickup1}
+  {"pickup1", 5, pickup1},
+  {"copy1", 2, copy1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)

@@ -253,6 +253,10 @@ defmodule Cumatrix do
     raise "NIF pickup1/3 not implemented"
   end
 
+  defp copy1(_1, _2) do
+    raise "NIF copy1/2 not implemented"
+  end
+
   # ----------------------------------------------------------------
   @doc """
   generate matrix  mt1*mt2 with cuBLAS. 
@@ -1672,6 +1676,40 @@ defmodule Cumatrix do
 
     if !is_integer(result) do
       {n, c, result}
+    else
+      error("pickup1", result)
+    end
+  end
+
+  @doc """
+  copy(x)
+  return copy of matrix or tensor x
+  """
+  def copy({r, c, dt}) do
+    result = copy1(r * c, dt)
+
+    if !is_integer(result) do
+      {r, c, result}
+    else
+      error("pickup1", result)
+    end
+  end
+
+  def copy({n, r, c, dt}) do
+    result = copy1(n * r * c, dt)
+
+    if !is_integer(result) do
+      {n, r, c, result}
+    else
+      error("pickup1", result)
+    end
+  end
+
+  def copy({n, c, h, w, dt}) do
+    result = copy1(n * c * h * w, dt)
+
+    if !is_integer(result) do
+      {n, c, h, w, result}
     else
       error("pickup1", result)
     end

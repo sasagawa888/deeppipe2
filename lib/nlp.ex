@@ -1,4 +1,4 @@
-defmodule NAT do
+defmodule NLP do
   import Network
   alias Deeppipe, as: DP
 
@@ -11,10 +11,10 @@ defmodule NAT do
     |> rnn(
       _y,
       _y
-      |> w(14, 14)
+      |> w(29, 29)
       |> tanh
     )
-    |> w(14,2)
+    |> w(29, 2)
     |> softmax
   end
 
@@ -33,7 +33,7 @@ defmodule NAT do
   end
 
   def train_label() do
-    {:ok, dt} = File.read("rnn/label.exs")
+    {:ok, dt} = File.read("rnn/train-label.exs")
 
     dt
     |> String.replace("\n", " ")
@@ -46,6 +46,21 @@ defmodule NAT do
     ls = train_label()
     dim = Enum.max(ls)
     ls |> Enum.map(fn x -> DP.to_onehot(x, dim) end)
+  end
+
+  def test_image() do
+    {:ok, dt} = File.read("rnn/test.exs")
+    dt |> String.replace("\n", "") |> preprocess()
+  end
+
+  def test_label() do
+    {:ok, dt} = File.read("rnn/test-label.exs")
+
+    dt
+    |> String.replace("\n", " ")
+    |> String.split(" ")
+    |> butlast()
+    |> Enum.map(fn x -> String.to_integer(x) end)
   end
 
   @doc """
