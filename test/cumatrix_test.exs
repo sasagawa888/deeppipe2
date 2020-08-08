@@ -544,5 +544,8 @@ defmodule CumatrixTest do
                [0.699999988079071, 0.800000011920929],
                [1.100000023841858, 1.2000000476837158]
              ]
+    
+    t15 = Cumatrix.copy(t14)
+    assert Cumatrix.is_equal(t14,t15) == true
   end
 end

@@ -65,7 +65,7 @@ defmodule NLP do
 
   @doc """
   transform sentences to matrix. Each element is onehot_vector.
-  iex(1)> NAT.preprocess("I love you.you love me?")
+  iex(1)> NLP.preprocess("I love you.you love me?")
   [
   [
     [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -105,7 +105,7 @@ defmodule NLP do
 
   @doc """
   generate corpus,dic of word->ID and dic of ID->word from sentences as text.
-  iex(2)> NAT.preprocess1("I love you.you love me?")
+  iex(2)> NLP.preprocess1("I love you.you love me?")
   {[[1, 2, 3, 4], [3, 2, 5, 6]], [I: 1, love: 2, you: 3, ".": 4, me: 5, "?": 6],
   [{1, :I}, {2, :love}, {3, :you}, {4, :.}, {5, :me}, {6, :"?"}]}
 
