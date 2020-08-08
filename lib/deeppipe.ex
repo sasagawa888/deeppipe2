@@ -138,6 +138,29 @@ defmodule Deeppipe do
     forward_rnn(x, x2, network, [x3 | res], n + 1, r - 1)
   end
 
+  # create networks for rnn dynamicaly
+  def create_rnn(network,1) do [network] end 
+  def create_rnn(network,n) do
+    [copy_network(network) | create_rnn(network,n-1)] 
+  end 
+
+  #copy one network
+  def copy_network([]) do [] end 
+  def copy_network([{:weight, w, ir, lr, dr, v}|ls]) do
+    [{:weight, CM.copy(w), ir, lr, dr, CM.copy(v)} | copy_network(ls)]
+  end 
+  def copy_network([{:bias, b, ir, lr, dr, v} | ls]) do 
+    [{:bias, CM.copy(b), ir, lr, dr, CM.copy(v)} | copy_network(ls)]
+  end 
+  def copy_network([{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | ls]) do 
+    [{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | copy_network(ls)]
+  end 
+  def copy_network([l|ls]) do 
+    [l | copy_network(ls)]
+  end 
+
+
+
   @doc """
   gradient with backpropagation
   ```
