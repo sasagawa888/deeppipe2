@@ -126,11 +126,11 @@ defmodule Deeppipe do
       # initialize network  
       network1 = create_rnn(network, r)
       [x1 | x2] = forward_rnn(x, y, network1, [], 0, r)
-      forward(x1, rest, [{[x1 | x2], network} | res])
+      forward(x1, rest, [x1, {x2, network1} | res])
     else
       # network is already RNN
       [x1 | x2] = forward_rnn(x, y, network, [], 0, r)
-      forward(x1, rest, [{[x1 | x2], network} | res])
+      forward(x1, rest, [x1, {x2, network} | res])
     end
   end
 
@@ -284,9 +284,8 @@ defmodule Deeppipe do
 
   defp backward(l, [{:rnn, _} | rest], [{u, network} | us], res) do
     # IO.puts("BK network"
-    # u is intermediate data list. length of u means recursive nest number
-    n = length(u)
-    result = backward_rnn(l, network, u, n)
+    # u is intermediate data list. 
+    result = backward_rnn(l, network, u)
     # result is list of tuple [{gradient1,network1},...]
     backward(l, rest, us, [{:rnn, result} | res])
   end
@@ -297,17 +296,18 @@ defmodule Deeppipe do
   # network is partial network that was created for RNN dynamicaly
   # u is imidiate data list
   # n is recursive number
-  def backward_rnn(l, network, u, n) do
-    backward_rnn1(l, network, u, [], n)
+  def backward_rnn(l, network, u) do
+    backward_rnn1(l, network, u, [])
   end
 
-  def backward_rnn1(_, _, _, res, 0) do
+  def backward_rnn1(_, [], [], res) do
     res
   end
 
-  def backward_rnn1(l, [network | restnetwork], [u | us], res, n) do
-    {l1, g1} = backward(l, network, u, [])
-    backward_rnn1(l1, restnetwork, us, [{g1, network} | res], n - 1)
+  def backward_rnn1(l, [network | restnetwork], [u | us], res) do
+    network1 = Enum.reverse(network)
+    {l1, g1} = backward(l, network1, u, [])
+    backward_rnn1(l1, restnetwork, us, [{g1, network} | res])
   end
 
   @doc """
@@ -523,6 +523,7 @@ defmodule Deeppipe do
   end
 
   # for RNN
+  def learning_rnn([],_) do [] end 
   def learning_rnn([{gradient, network} | rest], method) do
     [learning(network, gradient, method) | learning_rnn(rest, method)]
   end
