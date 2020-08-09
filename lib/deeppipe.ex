@@ -116,6 +116,8 @@ defmodule Deeppipe do
   end
 
   # [_ | res] when rnn, drop first data
+  # instead of that data, put data as {imidiate-input-data-list, network-list}
+  # backward of RNN calculates gradient with that puted tuple data.
   def forward(x, [{:rnn, network} | rest], [_ | res]) do
     # IO.puts("FD rnn")
     {n, r, c} = CM.size(x)
