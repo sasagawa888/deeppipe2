@@ -116,14 +116,21 @@ defmodule Deeppipe do
   end
 
   # RNN after
-  def forward([x, h], [{:rnn, nth, wx, wh, b, _, _, dr, _} | rest], res) do
+  def forward([x, h], [{:rnn, nth, n, wx, wh, b, _, _, dr, _} | rest], res) do
     # IO.puts("FD rnn")
     if dr == 0.0 do
       x0 = CM.pickup(x, nth)
       x1 = x0 |> CM.mult(wx)
       h1 = CM.mult(h, wh)
-      h2 = CM.add(x1, h1) |> CM.add(b) |> CM.activate(:tanh)
-      forward([x, h2], rest, [[x0, h2] | res])
+      h2 = CM.add(x1, h1) |> CM.add(b)
+      h3 = h2 |> CM.activate(:tanh)
+      # not last rnn
+      # last rnn
+      if nth != n do
+        forward([x, h3], rest, [[x0, h2, h3] | res])
+      else
+        forward(h3, rest, [h3 | res])
+      end
     else
       mw = CM.dropout(wx, dr)
       wx1 = CM.emult(wx, mw)
@@ -132,23 +139,30 @@ defmodule Deeppipe do
       h1 = CM.mult(h, wh)
       h2 = CM.add(x1, h1) |> CM.add(b)
       h3 = h2 |> CM.activate(:tanh)
-      forward([x, h3], rest, push([x0, h2, h2], mw, res))
+      # not last rnn
+      # last rnn
+      if nth != n do
+        forward([x, h3], rest, push([x0, h2, h3], mw, res))
+      else
+        forward(h3, rest, push(h3, mw, res))
+      end
     end
   end
 
   # RNN first (not have h data)
-  def forward(x, [{:rnn, nth, wx, _, b, _, _, dr, _} | rest], res) do
+  def forward(x, [{:rnn, nth, _, wx, _, b, _, _, dr, _} | rest], [_ | res]) do
     # IO.puts("FD rnn")
     if dr == 0.0 do
-      x1 = CM.pickup(x, nth) |> CM.mult(wx) |> CM.add(b) |> CM.activate(:tanh)
-      forward([x, x1], rest, [x1 | res])
+      x0 = CM.pickup(x, nth)
+      x1 = x0 |> CM.mult(wx) |> CM.add(b) |> CM.activate(:tanh)
+      forward([x, x1], rest, [[x0, x1, x1] | res])
     else
       mw = CM.dropout(wx, dr)
       wx1 = CM.emult(wx, mw)
       x0 = CM.pickup(x, nth)
       x1 = x0 |> CM.mult(wx1) |> CM.add(b)
       x2 = x1 |> CM.activate(:tanh)
-      forward([x, x1], rest, [[x0, 0, x2] | res])
+      forward([x, x1], rest, push([x0, 0, x2], mw, res))
     end
   end
 
@@ -257,33 +271,7 @@ defmodule Deeppipe do
     backward(l, rest, us, [{:visualizer, n, c} | res])
   end
 
-  # first RNN
-  defp backward(l, [{:rnn, 1, wx, _, _, ir, lr, dr, v} | rest], [u | us], res) do
-    # IO.puts("BK network"
-    if dr == 0.0 do
-      [ux, uh, ua] = u
-      l1 = CM.diff(l, ua, :tanh)
-      b1 = CM.average(l1)
-      {n, _} = CM.size(l1)
-      wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / n)
-      wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / n)
-      l2 = CM.mult(l, CM.transpose(wx))
-      backward(l2, rest, us, [{:rnn, wx1, wh1, b1, ir, lr, 0.0, v} | res])
-    else
-      {[ux, uh, ua], mw} = u
-      l1 = CM.diff(l, ua, :tanh)
-      b1 = CM.average(l1)
-      {n, _} = CM.size(l1)
-      wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / n) |> CM.emult(mw)
-      wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / n) |> CM.emult(mw)
-      l2 = CM.mult(l1, CM.transpose(CM.emult(wx, mw)))
-      backward(l2, rest, us, [{:rnn, wx1, wh1, b1, ir, lr, dr, v} | res])
-    end
-  end
-
-  # after second RNN
-  defp backward(l, [{:rnn, _, _, wh, _, ir, lr, dr, v} | rest], [u | us], res) do
-    # IO.puts("BK network"
+  defp backward(l, [{:rnn, nth, n, _, wh, _, ir, lr, dr, v} | rest], [u | us], res) do
     if dr == 0.0 do
       [ux, uh, ua] = u
       l1 = CM.diff(l, ua, :tanh)
@@ -292,7 +280,7 @@ defmodule Deeppipe do
       wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / n)
       wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / n)
       l2 = CM.mult(l, CM.transpose(wh))
-      backward(l2, rest, us, [{:rnn, wx1, wh1, b1, ir, lr, 0.0, v} | res])
+      backward(l2, rest, us, [{:rnn, nth, n, wx1, wh1, b1, ir, lr, 0.0, v} | res])
     else
       {[ux, uh, ua], mw} = u
       l1 = CM.diff(l, ua, :tanh)
@@ -301,7 +289,7 @@ defmodule Deeppipe do
       wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / n) |> CM.emult(mw)
       wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / n) |> CM.emult(mw)
       l2 = CM.mult(l1, CM.transpose(CM.emult(wh, mw)))
-      backward(l2, rest, us, [{:rnn, wx1, wh1, b1, ir, lr, dr, v} | res])
+      backward(l2, rest, us, [{:rnn, nth, n, wx1, wh1, b1, ir, lr, dr, v} | res])
     end
   end
 
@@ -341,11 +329,15 @@ defmodule Deeppipe do
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, v} | learning(rest, rest1, :sgd)]
   end
 
-  def learning([{:rnn, nth,wx,wh,b,ir,lr,dr,v} | rest], [{:rnn, _,wx1,wh1,b1,_,_,_,_} | rest1], :sgd) do
-    b2 = CM.sgd(b,b1,lr)
-    wx2 = CM.sgd(wx,wx1,lr)
-    wh2 = CM.sgd(wh,wh1,lr)
-    [{:rnn, nth,wx2,wh2,b2,ir,lr,dr,v} | learning(rest, rest1, :sgd)]
+  def learning(
+        [{:rnn, nth, wx, wh, b, ir, lr, dr, v} | rest],
+        [{:rnn, _, wx1, wh1, b1, _, _, _, _} | rest1],
+        :sgd
+      ) do
+    b2 = CM.sgd(b, b1, lr)
+    wx2 = CM.sgd(wx, wx1, lr)
+    wh2 = CM.sgd(wh, wh1, lr)
+    [{:rnn, nth, wx2, wh2, b2, ir, lr, dr, v} | learning(rest, rest1, :sgd)]
   end
 
   def learning([network | rest], [_ | rest1], :sgd) do
@@ -429,7 +421,6 @@ defmodule Deeppipe do
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
-  
   def learning([network | rest], [_ | rest1], :adagrad) do
     [network | learning(rest, rest1, :adagrad)]
   end
@@ -462,7 +453,6 @@ defmodule Deeppipe do
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, h1} | learning(rest, rest1, :rms)]
   end
 
-  
   def learning([network | rest], [_ | rest1], :rms) do
     [network | learning(rest, rest1, :rms)]
   end

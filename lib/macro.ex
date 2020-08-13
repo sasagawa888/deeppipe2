@@ -442,10 +442,11 @@ defmodule Network do
   def rnn(x, m, n) do
     [
       quote do
-        {:rnn, unquote(m), CM.rand(unquote(x), unquote(x)), CM.rand(unquote(x), unquote(x)),
-         CM.rand(1, unquote(x)), 0.1, 0.1, 0.0, CM.rand(unquote(x), unquote(x))}
+        {:rnn, unquote(m), unquote(n), CM.rand(unquote(x), unquote(x)),
+         CM.rand(unquote(x), unquote(x)), CM.rand(1, unquote(x)), 0.1, 0.1, 0.0,
+         CM.rand(unquote(x), unquote(x))}
       end
-      | rnn(x, m + 1, n - 1)
+      | rnn(x, m + 1, n)
     ]
   end
 end
