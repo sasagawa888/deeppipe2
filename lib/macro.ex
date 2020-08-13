@@ -431,10 +431,12 @@ defmodule Network do
     []
   end
 
-  # data structure RNN = {:rnn, nth, Wx, Wh, b, ir, lr, dr, v}
+  # data structure RNN = {:rnn, nth, n, Wx, Wh, b, ir, lr, dr, v}
   # nth means nth of recursive
+  # n means times of recursive
   # Wx is weigth matrix for input x
   # Wh is weight matrix for h (output t-1)
+  # b is bias 
   # ir is initial rate
   # lr is learning rate
   # dr is dropout rate
