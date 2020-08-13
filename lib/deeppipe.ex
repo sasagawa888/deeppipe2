@@ -115,8 +115,28 @@ defmodule Deeppipe do
     forward(x, rest, res)
   end
 
-  # RNN after
-  def forward([x, h], [{:rnn, nth, n, wx, wh, b, _, _, dr, _} | rest], res) do
+  # RNN first (not have h data)
+  # Each RNN require x(t-1),h(t-1),h(t)(for activate function tanh)
+  # First RNN not use before h, so remove before h and instead of it put x(t-1),h(t-1)and h(t)
+  def forward(x, [{:rnn, 1, _, wx, _, b, _, _, dr, _} | rest], [_ | res]) do
+    # IO.puts("FD rnn")
+    if dr == 0.0 do
+      x0 = CM.pickup(x, 1)
+      x1 = x0 |> CM.mult(wx) |> CM.add(b) |> CM.activate(:tanh)
+      forward([x, x1], rest, [[x0, x1, x1] | res])
+    else
+      mw = CM.dropout(wx, dr)
+      wx1 = CM.emult(wx, mw)
+      x0 = CM.pickup(x, 1)
+      x1 = x0 |> CM.mult(wx1) |> CM.add(b)
+      x2 = x1 |> CM.activate(:tanh)
+      forward([x, x1], rest, push([x0, 0, x2], mw, res))
+    end
+  end
+
+  # RNN last (put data for after layer)
+  # Last RNN put h(t-1) etc for itself and put h(t) for after layer
+  def forward([x, h], [{:rnn, nth, nth, wx, wh, b, _, _, dr, _} | rest], res) do
     # IO.puts("FD rnn")
     if dr == 0.0 do
       x0 = CM.pickup(x, nth)
@@ -124,13 +144,7 @@ defmodule Deeppipe do
       h1 = CM.mult(h, wh)
       h2 = CM.add(x1, h1) |> CM.add(b)
       h3 = h2 |> CM.activate(:tanh)
-      # not last rnn
-      # last rnn
-      if nth != n do
-        forward([x, h3], rest, [[x0, h2, h3] | res])
-      else
-        forward(h3, rest, [h3 | res])
-      end
+      forward(h3, rest, [h3, [x0, h2, h3] | res])
     else
       mw = CM.dropout(wx, dr)
       wx1 = CM.emult(wx, mw)
@@ -139,30 +153,29 @@ defmodule Deeppipe do
       h1 = CM.mult(h, wh)
       h2 = CM.add(x1, h1) |> CM.add(b)
       h3 = h2 |> CM.activate(:tanh)
-      # not last rnn
-      # last rnn
-      if nth != n do
-        forward([x, h3], rest, push([x0, h2, h3], mw, res))
-      else
-        forward(h3, rest, push(h3, mw, res))
-      end
+      forward(h3, rest, push([h3, [x0, h2, h3]], mw, res))
     end
   end
 
-  # RNN first (not have h data)
-  def forward(x, [{:rnn, nth, _, wx, _, b, _, _, dr, _} | rest], [_ | res]) do
+  # RNN other
+  def forward([x, h], [{:rnn, nth, _, wx, wh, b, _, _, dr, _} | rest], res) do
     # IO.puts("FD rnn")
     if dr == 0.0 do
       x0 = CM.pickup(x, nth)
-      x1 = x0 |> CM.mult(wx) |> CM.add(b) |> CM.activate(:tanh)
-      forward([x, x1], rest, [[x0, x1, x1] | res])
+      x1 = x0 |> CM.mult(wx)
+      h1 = CM.mult(h, wh)
+      h2 = CM.add(x1, h1) |> CM.add(b)
+      h3 = h2 |> CM.activate(:tanh)
+      forward([x, h3], rest, [[x0, h2, h3] | res])
     else
       mw = CM.dropout(wx, dr)
       wx1 = CM.emult(wx, mw)
       x0 = CM.pickup(x, nth)
-      x1 = x0 |> CM.mult(wx1) |> CM.add(b)
-      x2 = x1 |> CM.activate(:tanh)
-      forward([x, x1], rest, push([x0, 0, x2], mw, res))
+      x1 = x0 |> CM.mult(wx1)
+      h1 = CM.mult(h, wh)
+      h2 = CM.add(x1, h1) |> CM.add(b)
+      h3 = h2 |> CM.activate(:tanh)
+      forward([x, h3], rest, push([x0, h2, h3], mw, res))
     end
   end
 
@@ -276,18 +289,18 @@ defmodule Deeppipe do
       [ux, uh, ua] = u
       l1 = CM.diff(l, ua, :tanh)
       b1 = CM.average(l1)
-      {n, _} = CM.size(l1)
-      wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / n)
-      wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / n)
+      {size, _} = CM.size(l1)
+      wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / size)
+      wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / size)
       l2 = CM.mult(l, CM.transpose(wh))
       backward(l2, rest, us, [{:rnn, nth, n, wx1, wh1, b1, ir, lr, 0.0, v} | res])
     else
       {[ux, uh, ua], mw} = u
       l1 = CM.diff(l, ua, :tanh)
       b1 = CM.average(l1)
-      {n, _} = CM.size(l1)
-      wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / n) |> CM.emult(mw)
-      wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / n) |> CM.emult(mw)
+      {size, _} = CM.size(l1)
+      wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / size) |> CM.emult(mw)
+      wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / size) |> CM.emult(mw)
       l2 = CM.mult(l1, CM.transpose(CM.emult(wh, mw)))
       backward(l2, rest, us, [{:rnn, nth, n, wx1, wh1, b1, ir, lr, dr, v} | res])
     end
