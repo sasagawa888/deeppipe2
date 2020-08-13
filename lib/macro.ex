@@ -395,7 +395,7 @@ defmodule Network do
 
   # RNN
   def parse({:rnn, _, [x, n]}, _) do
-    rnn(x, n)
+    rnn(x, 1, n)
   end
 
   # LSTM
@@ -427,24 +427,25 @@ defmodule Network do
     raise ""
   end
 
-  def rnn(_, 0) do
+  def rnn(_, m, n) when m > n do
     []
   end
 
-  # data structure RNN = {:rnn, Wx, Wh, b, ir, lr, dr, v}
+  # data structure RNN = {:rnn, nth, Wx, Wh, b, ir, lr, dr, v}
+  # nth means nth of recursive
   # Wx is weigth matrix for input x
   # Wh is weight matrix for h (output t-1)
   # ir is initial rate
   # lr is learning rate
   # dr is dropout rate
   # v = matrix for learning momentum
-  def rnn(x, n) do
+  def rnn(x, m, n) do
     [
       quote do
-        {:rnn, CM.rand(unquote(x), unquote(x)), CM.rand(unquote(x), unquote(x)),
-         CM.rand(1, unquote(x)),0.1,0.1,0.0,CM.rand(unquote(x),unquote(x))}
+        {:rnn, unquote(m), CM.rand(unquote(x), unquote(x)), CM.rand(unquote(x), unquote(x)),
+         CM.rand(1, unquote(x)), 0.1, 0.1, 0.0, CM.rand(unquote(x), unquote(x))}
       end
-      | rnn(x, n - 1)
+      | rnn(x, m + 1, n - 1)
     ]
   end
 end

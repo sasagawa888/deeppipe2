@@ -115,69 +115,41 @@ defmodule Deeppipe do
     forward(x, rest, res)
   end
 
-  # [_ | res] when rnn, drop first data
-  # instead of that data, put data as {imidiate-input-data-list, network-list}
-  # backward of RNN calculates gradient with that puted tuple data.
-  def forward(x, [{:rnn, network, dt} | rest], [_ | res]) do
+  # RNN after
+  def forward([x, h], [{:rnn, nth, wx, wh, b, _, _, dr, _} | rest], res) do
     # IO.puts("FD rnn")
-    {n, r, c} = CM.size(x)
-
-    # each element of y is 0.0
-    y = CM.new(n, c)
-
-    if dt == 0 do
-      # initialize network  
-      network1 = create_rnn(network, r)
-      [x1 | x2] = forward_rnn(x, y, network1, [], 0, r)
-      forward(x1, rest, [x1, {x2, network1} | res])
+    if dr == 0.0 do
+      x0 = CM.pickup(x, nth)
+      x1 = x0 |> CM.mult(wx)
+      h1 = CM.mult(h, wh)
+      h2 = CM.add(x1, h1) |> CM.add(b) |> CM.activate(:tanh)
+      forward([x, h2], rest, [[x0, h2] | res])
     else
-      # network is already RNN
-      [x1 | x2] = forward_rnn(x, y, network, [], 0, r)
-      forward(x1, rest, [x1, {x2, network} | res])
+      mw = CM.dropout(wx, dr)
+      wx1 = CM.emult(wx, mw)
+      x0 = CM.pickup(x, nth)
+      x1 = x0 |> CM.mult(wx1)
+      h1 = CM.mult(h, wh)
+      h2 = CM.add(x1, h1) |> CM.add(b)
+      h3 = h2 |> CM.activate(:tanh)
+      forward([x, h3], rest, push([x0, h2, h2], mw, res))
     end
   end
 
-  # for RNN
-  # pick up nth row from x 3Dtensor 
-  # store intermediate data as list for backward
-  def forward_rnn(_, y, _, res, _, 0) do
-    [y | res]
-  end
-
-  def forward_rnn(x, y, [network | restnetwork], res, n, r) do
-    x1 = CM.pickup(x, n) |> CM.add(y)
-    [x2 | x3] = forward(x1, network, [x1])
-    forward_rnn(x, x2, restnetwork, [x3 | res], n + 1, r - 1)
-  end
-
-  # create networks for rnn dynamicaly
-  def create_rnn(network, 1) do
-    [network]
-  end
-
-  def create_rnn(network, n) do
-    [copy_network(network) | create_rnn(network, n - 1)]
-  end
-
-  # copy one network
-  def copy_network([]) do
-    []
-  end
-
-  def copy_network([{:weight, w, ir, lr, dr, v} | ls]) do
-    [{:weight, CM.copy(w), ir, lr, dr, CM.copy(v)} | copy_network(ls)]
-  end
-
-  def copy_network([{:bias, b, ir, lr, dr, v} | ls]) do
-    [{:bias, CM.copy(b), ir, lr, dr, CM.copy(v)} | copy_network(ls)]
-  end
-
-  def copy_network([{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | ls]) do
-    [{:filter, w, {st_h, st_w}, pad, ir, lr, dr, v} | copy_network(ls)]
-  end
-
-  def copy_network([l | ls]) do
-    [l | copy_network(ls)]
+  # RNN first (not have h data)
+  def forward(x, [{:rnn, nth, wx, _, b, _, _, dr, _} | rest], res) do
+    # IO.puts("FD rnn")
+    if dr == 0.0 do
+      x1 = CM.pickup(x, nth) |> CM.mult(wx) |> CM.add(b) |> CM.activate(:tanh)
+      forward([x, x1], rest, [x1 | res])
+    else
+      mw = CM.dropout(wx, dr)
+      wx1 = CM.emult(wx, mw)
+      x0 = CM.pickup(x, nth)
+      x1 = x0 |> CM.mult(wx1) |> CM.add(b)
+      x2 = x1 |> CM.activate(:tanh)
+      forward([x, x1], rest, [[x0, 0, x2] | res])
+    end
   end
 
   @doc """
@@ -285,32 +257,52 @@ defmodule Deeppipe do
     backward(l, rest, us, [{:visualizer, n, c} | res])
   end
 
-  defp backward(l, [{:rnn, _} | rest], [{u, network} | us], res) do
+  # first RNN
+  defp backward(l, [{:rnn, 1, wx, _, _, ir, lr, dr, v} | rest], [u | us], res) do
     # IO.puts("BK network"
-    # u is intermediate data list. 
-    result = backward_rnn(l, network, u)
-    # result is list of tuple [{gradient1,network1},...]
-    backward(l, rest, us, [{:rnn, result} | res])
+    if dr == 0.0 do
+      [ux, uh, ua] = u
+      l1 = CM.diff(l, ua, :tanh)
+      b1 = CM.average(l1)
+      {n, _} = CM.size(l1)
+      wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / n)
+      wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / n)
+      l2 = CM.mult(l, CM.transpose(wx))
+      backward(l2, rest, us, [{:rnn, wx1, wh1, b1, ir, lr, 0.0, v} | res])
+    else
+      {[ux, uh, ua], mw} = u
+      l1 = CM.diff(l, ua, :tanh)
+      b1 = CM.average(l1)
+      {n, _} = CM.size(l1)
+      wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / n) |> CM.emult(mw)
+      wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / n) |> CM.emult(mw)
+      l2 = CM.mult(l1, CM.transpose(CM.emult(wx, mw)))
+      backward(l2, rest, us, [{:rnn, wx1, wh1, b1, ir, lr, dr, v} | res])
+    end
   end
 
-  # for RNN
-  # backward recursively and return tuple [{gradient,network},...]
-  # l is loss matrix
-  # network is partial network that was created for RNN dynamicaly
-  # u is imidiate data list
-  # n is recursive number
-  def backward_rnn(l, network, u) do
-    backward_rnn1(l, network, u, [])
-  end
-
-  def backward_rnn1(_, [], [], res) do
-    res
-  end
-
-  def backward_rnn1(l, [network | restnetwork], [u | us], res) do
-    network1 = Enum.reverse(network)
-    {l1, g1} = backward(l, network1, u, [])
-    backward_rnn1(l1, restnetwork, us, [{g1, network} | res])
+  # after second RNN
+  defp backward(l, [{:rnn, _, _, wh, _, ir, lr, dr, v} | rest], [u | us], res) do
+    # IO.puts("BK network"
+    if dr == 0.0 do
+      [ux, uh, ua] = u
+      l1 = CM.diff(l, ua, :tanh)
+      b1 = CM.average(l1)
+      {n, _} = CM.size(l1)
+      wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / n)
+      wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / n)
+      l2 = CM.mult(l, CM.transpose(wh))
+      backward(l2, rest, us, [{:rnn, wx1, wh1, b1, ir, lr, 0.0, v} | res])
+    else
+      {[ux, uh, ua], mw} = u
+      l1 = CM.diff(l, ua, :tanh)
+      b1 = CM.average(l1)
+      {n, _} = CM.size(l1)
+      wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / n) |> CM.emult(mw)
+      wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / n) |> CM.emult(mw)
+      l2 = CM.mult(l1, CM.transpose(CM.emult(wh, mw)))
+      backward(l2, rest, us, [{:rnn, wx1, wh1, b1, ir, lr, dr, v} | res])
+    end
   end
 
   @doc """
@@ -349,8 +341,11 @@ defmodule Deeppipe do
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, v} | learning(rest, rest1, :sgd)]
   end
 
-  def learning([{:rnn, _} | rest], [{:rnn, data} | rest1], :sgd) do
-    [{:rnn, learning_rnn(data, :sgd)} | learning(rest, rest1, :sgd)]
+  def learning([{:rnn, nth,wx,wh,b,ir,lr,dr,v} | rest], [{:rnn, _,wx1,wh1,b1,_,_,_,_} | rest1], :sgd) do
+    b2 = CM.sgd(b,b1,lr)
+    wx2 = CM.sgd(wx,wx1,lr)
+    wh2 = CM.sgd(wh,wh1,lr)
+    [{:rnn, nth,wx2,wh2,b2,ir,lr,dr,v} | learning(rest, rest1, :sgd)]
   end
 
   def learning([network | rest], [_ | rest1], :sgd) do
@@ -390,8 +385,15 @@ defmodule Deeppipe do
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
   end
 
-  def learning([{:rnn, _} | rest], [{:rnn, data} | rest1], :momentum) do
-    [{:rnn, learning_rnn(data, :momentum)} | learning(rest, rest1, :momentum)]
+  def learning(
+        [{:rnn, nth, wx, wh, b, ir, lr, dr, v} | rest],
+        [{:rnn, _, wx1, wh1, b1, _, _, _, _} | rest1],
+        :momentum
+      ) do
+    {_, b2} = CM.momentum(b, v, b1, lr)
+    {_, wx2} = CM.momentum(wx, v, wx1, lr)
+    {v1, wh2} = CM.momentum(wh, v, wh1, lr)
+    [{:rnn, nth, wx2, wh2, b2, ir, lr, dr, v1} | learning(rest, rest1, :momentum)]
   end
 
   def learning([network | rest], [_ | rest1], :momentum) do
@@ -427,10 +429,7 @@ defmodule Deeppipe do
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, h1} | learning(rest, rest1, :adagrad)]
   end
 
-  def learning([{:rnn, _} | rest], [{:rnn, data} | rest1], :adagrad) do
-    [{:rnn, learning_rnn(data, :adagrad)} | learning(rest, rest1, :adagrad)]
-  end
-
+  
   def learning([network | rest], [_ | rest1], :adagrad) do
     [network | learning(rest, rest1, :adagrad)]
   end
@@ -463,10 +462,7 @@ defmodule Deeppipe do
     [{:filter, w2, {st_h, st_w}, pad, ir, lr, dr, h1} | learning(rest, rest1, :rms)]
   end
 
-  def learning([{:rnn, _} | rest], [{:rnn, data} | rest1], :rms) do
-    [{:rnn, learning_rnn(data, :rms)} | learning(rest, rest1, :rms)]
-  end
-
+  
   def learning([network | rest], [_ | rest1], :rms) do
     [network | learning(rest, rest1, :rms)]
   end
@@ -517,21 +513,8 @@ defmodule Deeppipe do
     end
   end
 
-  def learning([{:rnn, _} | rest], [{:rnn, data} | rest1], :adam) do
-    [{:rnn, learning_rnn(data, :adam)} | learning(rest, rest1, :adam)]
-  end
-
   def learning([network | rest], [_ | rest1], :adam) do
     [network | learning(rest, rest1, :adam)]
-  end
-
-  # for RNN
-  def learning_rnn([], _) do
-    []
-  end
-
-  def learning_rnn([{gradient, network} | rest], method) do
-    [learning(network, gradient, method) | learning_rnn(rest, method)]
   end
 
   # ------------train------------
