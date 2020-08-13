@@ -118,13 +118,14 @@ defmodule Deeppipe do
   # [_ | res] when rnn, drop first data
   # instead of that data, put data as {imidiate-input-data-list, network-list}
   # backward of RNN calculates gradient with that puted tuple data.
-  def forward(x, [{:rnn, network} | rest], [_ | res]) do
+  def forward(x, [{:rnn, network, dt} | rest], [_ | res]) do
     # IO.puts("FD rnn")
     {n, r, c} = CM.size(x)
+
     # each element of y is 0.0
     y = CM.new(n, c)
 
-    if !is_list(Enum.at(network, 0)) do
+    if dt == 0 do
       # initialize network  
       network1 = create_rnn(network, r)
       [x1 | x2] = forward_rnn(x, y, network1, [], 0, r)
@@ -525,7 +526,10 @@ defmodule Deeppipe do
   end
 
   # for RNN
-  def learning_rnn([],_) do [] end 
+  def learning_rnn([], _) do
+    []
+  end
+
   def learning_rnn([{gradient, network} | rest], method) do
     [learning(network, gradient, method) | learning_rnn(rest, method)]
   end

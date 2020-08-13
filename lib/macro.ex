@@ -71,318 +71,377 @@ defmodule Network do
 
   # weight
   # cw mean constant weight for gradient check
-  defp parse({:cw, _, [m]}, _) do
+  def parse({:cw, _, [m]}, _) do
     quote do
-      {:weight, CM.new(unquote(m)), 0.1, 0.1, 0.0, CM.new(1, 1)}
+      [{:weight, CM.new(unquote(m)), 0.1, 0.1, 0.0, CM.new(1, 1)}]
     end
   end
 
-  defp parse({:w, _, [x, y]}, _) do
+  def parse({:w, _, [x, y]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1), 0.1, 0.1, 0.0,
-       CM.new(unquote(x), unquote(y))}
+      [
+        {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(0.1), 0.1, 0.1, 0.0,
+         CM.new(unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:w, _, [x, y, ir]}, _) do
+  def parse({:w, _, [x, y, ir]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(ir), 0.1, 0.0,
-       CM.new(unquote(x), unquote(y))}
+      [
+        {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(ir), 0.1, 0.0,
+         CM.new(unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:w, _, [x, y, {:xavier, dim}, lr]}, _) do
+  def parse({:w, _, [x, y, {:xavier, dim}, lr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(1 / unquote(dim))),
-       {:xavier, unquote(dim)}, unquote(lr), 0.0, CM.new(unquote(x), unquote(y))}
+      [
+        {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(1 / unquote(dim))),
+         {:xavier, unquote(dim)}, unquote(lr), 0.0, CM.new(unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:w, _, [x, y, {:he, dim}, lr]}, _) do
+  def parse({:w, _, [x, y, {:he, dim}, lr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(2 / unquote(dim))),
-       {:he, unquote(dim)}, unquote(lr), 0.0, CM.new(unquote(x), unquote(y))}
+      [
+        {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(2 / unquote(dim))),
+         {:he, unquote(dim)}, unquote(lr), 0.0, CM.new(unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:w, _, [x, y, ir, lr]}, _) do
+  def parse({:w, _, [x, y, ir, lr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr),
-       0.0, CM.new(unquote(x), unquote(y))}
+      [
+        {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(ir),
+         unquote(lr), 0.0, CM.new(unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:w, _, [x, y, {:xavier, dim}, lr, dr]}, _) do
+  def parse({:w, _, [x, y, {:xavier, dim}, lr, dr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(1 / unquote(dim))),
-       {:xavier, unquote(dim)}, unquote(lr), unquote(dr), CM.new(unquote(x), unquote(y))}
+      [
+        {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(1 / unquote(dim))),
+         {:xavier, unquote(dim)}, unquote(lr), unquote(dr), CM.new(unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:w, _, [x, y, {:he, dim}, lr, dr]}, _) do
+  def parse({:w, _, [x, y, {:he, dim}, lr, dr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(2 / unquote(dim))),
-       {:he, unquote(dim)}, unquote(lr), unquote(dr), CM.new(unquote(x), unquote(y))}
+      [
+        {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(:math.sqrt(2 / unquote(dim))),
+         {:he, unquote(dim)}, unquote(lr), unquote(dr), CM.new(unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:w, _, [x, y, ir, lr, dr]}, _) do
+  def parse({:w, _, [x, y, ir, lr, dr]}, _) do
     quote do
-      {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr),
-       unquote(dr), CM.new(unquote(x), unquote(y))}
+      [
+        {:weight, CM.rand(unquote(x), unquote(y)) |> CM.mult(unquote(ir)), unquote(ir),
+         unquote(lr), unquote(dr), CM.new(unquote(x), unquote(y))}
+      ]
     end
   end
 
   # bias
   # cb means constant bias for gradient check
-  defp parse({:cb, _, [m]}, _) do
+  def parse({:cb, _, [m]}, _) do
     quote do
-      {:bias, CM.new(unquote(m)), 0.1, 0.1, 0.0, CM.new(1, 1)}
+      [{:bias, CM.new(unquote(m)), 0.1, 0.1, 0.0, CM.new(1, 1)}]
     end
   end
 
-  defp parse({:b, _, [x]}, _) do
+  def parse({:b, _, [x]}, _) do
     quote do
-      {:bias, CM.new(1, unquote(x)) |> CM.mult(0.1), 0.1, 0.1, 0.0, CM.new(1, unquote(x))}
+      [{:bias, CM.new(1, unquote(x)) |> CM.mult(0.1), 0.1, 0.1, 0.0, CM.new(1, unquote(x))}]
     end
   end
 
-  defp parse({:b, _, [x, ir]}, _) do
+  def parse({:b, _, [x, ir]}, _) do
     quote do
-      {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), 0.1, 0.0,
-       CM.new(1, unquote(x))}
+      [
+        {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), 0.1, 0.0,
+         CM.new(1, unquote(x))}
+      ]
     end
   end
 
-  defp parse({:b, _, [x, ir, lr]}, _) do
+  def parse({:b, _, [x, ir, lr]}, _) do
     quote do
-      {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr), 0.0,
-       CM.new(1, unquote(x))}
+      [
+        {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr), 0.0,
+         CM.new(1, unquote(x))}
+      ]
     end
   end
 
-  defp parse({:b, _, [x, ir, lr, dr]}, _) do
+  def parse({:b, _, [x, ir, lr, dr]}, _) do
     quote do
-      {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr),
-       unquote(dr), CM.new(1, unquote(x))}
+      [
+        {:bias, CM.rand(1, unquote(x)) |> CM.mult(unquote(ir)), unquote(ir), unquote(lr),
+         unquote(dr), CM.new(1, unquote(x))}
+      ]
     end
   end
 
   # sigmoid
-  defp parse({:sigmoid, _, nil}, _) do
+  def parse({:sigmoid, _, nil}, _) do
     quote do
-      {:function, :sigmoid}
+      [{:function, :sigmoid}]
     end
   end
 
   # identity
-  defp parse({:tanh, _, nil}, _) do
+  def parse({:tanh, _, nil}, _) do
     quote do
-      {:function, :tanh}
+      [{:function, :tanh}]
     end
   end
 
   # relu
-  defp parse({:relu, _, nil}, _) do
+  def parse({:relu, _, nil}, _) do
     quote do
-      {:function, :relu}
+      [{:function, :relu}]
     end
   end
 
   # softmax
-  defp parse({:softmax, _, nil}, _) do
+  def parse({:softmax, _, nil}, _) do
     quote do
-      {:function, :softmax}
+      [{:function, :softmax}]
     end
   end
 
   # filter
   # cf means constant filter for gradient check
-  defp parse({:cf, _, [m]}, _) do
+  def parse({:cf, _, [m]}, _) do
     quote do
-      {:filter, CM.new(unquote(m)), 1, 0, 0.1, 0.1, CM.new(1, 3, 3)}
+      [{:filter, CM.new(unquote(m)), 1, 0, 0.1, 0.1, CM.new(1, 3, 3)}]
     end
   end
 
   # {:filter,filter-matrix,stride,padding,init_rate,learning_rate,dropout_rate,v}
-  defp parse({:f, _, [x, y]}, _) do
+  def parse({:f, _, [x, y]}, _) do
     quote do
-      {:filter, CM.rand(1, 1, unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1, 0.0,
-       CM.new(1, 1, unquote(x), unquote(y))}
+      [
+        {:filter, CM.rand(1, 1, unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1, 0.0,
+         CM.new(1, 1, unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:f, _, [x, y, c]}, _) do
+  def parse({:f, _, [x, y, c]}, _) do
     quote do
-      {:filter, CM.rand(1, unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1,
-       0.0, CM.new(1, unquote(c), unquote(x), unquote(y))}
+      [
+        {:filter, CM.rand(1, unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0, 0.1, 0.1,
+         0.0, CM.new(1, unquote(c), unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:f, _, [x, y, c, n]}, _) do
+  def parse({:f, _, [x, y, c, n]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0,
-       0.0, 0.1, 0.1, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      [
+        {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1), 1, 0,
+         0.0, 0.1, 0.1, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:f, _, [x, y, c, n, {h, w}]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1),
-       {unquote(h), unquote(w)}, 0, 0.1, 0.1, 0.0,
-       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      [
+        {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1),
+         {unquote(h), unquote(w)}, 0, 0.1, 0.1, 0.0,
+         CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}, pad]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1),
-       {unquote(h), unquote(w)}, unquote(pad), 0.1, 0.1, 0.0,
-       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      [
+        {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(0.1),
+         {unquote(h), unquote(w)}, unquote(pad), 0.1, 0.1, 0.0,
+         CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:xavier, dim}]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}, pad, {:xavier, dim}]}, _) do
     quote do
-      {:filter,
-       CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
-       |> CM.mult(:math.sqrt(1 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
-       {:xavier, unquote(dim)}, 0.1, 0.0, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      [
+        {:filter,
+         CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
+         |> CM.mult(:math.sqrt(1 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
+         {:xavier, unquote(dim)}, 0.1, 0.0,
+         CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:he, dim}]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}, pad, {:he, dim}]}, _) do
     quote do
-      {:filter,
-       CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
-       |> CM.mult(:math.sqrt(2 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
-       {:he, unquote(dim)}, 0.1, 0.0, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      [
+        {:filter,
+         CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
+         |> CM.mult(:math.sqrt(2 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
+         {:he, unquote(dim)}, 0.1, 0.0, CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:xavier, dim}, lr]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}, pad, {:xavier, dim}, lr]}, _) do
     quote do
-      {:filter,
-       CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
-       |> CM.mult(:math.sqrt(1 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
-       {:xavier, unquote(dim)}, unquote(lr), 0.0,
-       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      [
+        {:filter,
+         CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
+         |> CM.mult(:math.sqrt(1 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
+         {:xavier, unquote(dim)}, unquote(lr), 0.0,
+         CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:he, dim}, lr]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}, pad, {:he, dim}, lr]}, _) do
     quote do
-      {:filter,
-       CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
-       |> CM.mult(:math.sqrt(2 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
-       {:he, unquote(dim)}, unquote(lr), 0.0,
-       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      [
+        {:filter,
+         CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
+         |> CM.mult(:math.sqrt(2 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
+         {:he, unquote(dim)}, unquote(lr), 0.0,
+         CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad, ir, lr]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}, pad, ir, lr]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(unquote(ir)),
-       {unquote(h), unquote(w)}, unquote(pad), unquote(ir), unquote(lr), 0.0,
-       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      [
+        {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(unquote(ir)),
+         {unquote(h), unquote(w)}, unquote(pad), unquote(ir), unquote(lr), 0.0,
+         CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:xavier, dim}, lr, dr]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}, pad, {:xavier, dim}, lr, dr]}, _) do
     quote do
-      {:filter,
-       CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
-       |> CM.mult(:math.sqrt(1 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
-       {:xavier, unquote(dim)}, unquote(lr), unquote(dr),
-       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      [
+        {:filter,
+         CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
+         |> CM.mult(:math.sqrt(1 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
+         {:xavier, unquote(dim)}, unquote(lr), unquote(dr),
+         CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad, {:he, dim}, lr, dr]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}, pad, {:he, dim}, lr, dr]}, _) do
     quote do
-      {:filter,
-       CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
-       |> CM.mult(:math.sqrt(2 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
-       {:he, unquote(dim)}, unquote(lr), unquote(dr),
-       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      [
+        {:filter,
+         CM.rand(unquote(n), unquote(c), unquote(x), unquote(y))
+         |> CM.mult(:math.sqrt(2 / unquote(dim))), {unquote(h), unquote(w)}, unquote(pad),
+         {:he, unquote(dim)}, unquote(lr), unquote(dr),
+         CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      ]
     end
   end
 
-  defp parse({:f, _, [x, y, c, n, {h, w}, pad, ir, lr, dr]}, _) do
+  def parse({:f, _, [x, y, c, n, {h, w}, pad, ir, lr, dr]}, _) do
     quote do
-      {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(unquote(ir)),
-       {unquote(h), unquote(w)}, unquote(pad), unquote(ir), unquote(lr), unquote(dr),
-       CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      [
+        {:filter, CM.rand(unquote(n), unquote(c), unquote(x), unquote(y)) |> CM.mult(unquote(ir)),
+         {unquote(h), unquote(w)}, unquote(pad), unquote(ir), unquote(lr), unquote(dr),
+         CM.new(unquote(n), unquote(c), unquote(x), unquote(y))}
+      ]
     end
   end
 
   # pooling
-  defp parse({:pooling, _, [h, w]}, _) do
+  def parse({:pooling, _, [h, w]}, _) do
     quote do
-      {:pooling, unquote(h), unquote(w)}
+      [{:pooling, unquote(h), unquote(w)}]
     end
   end
 
   # flll connection
-  defp parse({:full, _, nil}, _) do
+  def parse({:full, _, nil}, _) do
     quote do
-      {:full}
+      [{:full}]
     end
   end
 
   # analizer for debug
-  defp parse({:analizer, _, [x]}, _) do
+  def parse({:analizer, _, [x]}, _) do
     quote do
-      {:analizer, unquote(x)}
+      [{:analizer, unquote(x)}]
     end
   end
 
   # visualizer for debug
-  defp parse({:visualizer, _, [n, c]}, _) do
+  def parse({:visualizer, _, [n, c]}, _) do
     quote do
-      {:visualizer, unquote(n), unquote(c)}
+      [{:visualizer, unquote(n), unquote(c)}]
     end
   end
 
   # RNN
-  defp parse({:rnn, _, [arg, body]}, _) do
-    {arg1, _, _} = arg
-    body1 = parse(body, arg1)
-
-    quote do
-      {:rnn, unquote(body1)}
-    end
+  def parse({:rnn, _, [x, n]}, _) do
+    rnn(x, n)
   end
 
   # LSTM
-  defp parse({:lstm, _, [arg, body]}, _) do
-    {arg1, _, _} = arg
-    body1 = parse(body, arg1)
-
+  def parse({:lstm, _, [x, y]}, _) do
     quote do
-      {:rnn, unquote(body1)}
+      [{:lstm, unquote(x), unquote(y), 0}]
     end
   end
 
-  defp parse({x, _, nil}, _) do
+  def parse({x, _, nil}, _) do
     x
   end
 
-  defp parse({:|>, _, exp}, arg) do
+  def parse({:|>, _, exp}, arg) do
     parse(exp, arg)
   end
 
-  defp parse([{arg, _, nil}, exp], arg) do
-    [parse(exp, arg)]
+  def parse([{arg, _, nil}, exp], arg) do
+    parse(exp, arg)
   end
 
-  defp parse([exp1, exp2], arg) do
-    Enum.reverse([parse(exp2, arg)] ++ Enum.reverse(parse(exp1, arg)))
+  def parse([exp1, exp2], arg) do
+    Enum.reverse(parse(exp2, arg) ++ Enum.reverse(parse(exp1, arg)))
   end
 
-  defp parse(x, _) do
+  def parse(x, _) do
     IO.write("Syntax error in defnetwork  ")
     IO.inspect(x)
     raise ""
+  end
+
+  def rnn(_, 0) do
+    []
+  end
+
+  # data structure RNN = {:rnn, Wx, Wh, b, v}
+  # Wx = weigth matrix for input x
+  # Wh = weight matrix for h (output t-1)
+  # v = matrix for learning momentum
+  def rnn(x, n) do
+    [
+      quote do
+        {:rnn, CM.rand(unquote(x), unquote(x)), CM.rand(unquote(x), unquote(x)),
+         CM.rand(1, unquote(x)),CM.rand(unquote(x),unquote(x))}
+      end
+      | rnn(x, n - 1)
+    ]
   end
 end

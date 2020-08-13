@@ -8,12 +8,7 @@ defmodule NLP do
 
   defnetwork init1(_x) do
     _x
-    |> rnn(
-      _y,
-      _y
-      |> w(29, 29)
-      |> tanh
-    )
+    |> rnn(29, 14)
     |> w(29, 2)
     |> softmax
   end
