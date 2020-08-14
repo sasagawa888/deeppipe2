@@ -261,6 +261,10 @@ defmodule Cumatrix do
     raise "NIF slice1/3 not implemented"
   end
 
+  defp unslice1(_1, _2, _3, _4, _5, _6) do
+    raise "NIF unslice1/6 not implemented"
+  end
+
   # ----------------------------------------------------------------
   @doc """
   generate matrix  mt1*mt2 with cuBLAS. 
@@ -1719,17 +1723,27 @@ defmodule Cumatrix do
     end
   end
 
-  def slice({r,c,dt}) do
+  def slice({r, c, dt}) do
     result = slice1(r, c, dt)
 
     if !is_integer(result) do
-      {dt1,dt2,dt3,dt4} = result
-      c1 = div(c,4)
-      {{r,c1,dt1},{r,c1,dt2},{r,c1,dt3},{r,c1,dt4}}
-    else 
+      {dt1, dt2, dt3, dt4} = result
+      c1 = div(c, 4)
+      {{r, c1, dt1}, {r, c1, dt2}, {r, c1, dt3}, {r, c1, dt4}}
+    else
       error("copy1", result)
-    end 
-  end 
+    end
+  end
+
+  def unslice({r, c, dt1}, {r, c, dt2}, {r, c, dt3}, {r, c, dt4}) do
+    result = unslice1(r, c, dt1, dt2, dt3,dt4)
+
+    if !is_integer(result) do
+      {r, 4 * c, result}
+    else
+      error("unslice1", result)
+    end
+  end
 
   @doc """
   is_matrix(x)
