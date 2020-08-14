@@ -3238,7 +3238,55 @@ copy1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
       
     return(b_bin);
 }
-  
+
+
+static ERL_NIF_TERM
+slice1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
+    ErlNifBinary  a_bin;
+    ERL_NIF_TERM  b_bin,c_bin,d_bin,e_bin,tuple;
+    int in_r,in_c,i,j,n,bias;
+    float *a,*b,*c,*d,*e;
+    
+    if (!enif_get_int(env, argv[0], &in_r)) return enif_make_int(env,1);
+    if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
+    if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
+
+    n = in_c / 4;
+    a = (float *) a_bin.data;
+    b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
+    c = (float *) enif_make_new_binary(env, n * sizeof(float), &c_bin);
+    d = (float *) enif_make_new_binary(env, n * sizeof(float), &d_bin);
+    e = (float *) enif_make_new_binary(env, n * sizeof(float), &e_bin);
+     
+      
+    for(i=0;i<in_r;i++){
+        for(j=0;j<n;j++){
+            b[IDX2C(i,j,n)] = a[IDX2C(i,j,in_r)]; 
+        }
+    }
+    bias = n;
+    for(i=0;i<in_r;i++){
+        for(j=0;j<n;j++){
+            c[IDX2C(i,j,n)] = a[IDX2C(i,j+bias,in_r)]; 
+        }
+    }
+    bias = 2*n;
+    for(i=0;i<in_r;i++){
+        for(j=0;j<n;j++){
+            d[IDX2C(i,j,n)] = a[IDX2C(i,j+bias,in_r)]; 
+        }
+    }
+    bias = 3*n;
+    for(i=0;i<in_r;i++){
+        for(j=0;j<n;j++){
+            e[IDX2C(i,j,n)] = a[IDX2C(i,j+bias,in_r)]; 
+        }
+    }
+      
+    tuple = enif_make_tuple4(env,b_bin,c_bin,d_bin,e_bin);
+    return(tuple);
+}
+
 
 
 // define the array of ErlNifFunc
@@ -3300,7 +3348,8 @@ static ErlNifFunc nif_funcs[] = {
   {"analizer1", 3, analizer1},
   {"standardize1", 5, standardize1},
   {"pickup1", 5, pickup1},
-  {"copy1", 2, copy1}
+  {"copy1", 2, copy1},
+  {"slice1", 3, slice1}
 };
 
 ERL_NIF_INIT(Elixir.Cumatrix, nif_funcs, NULL, NULL, NULL, NULL)
