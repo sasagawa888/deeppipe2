@@ -65,6 +65,10 @@ defmodule Cumatrix do
     raise "NIF emult1/3 not implemented"
   end
 
+  defp ediv1(_1, _2, _3) do
+    raise "NIF div1/3 not implemented"
+  end
+
   defp transpose1(_1, _2, _3) do
     raise "NIF transpose1/3 not implemented"
   end
@@ -660,6 +664,35 @@ defmodule Cumatrix do
   def emult(_, _) do
     raise "emult ilegal data type"
   end
+
+  @doc """
+  ediv(mt1,mt2)
+  generate Hadamard matrix.
+  """
+  def ediv({r1, c1, dt1}, {r1, c1, dt2}) do
+    result = ediv1(r1 * c1, dt1, dt2)
+
+    if !is_integer(result) do
+      {r1, c1, result}
+    else
+      error("ediv1", result)
+    end
+  end
+
+  def ediv({n, c, h, w, dt1}, {n, c, h, w, dt2}) do
+    result = ediv1(n * c * h * w, dt1, dt2)
+
+    if !is_integer(result) do
+      {n, c, h, w, result}
+    else
+      error("ediv1", result)
+    end
+  end
+
+  def ediv(_, _) do
+    raise "ediv ilegal data type"
+  end
+
 
   @doc """
   elt(r,c,mt)
