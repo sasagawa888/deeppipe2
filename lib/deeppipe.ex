@@ -144,7 +144,7 @@ defmodule Deeppipe do
       h1 = CM.mult(h, wh)
       h2 = CM.add(x1, h1) |> CM.add(b)
       h3 = h2 |> CM.activate(:tanh)
-      forward(h3, rest, [h3, [x0, h2, h3] | res])
+      forward(h3, rest, [h3, [x0, h, h2] | res])
     else
       mw = CM.dropout(wx, dr)
       wx1 = CM.emult(wx, mw)
@@ -153,7 +153,7 @@ defmodule Deeppipe do
       h1 = CM.mult(h, wh)
       h2 = CM.add(x1, h1) |> CM.add(b)
       h3 = h2 |> CM.activate(:tanh)
-      forward(h3, rest, push([h3, [x0, h2, h3]], mw, res))
+      forward(h3, rest, push([h3, [x0, h, h2]], mw, res))
     end
   end
 
@@ -166,7 +166,7 @@ defmodule Deeppipe do
       h1 = CM.mult(h, wh)
       h2 = CM.add(x1, h1) |> CM.add(b)
       h3 = h2 |> CM.activate(:tanh)
-      forward([x, h3], rest, [[x0, h2, h3] | res])
+      forward([x, h3], rest, [[x0, h, h2] | res])
     else
       mw = CM.dropout(wx, dr)
       wx1 = CM.emult(wx, mw)
@@ -175,7 +175,120 @@ defmodule Deeppipe do
       h1 = CM.mult(h, wh)
       h2 = CM.add(x1, h1) |> CM.add(b)
       h3 = h2 |> CM.activate(:tanh)
-      forward([x, h3], rest, push([x0, h2, h3], mw, res))
+      forward([x, h3], rest, push([x0, h, h2], mw, res))
+    end
+  end
+
+  # LSTM first (not have h data)
+  # Each lstm require x(t-1),h(t-1),h(t)(for activate function tanh)
+  # First lstm not use before h, so remove before h and instead of it put x(t-1),h(t-1)and h(t)
+  def forward(x, [{:lstm, 1, _, wx, _, b, _, _, dr, _} | rest], [_ | res]) do
+    # IO.puts("FD lstm")
+    if dr == 0.0 do
+      x0 = CM.pickup(x, 1)
+      x1 = x0 |> CM.mult(wx) |> CM.add(b)
+      {f,g,i,o} = CM.slice(x1)
+      f1 = f |> CM.activate(:sigmoid) 
+      g1 = g |> CM.activate(:tanh)
+      i1 = i |> CM.activate(:sigmoid)
+      o1 = o |> CM.activate(:sigmoid)
+      c1 = f1
+      c2 = CM.emult(g1,i1)
+      c3 = CM.add(c1,c2)
+      h3 = CM.emult(c3,o1)
+      forward([x, h3,c3], rest, [[x0, 0, f,g,i,o] | res])
+    else
+      mw = CM.dropout(wx, dr)
+      wx1 = CM.emult(wx, mw)
+      x0 = CM.pickup(x, 1)
+      x1 = x0 |> CM.mult(wx1) |> CM.add(b)
+      {f,g,i,o} = CM.slice(x1)
+      f1 = f |> CM.activate(:sigmoid) 
+      g1 = g |> CM.activate(:tanh)
+      i1 = i |> CM.activate(:sigmoid)
+      o1 = o |> CM.activate(:sigmoid)
+      c1 = f1
+      c2 = CM.emult(g1,i1)
+      c3 = CM.add(c1,c2)
+      h3 = CM.emult(c3,o1)
+      forward([x, h3,c3], rest, push([x0, 0, f,g,i,o], mw, res))
+    end
+  end
+
+  # LSTM last (put data for after layer)
+  # Last RNN put h(t-1) etc for itself and put h(t) for after layer
+  def forward([x, h, c], [{:lstm, nth, nth, wx, wh, b, _, _, dr, _} | rest], res) do
+    # IO.puts("FD lstm")
+    if dr == 0.0 do
+      x0 = CM.pickup(x, nth)
+      x1 = x0 |> CM.mult(wx)
+      h1 = CM.mult(h, wh)
+      h2 = CM.add(x1, h1) |> CM.add(b)
+      {f,g,i,o} = CM.slice(h2)
+      f1 = f |> CM.activate(:sigmoid) 
+      g1 = g |> CM.activate(:tanh)
+      i1 = i |> CM.activate(:sigmoid)
+      o1 = o |> CM.activate(:sigmoid)
+      c1 = CM.emult(f1,c)
+      c2 = CM.emult(g1,i1)
+      c3 = CM.add(c1,c2)
+      h3 = CM.emult(c3,o1)
+      forward(h3, rest, [h3, [x0, h, f,g,i,o] | res])
+    else
+      mw = CM.dropout(wx, dr)
+      wx1 = CM.emult(wx, mw)
+      x0 = CM.pickup(x, nth)
+      x1 = x0 |> CM.mult(wx1)
+      h1 = CM.mult(h, wh)
+      h2 = CM.add(x1, h1) |> CM.add(b)
+      {f,g,i,o} = CM.slice(h2)
+      f1 = f |> CM.activate(:sigmoid) 
+      g1 = g |> CM.activate(:tanh)
+      i1 = i |> CM.activate(:sigmoid)
+      o1 = o |> CM.activate(:sigmoid)
+      c1 = CM.emult(f1,c)
+      c2 = CM.emult(g1,i1)
+      c3 = CM.add(c1,c2)
+      h3 = CM.emult(c3,o1)
+      forward(h3, rest, push([h3, [x0, h, f,g,i,o]], mw, res))
+    end
+  end
+
+  # LSTM other
+  def forward([x, h, c], [{:lstm, nth, _, wx, wh, b, _, _, dr, _} | rest], res) do
+    # IO.puts("FD lstm")
+    if dr == 0.0 do
+      x0 = CM.pickup(x, nth)
+      x1 = x0 |> CM.mult(wx)
+      h1 = CM.mult(h, wh)
+      h2 = CM.add(x1, h1) |> CM.add(b)
+      {f,g,i,o} = CM.slice(h2)
+      f1 = f |> CM.activate(:sigmoid) 
+      g1 = g |> CM.activate(:tanh)
+      i1 = i |> CM.activate(:sigmoid)
+      o1 = o |> CM.activate(:sigmoid)
+      c1 = CM.emult(f1,c)
+      c2 = CM.emult(g1,i1)
+      c3 = CM.add(c1,c2)
+      h3 = CM.emult(c3,o1)
+      forward([x, h3, c3], rest, [[x0, h, f,g,i,o] | res])
+    else
+      mw = CM.dropout(wx, dr)
+      wx1 = CM.emult(wx, mw)
+      x0 = CM.pickup(x, nth)
+      x1 = x0 |> CM.mult(wx1)
+      h1 = CM.mult(h, wh)
+      h2 = CM.add(x1, h1) |> CM.add(b)
+      {f,g,i,o} = CM.slice(h2)
+      f1 = f |> CM.activate(:sigmoid) 
+      g1 = g |> CM.activate(:tanh)
+      i1 = i |> CM.activate(:sigmoid)
+      o1 = o |> CM.activate(:sigmoid)
+      c1 = CM.emult(f1,c)
+      c2 = CM.emult(g1,i1)
+      c3 = CM.add(c1,c2)
+      h3 = CM.emult(c3,o1)
+      forward([x, h3, c3], rest, push([x0, h, f,g,i,o], mw, res))
     end
   end
 

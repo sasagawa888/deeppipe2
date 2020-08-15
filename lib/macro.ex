@@ -399,10 +399,8 @@ defmodule Network do
   end
 
   # LSTM
-  def parse({:lstm, _, [x, y]}, _) do
-    quote do
-      [{:lstm, unquote(x), unquote(y), 0}]
-    end
+  def parse({:lstm, _, [x, n]}, _) do
+    lstm(x, 1, n)
   end
 
   def parse({x, _, nil}, _) do
@@ -449,6 +447,27 @@ defmodule Network do
          CM.rand(unquote(x), unquote(x))}
       end
       | rnn(x, m + 1, n)
+    ]
+  end
+
+  # data structure RNN = {:lstm, nth, n, Wx, Wh, b, ir, lr, dr, v}
+  # nth means nth of recursive
+  # n means times of recursive
+  # Wx is weigth matrix for input x.  Wx = Wxf+Wxg+Wxi+Wxo
+  # Wh is weight matrix for h.        Wh = Whf+Whg+Whi+Who
+  # B is bias.                        B = Bf+Bg+Bi+Bo                    
+  # ir is initial rate
+  # lr is learning rate
+  # dr is dropout rate
+  # v = matrix for learning momentum
+  def lstm(x, m, n) do
+    [
+      quote do
+        {:lstm, unquote(m), unquote(n), CM.rand(unquote(x), unquote(4 * x)),
+         CM.rand(unquote(x), unquote(4 * x)), CM.rand(1, unquote(4 * x)), 0.1, 0.1, 0.0,
+         CM.rand(unquote(x), unquote(4 * x))}
+      end
+      | lstm(x, m + 1, n)
     ]
   end
 end

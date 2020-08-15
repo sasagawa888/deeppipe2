@@ -1736,7 +1736,7 @@ defmodule Cumatrix do
   end
 
   def unslice({r, c, dt1}, {r, c, dt2}, {r, c, dt3}, {r, c, dt4}) do
-    result = unslice1(r, c, dt1, dt2, dt3,dt4)
+    result = unslice1(r, c, dt1, dt2, dt3, dt4)
 
     if !is_integer(result) do
       {r, 4 * c, result}
