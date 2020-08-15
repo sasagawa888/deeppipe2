@@ -667,7 +667,7 @@ defmodule Cumatrix do
 
   @doc """
   ediv(mt1,mt2)
-  generate Hadamard matrix.
+  generate differntial Hadamard matrix.
   """
   def ediv({r1, c1, dt1}, {r1, c1, dt2}) do
     result = ediv1(r1 * c1, dt1, dt2)
