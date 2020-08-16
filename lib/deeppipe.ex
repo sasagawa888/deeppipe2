@@ -418,6 +418,7 @@ defmodule Deeppipe do
   end
 
   defp backward(l, [{:lstm, nth, n, _, wh, _, ir, lr, dr, v} | rest], [u | us], res) do
+
     if dr == 0.0 do
       [ux, uh, uc, uf, ug, ui, uo, _, ug1, ui1, uo1, uc1] = u
       c1 = l |> CM.emult(uo1) |> CM.diff(uc1, :tanh)
@@ -435,7 +436,7 @@ defmodule Deeppipe do
       {size, _} = CM.size(l1)
       wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / size)
       wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / size)
-      l2 = CM.mult(l, CM.transpose(wh))
+      l2 = CM.mult(l1, CM.transpose(wh))
       backward(l2, rest, us, [{:lstm, nth, n, wx1, wh1, b1, ir, lr, dr, v} | res])
     else
       {[ux, uh, uc, uf, ug, ui, uo, _, ug1, ui1, uo1, uc1], mw} = u
