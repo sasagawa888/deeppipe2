@@ -422,13 +422,13 @@ defmodule Deeppipe do
       [ux, uh, uc, uf, ug, ui, uo, _, ug1, ui1, uo1, uc1] = u
       c1 = l |> CM.emult(uo1) |> CM.diff(uc1,:tanh)
       # f gate
-      f1 = c1 |> CM.emult(uc) |> CM.diff(uf,:tanh)
+      f1 = c1 |> CM.emult(uc) |> CM.diff(uf,:sigmoid)
       # g gate
       g1 = c1 |> CM.emult(ui1) |> CM.diff(ug,:tanh)
       # i gate
       i1 = c1 |> CM.emult(ug1) |> CM.diff(ui,:sigmoid)
       # o gate
-      o1 = l |> CM.diff(uc1, :tanh) |> CM.emult(uc1) |> CM.diff(uo, :sigmoid)
+      o1 = l |> CM.emult(uc1) |> CM.diff(uo, :sigmoid)
       
       l1 = CM.unslice(f1,g1,i1,o1)
       b1 = CM.average(l1)
@@ -441,13 +441,13 @@ defmodule Deeppipe do
       {[ux, uh, uc, uf, ug, ui, uo, _, ug1, ui1, uo1, uc1], mw} = u
       c1 = l |> CM.emult(uo1) |> CM.diff(uc1,:tanh)
       # f gate
-      f1 = c1 |> CM.emult(uc) |> CM.diff(uf,:tanh)
+      f1 = c1 |> CM.emult(uc) |> CM.diff(uf,:sigmoid)
       # g gate
       g1 = c1 |> CM.emult(ui1) |> CM.diff(ug,:tanh)
       # i gate
       i1 = c1 |> CM.emult(ug1) |> CM.diff(ui,:sigmoid)
       # o gate
-      o1 = l |> CM.diff(uc1, :tanh) |> CM.emult(uc1) |> CM.diff(uo, :sigmoid)
+      o1 = l |> CM.emult(uc1) |> CM.diff(uo, :sigmoid)
 
       l1 = CM.unslice(f1,g1,i1,o1)
       b1 = CM.average(l1)
