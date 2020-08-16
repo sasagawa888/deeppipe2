@@ -186,32 +186,38 @@ defmodule Deeppipe do
     # IO.puts("FD lstm")
     if dr == 0.0 do
       x0 = CM.pickup(x, 1)
-      x1 = x0 |> CM.mult(wx) |> CM.add(b)
-      {f, g, i, o} = CM.slice(x1)
+      {f, g, i, o} = x0 |> CM.mult(wx) |> CM.add(b) |> CM.slice()
       f1 = f |> CM.activate(:sigmoid)
       g1 = g |> CM.activate(:tanh)
       i1 = i |> CM.activate(:sigmoid)
       o1 = o |> CM.activate(:sigmoid)
+      {r, c} = CM.size(f)
+      h = CM.new(r, c, 1.0)
+      c = CM.new(r, c, 1.0)
       c1 = f1
       c2 = CM.emult(g1, i1)
       c3 = CM.add(c1, c2)
-      h3 = CM.emult(c3, o1)
-      forward([x, h3, c3], rest, [[x0, 0, f, g, i, o, 0, f1, g1, i1, o1] | res])
+      c4 = CM.activate(c3,:tanh)
+      h1 = CM.emult(c4, o1)
+      forward([x, h1, c3], rest, [[x0, h, c, f, g, i, o, f1, g1, i1, o1, c4] | res])
     else
       mw = CM.dropout(wx, dr)
       wx1 = CM.emult(wx, mw)
       x0 = CM.pickup(x, 1)
-      x1 = x0 |> CM.mult(wx1) |> CM.add(b)
-      {f, g, i, o} = CM.slice(x1)
+      {f, g, i, o} = x0 |> CM.mult(wx1) |> CM.add(b) |> CM.slice()
       f1 = f |> CM.activate(:sigmoid)
       g1 = g |> CM.activate(:tanh)
       i1 = i |> CM.activate(:sigmoid)
       o1 = o |> CM.activate(:sigmoid)
+      {r, c} = CM.size(f)
+      h = CM.new(r, c, 1.0)
+      c = CM.new(r, c, 1.0)
       c1 = f1
       c2 = CM.emult(g1, i1)
       c3 = CM.add(c1, c2)
-      h3 = CM.emult(c3, o1)
-      forward([x, h3, c3], rest, push([x0, 0, f, g, i, o, 0, f1, g1, i1, o1], mw, res))
+      c4 = CM.activate(c3,:tanh)
+      h1 = CM.emult(c4, o1)
+      forward([x, h1, c3], rest, push([x0, h, c, f, g, i, o, f1, g1, o1, c4], mw, res))
     end
   end
 
@@ -221,10 +227,7 @@ defmodule Deeppipe do
     # IO.puts("FD lstm")
     if dr == 0.0 do
       x0 = CM.pickup(x, nth)
-      x1 = x0 |> CM.mult(wx)
-      h1 = CM.mult(h, wh)
-      h2 = CM.add(x1, h1) |> CM.add(b)
-      {f, g, i, o} = CM.slice(h2)
+      {f, g, i, o} = x0 |> CM.mult(wx) |> CM.add(CM.mult(h, wh)) |> CM.add(b) |> CM.slice()
       f1 = f |> CM.activate(:sigmoid)
       g1 = g |> CM.activate(:tanh)
       i1 = i |> CM.activate(:sigmoid)
@@ -232,16 +235,14 @@ defmodule Deeppipe do
       c1 = CM.emult(f1, c)
       c2 = CM.emult(g1, i1)
       c3 = CM.add(c1, c2)
-      h3 = CM.emult(c3, o1)
-      forward(h3, rest, [h3, [x0, h, f, g, i, o, c, f1, g1, i1, o1] | res])
+      c4 = CM.activate(c3,:tanh)
+      h1 = CM.emult(c3, o1)
+      forward(h1, rest, [h1, [x0, h, c, f, g, i, o, f1, g1, o1, c4] | res])
     else
       mw = CM.dropout(wx, dr)
       wx1 = CM.emult(wx, mw)
       x0 = CM.pickup(x, nth)
-      x1 = x0 |> CM.mult(wx1)
-      h1 = CM.mult(h, wh)
-      h2 = CM.add(x1, h1) |> CM.add(b)
-      {f, g, i, o} = CM.slice(h2)
+      {f, g, i, o} = x0 |> CM.mult(wx1) |> CM.add(CM.mult(h, wh)) |> CM.add(b) |> CM.slice()
       f1 = f |> CM.activate(:sigmoid)
       g1 = g |> CM.activate(:tanh)
       i1 = i |> CM.activate(:sigmoid)
@@ -249,8 +250,9 @@ defmodule Deeppipe do
       c1 = CM.emult(f1, c)
       c2 = CM.emult(g1, i1)
       c3 = CM.add(c1, c2)
-      h3 = CM.emult(c3, o1)
-      forward(h3, rest, push([h3, [x0, h, f, g, i, o, c, f1, g1, i1, o1]], mw, res))
+      c4 = CM.activate(c3,:tanh)
+      h1 = CM.emult(c3, o1)
+      forward(h1, rest, push([h1, [x0, h, c, f, g, i, o, f1, g1, i1, o1, c4]], mw, res))
     end
   end
 
@@ -259,10 +261,7 @@ defmodule Deeppipe do
     # IO.puts("FD lstm")
     if dr == 0.0 do
       x0 = CM.pickup(x, nth)
-      x1 = x0 |> CM.mult(wx)
-      h1 = CM.mult(h, wh)
-      h2 = CM.add(x1, h1) |> CM.add(b)
-      {f, g, i, o} = CM.slice(h2)
+      {f, g, i, o} = x0 |> CM.mult(wx) |> CM.add(CM.mult(h,wh)) |> CM.add(b) |> CM.slice()
       f1 = f |> CM.activate(:sigmoid)
       g1 = g |> CM.activate(:tanh)
       i1 = i |> CM.activate(:sigmoid)
@@ -270,16 +269,14 @@ defmodule Deeppipe do
       c1 = CM.emult(f1, c)
       c2 = CM.emult(g1, i1)
       c3 = CM.add(c1, c2)
-      h3 = CM.emult(c3, o1)
-      forward([x, h3, c3], rest, [[x0, h, f, g, i, o, c, f1, g1, i1, o1] | res])
+      c4 = CM.activate(c3,:tanh)
+      h1 = CM.emult(c4, o1)
+      forward([x, h1, c3], rest, [[x0, h, c, f, g, i, o, f1, g1, i1, o1, c4] | res])
     else
       mw = CM.dropout(wx, dr)
       wx1 = CM.emult(wx, mw)
       x0 = CM.pickup(x, nth)
-      x1 = x0 |> CM.mult(wx1)
-      h1 = CM.mult(h, wh)
-      h2 = CM.add(x1, h1) |> CM.add(b)
-      {f, g, i, o} = CM.slice(h2)
+      {f, g, i, o} = x0 |> CM.mult(wx1) |> CM.add(CM.mult(h,wh)) |> CM.add(b) |> CM.slice()
       f1 = f |> CM.activate(:sigmoid)
       g1 = g |> CM.activate(:tanh)
       i1 = i |> CM.activate(:sigmoid)
@@ -287,8 +284,9 @@ defmodule Deeppipe do
       c1 = CM.emult(f1, c)
       c2 = CM.emult(g1, i1)
       c3 = CM.add(c1, c2)
-      h3 = CM.emult(c3, o1)
-      forward([x, h3, c3], rest, push([x0, h, f, g, i, o, c, f1, g1, i1, o1], mw, res))
+      c4 = CM.activate(c3,:tanh)
+      h1 = CM.emult(c3, o1)
+      forward([x, h1, c3], rest, push([x0, h, c, f, g, i, o, f1, g1, i1, o1, c4], mw, res))
     end
   end
 
@@ -416,6 +414,48 @@ defmodule Deeppipe do
       wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / size) |> CM.emult(mw)
       l2 = CM.mult(l1, CM.transpose(CM.emult(wh, mw)))
       backward(l2, rest, us, [{:rnn, nth, n, wx1, wh1, b1, ir, lr, dr, v} | res])
+    end
+  end
+
+  defp backward(l, [{:lstm, nth, n, _, wh, _, ir, lr, dr, v} | rest], [u | us], res) do
+    if dr == 0.0 do
+      [ux, uh, uc, uf, ug, ui, uo, _, ug1, ui1, uo1, uc1] = u
+      c1 = l |> CM.emult(uo1) |> CM.diff(uc1,:tanh)
+      # f gate
+      f1 = c1 |> CM.emult(uc) |> CM.diff(uf,:tanh)
+      # g gate
+      g1 = c1 |> CM.emult(ui1) |> CM.diff(ug,:tanh)
+      # i gate
+      i1 = c1 |> CM.emult(ug1) |> CM.diff(ui,:sigmoid)
+      # o gate
+      o1 = l |> CM.diff(uc1, :tanh) |> CM.emult(uc1) |> CM.diff(uo, :sigmoid)
+      
+      l1 = CM.unslice(f1,g1,i1,o1)
+      b1 = CM.average(l1)
+      {size, _} = CM.size(l1)
+      wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / size)
+      wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / size)
+      l2 = CM.mult(l, CM.transpose(wh))
+      backward(l2, rest, us, [{:lstm, nth, n, wx1, wh1, b1, ir, lr, dr, v} | res])
+    else
+      {[ux, uh, uc, uf, ug, ui, uo, _, ug1, ui1, uo1, uc1], mw} = u
+      c1 = l |> CM.emult(uo1) |> CM.diff(uc1,:tanh)
+      # f gate
+      f1 = c1 |> CM.emult(uc) |> CM.diff(uf,:tanh)
+      # g gate
+      g1 = c1 |> CM.emult(ui1) |> CM.diff(ug,:tanh)
+      # i gate
+      i1 = c1 |> CM.emult(ug1) |> CM.diff(ui,:sigmoid)
+      # o gate
+      o1 = l |> CM.diff(uc1, :tanh) |> CM.emult(uc1) |> CM.diff(uo, :sigmoid)
+
+      l1 = CM.unslice(f1,g1,i1,o1)
+      b1 = CM.average(l1)
+      {size, _} = CM.size(l1)
+      wx1 = CM.mult(CM.transpose(ux), l1) |> CM.mult(1 / size) |> CM.emult(mw)
+      wh1 = CM.mult(CM.transpose(uh), l1) |> CM.mult(1 / size) |> CM.emult(mw)
+      l2 = CM.mult(l1, CM.transpose(CM.emult(wh, mw)))
+      backward(l2, rest, us, [{:lstm, nth, n, wx1, wh1, b1, ir, lr, dr, v} | res])
     end
   end
 
