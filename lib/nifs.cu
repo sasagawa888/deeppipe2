@@ -3244,13 +3244,14 @@ static ERL_NIF_TERM
 slice1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary  a_bin;
     ERL_NIF_TERM  b_bin,c_bin,d_bin,e_bin,tuple;
-    int in_r,in_c,i,j,n,bias;
+    int in_r,in_c,in_c1,i,j,n,bias;
     float *a,*b,*c,*d,*e;
     
     if (!enif_get_int(env, argv[0], &in_r)) return enif_make_int(env,1);
     if (!enif_get_int(env, argv[1], &in_c)) return enif_make_int(env,2);
     if (!enif_inspect_binary(env, argv[2], &a_bin )) return enif_make_int(env,3);
 
+    in_c1 = in_c / 4;
     n = in_r * (in_c / 4);
     a = (float *) a_bin.data;
     b = (float *) enif_make_new_binary(env, n * sizeof(float), &b_bin);
@@ -3260,25 +3261,25 @@ slice1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
      
       
     for(i=0;i<in_r;i++){
-        for(j=0;j<n;j++){
+        for(j=0;j<in_c1;j++){
             b[IDX2C(i,j,in_r)] = a[IDX2C(i,j,in_r)]; 
         }
     }
-    bias = n;
+    bias = in_c / 4;
     for(i=0;i<in_r;i++){
-        for(j=0;j<n;j++){
+        for(j=0;j<in_c1;j++){
             c[IDX2C(i,j,in_r)] = a[IDX2C(i,j+bias,in_r)]; 
         }
     }
-    bias = 2*n;
+    bias = 2 * (in_c / 4);
     for(i=0;i<in_r;i++){
-        for(j=0;j<n;j++){
+        for(j=0;j<in_c1;j++){
             d[IDX2C(i,j,in_r)] = a[IDX2C(i,j+bias,in_r)]; 
         }
     }
-    bias = 3*n;
+    bias = 3 * (in_c / 4);
     for(i=0;i<in_r;i++){
-        for(j=0;j<n;j++){
+        for(j=0;j<in_c1;j++){
             e[IDX2C(i,j,in_r)] = a[IDX2C(i,j+bias,in_r)]; 
         }
     }
@@ -3306,25 +3307,25 @@ unslice1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
     
       
     for(i=0;i<in_r;i++){
-        for(j=0;j<n;j++){
+        for(j=0;j<in_c;j++){
             a[IDX2C(i,j,in_r)] = b[IDX2C(i,j,in_r)];
         }
     }
-    bias = n;
+    bias = in_c;
     for(i=0;i<in_r;i++){
-        for(j=0;j<n;j++){
+        for(j=0;j<in_c;j++){
             a[IDX2C(i,j+bias,in_r)] = c[IDX2C(i,j,in_r)]; 
         }
     }
-    bias = 2*n;
+    bias = 2 * in_c;
     for(i=0;i<in_r;i++){
-        for(j=0;j<n;j++){
+        for(j=0;j<in_c;j++){
             a[IDX2C(i,j+bias,in_r)] = d[IDX2C(i,j,in_r)] ; 
         }
     }
-    bias = 3*n;
+    bias = 3 * in_c;
     for(i=0;i<in_r;i++){
-        for(j=0;j<n;j++){
+        for(j=0;j<in_c;j++){
             a[IDX2C(i,j+bias,in_r)] = e[IDX2C(i,j,in_r)]; 
         }
     }
