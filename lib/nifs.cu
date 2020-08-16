@@ -3304,8 +3304,11 @@ unslice1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
 
     n = in_r * in_c * 4;
     a = (float *) enif_make_new_binary(env, n * sizeof(float), &a_bin);
+    b = (float *) b_bin.data;
+    c = (float *) c_bin.data;
+    d = (float *) d_bin.data;
+    e = (float *) e_bin.data;
     
-      
     for(i=0;i<in_r;i++){
         for(j=0;j<in_c;j++){
             a[IDX2C(i,j,in_r)] = b[IDX2C(i,j,in_r)];
@@ -3329,7 +3332,6 @@ unslice1(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
             a[IDX2C(i,j+bias,in_r)] = e[IDX2C(i,j,in_r)]; 
         }
     }
-      
     return(a_bin);
 }
 

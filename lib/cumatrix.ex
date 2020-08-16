@@ -661,7 +661,6 @@ defmodule Cumatrix do
     raise "emult ilegal data type"
   end
 
- 
   @doc """
   elt(r,c,mt)
   pick up element of mt(r,c) index is one base

@@ -453,6 +453,7 @@ defmodule Network do
   def lstm(_, m, n) when m > n do
     []
   end
+
   # data structure RNN = {:lstm, nth, n, Wx, Wh, b, ir, lr, dr, v}
   # nth means nth of recursive
   # n means times of recursive
