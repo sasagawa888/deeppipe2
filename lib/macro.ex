@@ -400,7 +400,19 @@ defmodule Network do
 
   # LSTM
   def parse({:lstm, _, [x, n]}, _) do
-    lstm(x, 1, n)
+    lstm(x, 1, n, 0.1, 0.1, 0.0)
+  end
+
+  def parse({:lstm, _, [x, n, ir]}, _) do
+    lstm(x, 1, n, ir, 0.1, 0.0)
+  end
+
+  def parse({:lstm, _, [x, n, ir, lr]}, _) do
+    lstm(x, 1, n, ir, lr, 0.0)
+  end
+
+  def parse({:lstm, _, [x, n, ir, lr, dr]}, _) do
+    lstm(x, 1, n, ir, lr, dr)
   end
 
   def parse({x, _, nil}, _) do
@@ -450,7 +462,7 @@ defmodule Network do
     ]
   end
 
-  def lstm(_, m, n) when m > n do
+  def lstm(_, m, n, _, _, _) when m > n do
     []
   end
 
@@ -464,14 +476,14 @@ defmodule Network do
   # lr is learning rate
   # dr is dropout rate
   # v = matrix for learning momentum
-  def lstm(x, m, n) do
+  def lstm(x, m, n, ir, lr, dr) do
     [
       quote do
         {:lstm, unquote(m), unquote(n), CM.rand(unquote(x), unquote(4 * x)),
-         CM.rand(unquote(x), unquote(4 * x)), CM.rand(1, unquote(4 * x)), 0.1, 0.1, 0.0,
-         CM.rand(unquote(x), unquote(4 * x))}
+         CM.rand(unquote(x), unquote(4 * x)), CM.rand(1, unquote(4 * x)), unquote(ir),
+         unquote(lr), unquote(dr), CM.rand(unquote(x), unquote(4 * x))}
       end
-      | lstm(x, m + 1, n)
+      | lstm(x, m + 1, n, ir, lr, dr)
     ]
   end
 end

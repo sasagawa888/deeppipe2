@@ -418,7 +418,6 @@ defmodule Deeppipe do
   end
 
   defp backward(l, [{:lstm, nth, n, _, wh, _, ir, lr, dr, v} | rest], [u | us], res) do
-
     if dr == 0.0 do
       [ux, uh, uc, uf, ug, ui, uo, _, ug1, ui1, uo1, uc1] = u
       c1 = l |> CM.emult(uo1) |> CM.diff(uc1, :tanh)
