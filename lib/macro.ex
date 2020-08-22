@@ -395,7 +395,7 @@ defmodule Network do
 
   # RNN
   def parse({:rnn, _, [x, n]}, _) do
-    rnn(x, 1, n)
+    rnn(x, 1, n, 0.1, 0.1, 0.0)
   end
 
   # LSTM
@@ -437,7 +437,7 @@ defmodule Network do
     raise ""
   end
 
-  def rnn(_, m, n) when m > n do
+  def rnn(_, m, n, _, _, _) when m > n do
     []
   end
 
@@ -451,14 +451,14 @@ defmodule Network do
   # lr is learning rate
   # dr is dropout rate
   # v = matrix for learning momentum
-  def rnn(x, m, n) do
+  def rnn(x, m, n, ir, lr, dr) do
     [
       quote do
         {:rnn, unquote(m), unquote(n), CM.rand(unquote(x), unquote(x)),
-         CM.rand(unquote(x), unquote(x)), CM.rand(1, unquote(x)), 0.1, 0.1, 0.0,
-         CM.rand(unquote(x), unquote(x))}
+         CM.rand(unquote(x), unquote(x)), CM.rand(1, unquote(x)), unquote(ir), unquote(lr),
+         unquote(dr), CM.rand(unquote(x), unquote(x))}
       end
-      | rnn(x, m + 1, n)
+      | rnn(x, m + 1, n, ir, lr, dr)
     ]
   end
 
