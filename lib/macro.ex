@@ -398,6 +398,18 @@ defmodule Network do
     rnn(x, 1, n, 0.1, 0.1, 0.0)
   end
 
+  def parse({:rnn, _, [x, n, ir]}, _) do
+    rnn(x, 1, n, ir, 0.1, 0.0)
+  end
+
+  def parse({:rnn, _, [x, n, ir, lr]}, _) do
+    rnn(x, 1, n, ir, lr, 0.0)
+  end
+
+  def parse({:rnn, _, [x, n, ir, lr, dr]}, _) do
+    rnn(x, 1, n, ir, lr, dr)
+  end
+
   # LSTM
   def parse({:lstm, _, [x, n]}, _) do
     lstm(x, 1, n, 0.1, 0.1, 0.0)

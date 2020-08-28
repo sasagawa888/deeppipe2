@@ -8,7 +8,7 @@ defmodule NLP do
 
   defnetwork init1(_x) do
     _x
-    |> lstm(29, 14)
+    |> lstm(29, 14, 0.1, 0.001)
     |> w(29, 2)
     |> softmax
   end

@@ -1315,6 +1315,36 @@ defmodule Deeppipe do
     ])
   end
 
+  defp numerical_gradient1(x, [{:rnn, nth, n, wx, wh, b, ir, lr, dr, v} | rest], t, before, res) do
+    # IO.puts("ngrad rnn")
+    wx1 =
+      numerical_gradient_matrix(x, wx, t, before, {:rnn, nth, n, wx, wh, b, ir, lr, dr, v}, rest)
+
+    wh1 =
+      numerical_gradient_matrix(x, wh, t, before, {:rnn, nth, n, wx, wh, b, ir, lr, dr, v}, rest)
+
+    b1 = numerical_gradient_bias(x, b, t, before, {:rnn, nth, n, wx, wh, b, ir, lr, dr, v}, rest)
+
+    numerical_gradient1(x, rest, t, [{:rnn, nth, n, wx1, wh1, b1, ir, lr, dr, v} | before], [
+      {:rnn, nth, n, wx1, wh1, b1, ir, lr, dr, v} | res
+    ])
+  end
+
+  defp numerical_gradient1(x, [{:lstm, nth, n, wx, wh, b, ir, lr, dr, v} | rest], t, before, res) do
+    # IO.puts("ngrad rnn")
+    wx1 =
+      numerical_gradient_matrix(x, wx, t, before, {:lstm, nth, n, wx, wh, b, ir, lr, dr, v}, rest)
+
+    wh1 =
+      numerical_gradient_matrix(x, wh, t, before, {:lstm, nth, n, wx, wh, b, ir, lr, dr, v}, rest)
+
+    b1 = numerical_gradient_bias(x, b, t, before, {:lstm, nth, n, wx, wh, b, ir, lr, dr, v}, rest)
+
+    numerical_gradient1(x, rest, t, [{:lstm, nth, n, wx1, wh1, b1, ir, lr, dr, v} | before], [
+      {:lstm, nth, n, wx1, wh1, b1, ir, lr, dr, v} | res
+    ])
+  end
+
   defp numerical_gradient1(x, [{:analizer, n} | rest], t, before, res) do
     # IO.puts("FD analizer")
     CM.analizer(x, n)
