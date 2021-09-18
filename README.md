@@ -1,3 +1,7 @@
+# End of development
+
+I will leave it to GPGPU in the official project of Elixir. Previously, the Japanese advocated GPGPU at the world Elixir conference . After that, I felt responsible as the same Japanese for the lack of progress. My work is over because the regular project (Nx) has been launched.
+
 # DeepPipe2
 DeepPipe2 is a library of Deep-Learning by Elixir using GPU. It is fast because it uses CUDA/cuBLAS. 
 
